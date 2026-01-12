@@ -16,7 +16,7 @@ Contract CarRent{
 			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4'),
 		token Service =('vehicle rental service',3,11600,34800)
 	}
-	ContractMessage{
+	{
 	  ufixed default11=0.02,
 	  ufixed default12=0.05,
 	  ufixed default2=0.05,
