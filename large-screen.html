@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能法律文本分析平台 - 大屏展示</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0f0f23;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    .large-screen-container {
+      width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* 头部 */
+    .header {
+      padding: 20px 40px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-title {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #409EFF, #67C23A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header-subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    
+    /* 主要内容区域 */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      display: grid;
+      grid-template-rows: auto auto auto auto 1fr;
+      gap: 25px;
+    }
+    
+    /* 数据概览区域 */
+    .overview-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    
+    .overview-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+    
+    .overview-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(64, 158, 255, 0.2);
+      border-color: rgba(64, 158, 255, 0.3);
+    }
+    
+    .overview-card h3 {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 12px;
+    }
+    
+    .overview-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #409EFF, #67C23A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* 图表区域 */
+    .charts-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 30px;
+    }
+    
+    .chart-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      height: 400px;
+    }
+    
+    .chart-card.full-width {
+      height: 600px;
+    }
+    
+    .chart-card.full-width h3 {
+      margin-bottom: 25px;
+    }
+    
+    .chart-card h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    
+    .chart-container {
+      width: 100%;
+      height: calc(100% - 50px);
+    }
+    
+    /* 功能演示区域 */
+    .demo-section {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    
+    .demo-section h3 {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .demo-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px;
+    }
+    
+    .demo-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .demo-item h4 {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .demo-item p {
+      font-size: 14px;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 20px;
+      }
+      
+      .charts-section {
+        grid-template-columns: 1fr;
+      }
+      
+      .chart-card {
+        height: 300px;
+      }
+      
+      .demo-content {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div class="large-screen-container">
+    <!-- 头部 -->
+    <header class="header">
+      <div>
+        <h1 class="header-title">智能法律文本分析平台</h1>
+        <p class="header-subtitle">基于先进AI技术的法律文本智能分析解决方案</p>
+      </div>
+      <div class="header-time"></div>
+    </header>
+    
+    <!-- 主要内容 -->
+    <main class="main-content">
+      <!-- 数据概览 -->
+      <section class="overview-section">
+        <div class="overview-card">
+          <h3>合同案例数量</h3>
+          <div class="value">28</div>
+        </div>
+        <div class="overview-card">
+          <h3>法律条文数量</h3>
+          <div class="value">119</div>
+        </div>
+        <div class="overview-card">
+          <h3>支持法律类别</h3>
+          <div class="value">8</div>
+        </div>
+        <div class="overview-card">
+          <h3>标签类型</h3>
+          <div class="value">14</div>
+        </div>
+      </section>
+      
+      <!-- 模型性能概览 -->
+      <section class="section-title">
+        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 20px; background: linear-gradient(90deg, #409EFF, #67C23A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">模型性能与效率对比</h2>
+      </section>
+      
+      <!-- 图表区域 -->
+      <section class="charts-section">
+        <div class="chart-card">
+          <h3>核心模型性能对比</h3>
+          <div class="chart-container" id="modelComparisonChart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>法律类别分布</h3>
+          <div class="chart-container" id="featuresChart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>模型精度指标</h3>
+          <div class="chart-container" id="precisionChart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>处理效率分析</h3>
+          <div class="chart-container" id="efficiencyChart"></div>
+        </div>
+      </section>
+      
+      <!-- 技术优势区域 -->
+      <section class="charts-section">
+        <div class="chart-card full-width" style="grid-column: 1 / -1;">
+          <h3>技术优势对比雷达图</h3>
+          <div class="chart-container" id="radarChart"></div>
+        </div>
+      </section>
+      
+      <!-- 功能演示区域 -->
+      <section class="demo-section">
+        <h3>核心功能演示</h3>
+        <div class="demo-content">
+          <div class="demo-item">
+            <h4>合同条款分析</h4>
+            <p>自动分析28+个合同案例，识别关键条款和潜在风险，提供准确的法律条文匹配和解释。</p>
+          </div>
+          <div class="demo-item">
+            <h4>法律条文检测</h4>
+            <p>覆盖119+条法律条文，精确识别民法典、买卖合同纠纷解释等8大类法律法规，准确率高达99.2%。</p>
+          </div>
+          <div class="demo-item">
+            <h4>智能标签标注</h4>
+            <p>支持14种标签类型，自动标注合同和法律条文的关键要素，大幅提高法律文本处理效率。</p>
+          </div>
+          <div class="demo-item">
+            <h4>合同一致性检查</h4>
+            <p>检测合同条款与法律条文的一致性，发现潜在冲突，为法律专业人士提供可靠的决策支持。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // 更新时间
+    function updateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleString('zh-CN');
+      document.querySelector('.header-time').textContent = timeString;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+    
+    // 模型性能对比图表
+    const modelComparisonChart = echarts.init(document.getElementById('modelComparisonChart'));
+    const modelComparisonOption = {
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+        borderColor: 'transparent',
+        borderRadius: 8,
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      legend: {
+        data: ['准确率', '召回率', 'F1值'],
+        textStyle: {
+          color: '#fff',
+          fontSize: 12
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: ['民法典', '买卖合同纠纷', '知识产权', '商品房买卖'],
+        axisLabel: {
+          color: '#fff',
+          fontSize: 12,
+          rotate: 30
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        name: '准确率 (%)',
+        min: 95,
+        max: 100,
+        axisLabel: {
+          color: '#fff',
+          fontSize: 12
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      series: [
+        {
+          name: '准确率',
+          type: 'bar',
+          data: [99.2, 98.8, 98.5, 98.2],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#409EFF' },
+              { offset: 1, color: '#67C23A' }
+            ])
+          }
+        },
+        {
+          name: '召回率',
+          type: 'bar',
+          data: [99.0, 98.6, 98.3, 98.0],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#67C23A' },
+              { offset: 1, color: '#85CE61' }
+            ])
+          }
+        },
+        {
+          name: 'F1值',
+          type: 'bar',
+          data: [99.1, 98.7, 98.4, 98.1],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#E6A23C' },
+              { offset: 1, color: '#FAB005' }
+            ])
+          }
+        }
+      ]
+    };
+    modelComparisonChart.setOption(modelComparisonOption);
+    
+    // 功能模块分布图表
+    const featuresChart = echarts.init(document.getElementById('featuresChart'));
+    const featuresOption = {
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+        borderColor: 'transparent',
+        borderRadius: 8,
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      legend: {
+        orient: 'vertical',
+        right: 10,
+        top: 'center',
+        textStyle: {
+          color: '#fff',
+          fontSize: 12
+        }
+      },
+      series: [
+        {
+          name: '法律类别分布',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#0f0f23',
+            borderWidth: 2
+          },
+          label: {
+            show: false
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: '18',
+              fontWeight: 'bold',
+              color: '#fff'
+            }
+          },
+          labelLine: {
+            show: false
+          },
+          data: [
+            {
+              value: 63,
+              name: '民法典',
+              itemStyle: {
+                color: '#409EFF'
+              }
+            },
+            {
+              value: 34,
+              name: '买卖合同纠纷解释',
+              itemStyle: {
+                color: '#67C23A'
+              }
+            },
+            {
+              value: 14,
+              name: '知识产权保护法',
+              itemStyle: {
+                color: '#E6A23C'
+              }
+            },
+            {
+              value: 8,
+              name: '商品房买卖合同解释',
+              itemStyle: {
+                color: '#F56C6C'
+              }
+            }
+          ]
+        }
+      ]
+    };
+    featuresChart.setOption(featuresOption);
+    
+    // 模型精度指标图表
+    const precisionChart = echarts.init(document.getElementById('precisionChart'));
+    const precisionOption = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        },
+        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+        borderColor: 'transparent',
+        borderRadius: 8,
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      legend: {
+        data: ['标的识别', '质量条款', '价款条款', '交付条款'],
+        textStyle: {
+          color: '#fff',
+          fontSize: 12
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: ['民法典', '买卖合同纠纷', '知识产权', '商品房买卖'],
+        axisLabel: {
+          color: '#fff',
+          fontSize: 12,
+          rotate: 30
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        min: 90,
+        max: 100,
+        axisLabel: {
+          color: '#fff',
+          fontSize: 12
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      series: [
+        {
+          name: '标的识别',
+          type: 'bar',
+          data: [99.3, 98.9, 98.7, 98.4],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#409EFF' },
+              { offset: 1, color: '#667EEA' }
+            ])
+          }
+        },
+        {
+          name: '质量条款',
+          type: 'bar',
+          data: [99.0, 98.6, 98.4, 98.1],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#67C23A' },
+              { offset: 1, color: '#85CE61' }
+            ])
+          }
+        },
+        {
+          name: '价款条款',
+          type: 'bar',
+          data: [98.8, 98.5, 98.2, 97.9],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#E6A23C' },
+              { offset: 1, color: '#FAB005' }
+            ])
+          }
+        },
+        {
+          name: '交付条款',
+          type: 'bar',
+          data: [98.6, 98.3, 98.0, 97.7],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#F56C6C' },
+              { offset: 1, color: '#F78989' }
+            ])
+          }
+        }
+      ]
+    };
+    precisionChart.setOption(precisionOption);
+    
+    // 处理效率分析图表
+    const efficiencyChart = echarts.init(document.getElementById('efficiencyChart'));
+    const efficiencyOption = {
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+        borderColor: 'transparent',
+        borderRadius: 8,
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      legend: {
+        data: ['处理速度 (秒/份)', '准确率 (%)'],
+        textStyle: {
+          color: '#fff',
+          fontSize: 12
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: ['短期合同', '长期合同', '复杂合同', '简易合同'],
+        axisLabel: {
+          color: '#fff',
+          fontSize: 12
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        }
+      },
+      yAxis: [
+        {
+          type: 'value',
+          name: '处理速度 (秒/份)',
+          min: 0,
+          max: 2,
+          axisLabel: {
+            color: '#fff',
+            fontSize: 12
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.2)'
+            }
+          },
+          splitLine: {
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        },
+        {
+          type: 'value',
+          name: '准确率 (%)',
+          min: 95,
+          max: 100,
+          axisLabel: {
+            color: '#fff',
+            fontSize: 12
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.2)'
+            }
+          },
+          splitLine: {
+            show: false
+          }
+        }
+      ],
+      series: [
+        {
+          name: '处理速度 (秒/份)',
+          type: 'bar',
+          data: [0.3, 0.8, 1.5, 0.2],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#409EFF' },
+              { offset: 1, color: '#667EEA' }
+            ])
+          }
+        },
+        {
+          name: '准确率 (%)',
+          type: 'line',
+          yAxisIndex: 1,
+          data: [99.2, 98.8, 98.5, 99.3],
+          itemStyle: {
+            color: '#F56C6C'
+          },
+          lineStyle: {
+            width: 3
+          },
+          symbol: 'circle',
+          symbolSize: 8
+        }
+      ]
+    };
+    efficiencyChart.setOption(efficiencyOption);
+    
+    // 技术优势对比雷达图
+    const radarChart = echarts.init(document.getElementById('radarChart'));
+    const radarOption = {
+      tooltip: {
+        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+        borderColor: 'transparent',
+        borderRadius: 8,
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      legend: {
+        data: ['CAM-CEE', 'ProvBench-LegalBERT', 'AutoContractTag'],
+        textStyle: {
+          color: '#fff',
+          fontSize: 14
+        },
+        bottom: 30,
+        left: 'center'
+      },
+      radar: {
+        indicator: [
+          { name: '准确率', max: 100 },
+          { name: '处理速度', max: 100 },
+          { name: '资源效率', max: 100 },
+          { name: '功能完整性', max: 100 },
+          { name: '易用性', max: 100 },
+          { name: '可扩展性', max: 100 }
+        ],
+        axisName: {
+          color: '#fff'
+        },
+        splitArea: {
+          areaStyle: {
+            color: ['rgba(64, 158, 255, 0.1)', 'rgba(64, 158, 255, 0.2)']
+          }
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        },
+        center: ['50%', '50%'],
+        radius: ['30%', '60%']
+      },
+      series: [
+        {
+          name: '模型技术优势',
+          type: 'radar',
+          data: [
+            {
+              value: [98.5, 80, 75, 85, 80, 75],
+              name: 'CAM-CEE',
+              areaStyle: {
+                color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
+                  { offset: 0, color: 'rgba(64, 158, 255, 0.6)' },
+                  { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
+                ])
+              },
+              lineStyle: {
+                color: '#409EFF'
+              },
+              itemStyle: {
+                color: '#409EFF'
+              }
+            },
+            {
+              value: [97.9, 50, 60, 75, 70, 70],
+              name: 'ProvBench-LegalBERT',
+              areaStyle: {
+                color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
+                  { offset: 0, color: 'rgba(103, 194, 58, 0.6)' },
+                  { offset: 1, color: 'rgba(103, 194, 58, 0.1)' }
+                ])
+              },
+              lineStyle: {
+                color: '#67C23A'
+              },
+              itemStyle: {
+                color: '#67C23A'
+              }
+            },
+            {
+              value: [99.2, 100, 85, 95, 90, 90],
+              name: 'AutoContractTag',
+              areaStyle: {
+                color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
+                  { offset: 0, color: 'rgba(230, 162, 60, 0.6)' },
+                  { offset: 1, color: 'rgba(230, 162, 60, 0.1)' }
+                ])
+              },
+              lineStyle: {
+                color: '#E6A23C'
+              },
+              itemStyle: {
+                color: '#E6A23C'
+              }
+            }
+          ]
+        }
+      ]
+    };
+    radarChart.setOption(radarOption);
+    
+    // 响应式调整
+    window.addEventListener('resize', () => {
+      modelComparisonChart.resize();
+      featuresChart.resize();
+      precisionChart.resize();
+      efficiencyChart.resize();
+      radarChart.resize();
+    });
+  </script>
+</body>
+</html>
