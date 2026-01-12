@@ -1,0 +1,108 @@
+Contract CarRent{
+	PA Person
+	CA Ca
+	Token token{
+	  string name,	
+	  uint number,
+	  uint unit_price,
+	  uint price
+	}
+	Init {
+		Person Buyer = ('ShanXi Provincial Department of Housing and Urban-Rural Development Agency Supplier',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Seller = ('XiAn YingBin Auto Car Service',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Ca Arbitration = ('arbitration institution',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4'),
+		token Service =('vehicle rental service',3,11600,34800)
+	}
+	ContractMessage{
+	  ufixed default11=0.02,
+	  ufixed default12=0.05,
+	  ufixed default2=0.05,
+	  uint dayNum=0,
+	  string faultName='',
+	  ufixed amount=0,
+	  date signTime=2022/11/09,00:00,
+	  string signPlaca='XiAn',
+	  date startTime=2023/07/10,00:00,
+	  date finishTime=2023/07/31,00:00
+	}
+	
+	Conditions[
+		time1:within 10 days after rule1,
+		time2:within 7 days after rule2,
+		trueCheck:isDone(rule2) and isTrue(checkResult),
+		totalCheck: trueCheck and time1,
+		logic1:logic(price*dayNum*default11,price*default12,>)
+	]
+	
+	Operations[
+		end:assign(ContractState,finish),
+		end2: assign(ContractState,terminate)
+	]
+	
+	Rules{
+		//delivery
+		rule1: If: isTime(startTime) and before finishTime, Seller;
+		
+		//confirmation of receipt and inspection
+		rule2: SetMessage(new bool checkResult) If: isDone(rule1), Buyer;
+		
+		//good result, pay within 10 days, contract ends
+		rule3: If: totalCheck or isDone(rule7),Buyer transfer(Seller,o Service.price) and end;
+		
+		//bad result, initiate return within 7 days
+		rule4: If: isDone(rule2) and !isTrue(checkResult) and time2, Buyer;
+		
+		//buyer returns goods, seller may re-deliver
+		rule5: If: isDone(rule4) and within 3 days after rule4,
+		Buyer change(CM delivery,false) and change(CM check_good,false);
+		
+		//seller delays delivery
+		rule6: SetMessage(uint dayNum) If: isTime(finishTime) and !isDone(rule1),Buyer change(CM delivery,true)
+		SubRule{
+			If: logic1,  
+			assign(price,price-price*dayNum*default12)
+		}
+		SubRule{
+			If: !logic1,  
+			assign(price,price-price*dayNum*default11)
+		};
+		
+		//buyer delays payment
+		rule7:
+		SetMessage(uint dayNum) If: trueCheck and !time1 and !isDone(rule3), Seller
+		SubRule{
+			If: logic1,  
+			assign(price,price+price*dayNum*default12)
+		}
+		SubRule{
+			If: !logic1,  
+			assign(price,price+price*dayNum*default11)
+		};
+		
+		//seller terminates
+		rule8: Seller transfer(Buyer,default2*price) and end2;
+		
+		//buyer terminates
+		rule9: Buyer transfer(Seller,default2*price) and end2
+		
+		//arbitration decides the fault party, who pays penalty
+		Additional[	
+		arbitrationClause:
+		SetMessage(string faultName,ufixed amount)
+		Arbitration;
+		
+		buyer_fault:
+		If: isDone(arbitrationClause) and logic(faultName,s Buyer.name,==),
+		Buyer transfer(Seller,amount) and end;
+		
+		seller_fault:
+		If: isDone(arbitrationClause) and logic(faultName,s Seller.name,==),
+		Seller transfer(Buyer,amount) and end
+		]
+	}
+	
+	Require:isDone,isTime,isTrue,transfer;
+}

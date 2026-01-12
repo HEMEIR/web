@@ -2241,18 +2241,32 @@ const AutoGeneration = () => {
 
   // 模拟语法检查
   const handleCheckSyntax = () => {
-    // 模拟发现语法错误
+    // 模拟发现语法错误 - 第19行缺失关键字
     const mockErrors = [
       {
-        line: 5,
-        column: 5,
-        message: '未知属性名',
+        line: 19,
+        column: 1,
+        message: '缺失关键字',
         length: 10
       }
     ];
     setSyntaxErrors(mockErrors);
     setHasCheckedSyntax(true);
     simulateApiRequest('check');
+    
+    // 滚动到错误位置
+    setTimeout(() => {
+      const textarea = document.querySelector('.code-editor-textarea');
+      if (textarea) {
+        // 计算第19行的位置并滚动
+        const lineHeight = 20; // 近似行高
+        const scrollPosition = (19 - 1) * lineHeight;
+        textarea.scrollTop = scrollPosition;
+        
+        // 聚焦到文本区域
+        textarea.focus();
+      }
+    }, 100);
   };
 
   // 模拟编译
@@ -2345,14 +2359,48 @@ const AutoGeneration = () => {
                             </label>
                           </div>
                         </div>
-                        {/* 代码输入区域 */}
-                        <textarea
-                          className="w-full border-none px-4 py-3 text-sm font-mono h-72 resize-none"
-                          value={code}
-                          onChange={handleCodeChange}
-                          placeholder="在这里编写 Sparrow 程序..."
-                          spellCheck={false}
-                        />
+                        {/* 代码输入区域 - 带错误高亮 */}
+                        <div className="relative">
+                          {/* 代码编辑器 */}
+                          <textarea
+                            className="code-editor-textarea w-full border-none px-4 py-3 text-sm font-mono h-72 resize-none bg-transparent z-10 relative"
+                            value={code}
+                            onChange={handleCodeChange}
+                            placeholder="在这里编写 Sparrow 程序..."
+                            spellCheck={false}
+                          />
+                          {/* 错误高亮层 */}
+                          {syntaxErrors.length > 0 && (
+                            <div className="absolute top-0 left-0 right-0 bottom-0 px-4 py-3 font-mono text-sm pointer-events-none">
+                              {syntaxErrors.map((error, index) => {
+                                // 创建一个包含相同换行符的占位符字符串，用于定位错误行
+                                const lines = code.split('\n');
+                                const beforeLine = lines.slice(0, error.line - 1).join('\n');
+                                const lineText = lines[error.line - 1] || '';
+                                const beforeError = lineText.slice(0, error.column - 1);
+                                const errorText = lineText.slice(error.column - 1, error.column - 1 + error.length);
+                                const afterError = lineText.slice(error.column - 1 + error.length);
+                                
+                                return (
+                                  <div key={index} className="relative">
+                                    {/* 前面的行 */}
+                                    <div style={{ height: `${(error.line - 1) * 20}px` }}></div>
+                                    {/* 错误行 */}
+                                    <div>
+                                      {beforeError}
+                                      <span className="text-red-600 bg-red-100 relative">
+                                        {errorText}
+                                        {/* 红色波浪线 */}
+                                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600 w-full" style={{ borderBottom: '2px wavy red' }}></span>
+                                      </span>
+                                      {afterError}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-4">
