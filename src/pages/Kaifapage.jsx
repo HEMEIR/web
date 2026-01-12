@@ -35,7 +35,7 @@ const Kaifapage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">智能法律合约开发引擎</h1>
+              <h1 className="text-xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => navigate('/')}>智能法律合约开发引擎</h1>
             </div>
             <div className="flex items-center space-x-8">
               {['系统总览', '建模语言', '开发平台', '测试平台', '知识产权'].map((item) => (
@@ -142,8 +142,8 @@ const Kaifapage = () => {
           </div>
         </div>
 
-        {/* 模块二和模块三 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* 模块二、模块三和模块四 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* 模块二：开发工具 */}
           <div className="bg-gradient-to-br from-blue-800/50 to-purple-800/50 rounded-xl p-8">
             <div className="flex items-start">
@@ -204,6 +204,36 @@ const Kaifapage = () => {
                 >
                   查看更多>>>
                 </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 模块四：大屏展示 */}
+          <div className="bg-gradient-to-br from-blue-800/50 to-purple-800/50 rounded-xl p-8">
+            <div className="flex items-start">
+              <div className="mr-6 flex-shrink-0">
+                <div className="bg-white rounded-lg p-3">
+                  <div className="w-10 h-10 flex items-center justify-center">
+                    <span className="text-2xl font-bold">📊</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">大屏展示</h3>
+                <p className="text-white mb-2">查看</p>
+                <p className="text-white mb-2">分析</p>
+                <p className="text-white mb-4">监控</p>
+                <p className="text-white text-sm">
+                  实时监控系统运行状态，展示关键指标和数据可视化
+                </p>
+                <a
+                  href="/src/pages/large-screen.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-300 hover:text-blue-200 underline"
+                >
+                  查看更多>>>
+                </a>
               </div>
             </div>
           </div>

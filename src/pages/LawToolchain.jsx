@@ -2168,24 +2168,8 @@ const AutoGeneration = () => {
   const [error, setError] = React.useState('');
   
   // 代码内容状态
-  const [code, setCode] = React.useState(`// 在这里编写 Sparrow 程序
-// 示例：
-contract LaborContract {
-  parties {
-    employer: "XX公司";
-    employee: "张三";
-  }
+  const [code, setCode] = React.useState('');
   
-  duration: "3年";
-  salary: "10000元/月";
-  location: "北京市朝阳区";
-  
-  clauses {
-    workHours: "每周40小时";
-    benefits: "五险一金";
-    termination: "提前30天通知";
-  }
-}`);
   
   // 语法错误状态
   const [syntaxErrors, setSyntaxErrors] = React.useState([]);
@@ -3389,7 +3373,7 @@ const LawToolchain = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">智能合约法律条文诠释原型系统与应用平台 V1.0</h1>
+              <h1 className="text-xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => navigate('/')}>智能合约法律条文诠释原型系统与应用平台 V1.0</h1>
             </div>
             <div className="flex items-center space-x-8">
               {['系统总览', '建模语言', '开发平台', '测试平台', '知识产权'].map((item) => (

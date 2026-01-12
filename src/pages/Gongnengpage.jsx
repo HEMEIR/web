@@ -35,7 +35,7 @@ const Gongnengpage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">智能法律合约开发引擎</h1>
+              <h1 className="text-xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => navigate('/')}>智能法律合约开发引擎</h1>
             </div>
             <div className="flex items-center space-x-8">
               {['系统总览', '建模语言', '开发平台', '测试平台', '知识产权'].map((item) => (

@@ -25,8 +25,55 @@
       flex-direction: column;
     }
     
-    /* 头部 */
-    .header {
+    /* 导航栏 */
+    nav {
+      background: white;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
+    
+    nav .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 64px;
+    }
+    
+    nav h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+    
+    nav .nav-items {
+      display: flex;
+      gap: 32px;
+    }
+    
+    nav .nav-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    nav .nav-item:hover {
+      color: #111827;
+    }
+    
+    nav .nav-item.active {
+      color: #2563eb;
+      border-bottom: 2px solid #2563eb;
+    }
+    
+    /* 页面头部 */
+    .page-header {
       padding: 20px 40px;
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
@@ -36,7 +83,7 @@
       align-items: center;
     }
     
-    .header-title {
+    .page-header-title {
       font-size: 24px;
       font-weight: 700;
       background: linear-gradient(90deg, #409EFF, #67C23A);
@@ -45,7 +92,7 @@
       background-clip: text;
     }
     
-    .header-subtitle {
+    .page-header-subtitle {
       font-size: 14px;
       opacity: 0.8;
     }
@@ -191,13 +238,85 @@
 </head>
 <body>
   <div class="large-screen-container">
-    <!-- 头部 -->
-    <header class="header">
-      <div>
-        <h1 class="header-title">智能法律文本分析平台</h1>
-        <p class="header-subtitle">基于先进AI技术的法律文本智能分析解决方案</p>
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-sm">
+      <div style="max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; height: 64px;">
+        <div style="display: flex; align-items: center;">
+          <a href="/" style="text-decoration: none;">
+            <h1 style="font-size: 20px; font-weight: 700; color: #1f2937;">智能法律合约开发引擎</h1>
+          </a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 32px;">
+          <a href="/" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-home">系统总览</a>
+          <a href="/modeling-language" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-modeling">建模语言</a>
+          <a href="/development-platform" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-development">开发平台</a>
+          <a href="/testing-platform" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-testing">测试平台</a>
+          <a href="/intellectual-property" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-ip">知识产权</a>
+        </div>
       </div>
-      <div class="header-time"></div>
+    </nav>
+    
+    <script>
+      // 检查当前URL，设置活跃的导航项
+      function setActiveNavItem() {
+        const path = window.location.pathname;
+        const navItems = {
+          '/': 'nav-home',
+          '/modeling-language': 'nav-modeling',
+          '/development-platform': 'nav-development',
+          '/testing-platform': 'nav-testing',
+          '/intellectual-property': 'nav-ip'
+        };
+        
+        // 获取所有导航项
+        const allNavItems = document.querySelectorAll('nav a[href]');
+        
+        // 移除所有活跃状态
+        allNavItems.forEach(item => {
+          item.style.color = '#4b5563';
+          item.style.borderBottom = 'none';
+        });
+        
+        // 添加当前路径的活跃状态
+        const activeId = navItems[path];
+        if (activeId) {
+          const activeItem = document.getElementById(activeId);
+          activeItem.style.color = '#2563eb';
+          activeItem.style.borderBottom = '2px solid #2563eb';
+        }
+      }
+      
+      // 添加悬停效果
+      function addHoverEffects() {
+        const navItems = document.querySelectorAll('nav a[href]');
+        navItems.forEach(item => {
+          item.addEventListener('mouseenter', () => {
+            if (item.style.color !== 'rgb(37, 99, 235)') {
+              item.style.color = '#111827';
+            }
+          });
+          item.addEventListener('mouseleave', () => {
+            if (item.style.color !== 'rgb(37, 99, 235)') {
+              item.style.color = '#4b5563';
+            }
+          });
+        });
+      }
+      
+      // 页面加载时执行
+      window.addEventListener('load', () => {
+        setActiveNavItem();
+        addHoverEffects();
+      });
+    </script>
+    
+    <!-- 页面头部 -->
+    <header class="page-header">
+      <div>
+        <h1 class="page-header-title">智能法律文本分析平台</h1>
+        <p class="page-header-subtitle">基于先进AI技术的法律文本智能分析解决方案</p>
+      </div>
+      <div class="page-header-time"></div>
     </header>
     
     <!-- 主要内容 -->
@@ -285,7 +404,7 @@
     function updateTime() {
       const now = new Date();
       const timeString = now.toLocaleString('zh-CN');
-      document.querySelector('.header-time').textContent = timeString;
+      document.querySelector('.page-header-time').textContent = timeString;
     }
     setInterval(updateTime, 1000);
     updateTime();

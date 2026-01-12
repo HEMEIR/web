@@ -57,7 +57,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">智能合约法律条文诠释原型系统与应用平台 V1.0</h1>
+              <h1 className="text-xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => navigate('/')}>智能合约法律条文诠释原型系统与应用平台 V1.0</h1>
             </div>
             <div className="flex items-center space-x-8">
               {['系统总览', '建模语言', '开发平台', '测试平台', '知识产权'].map((item) => (
@@ -94,7 +94,7 @@ const Index = () => {
         {/* 四大平台 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* 形式化建设平台 */}
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/modeling-language')}>
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <FileText className="h-8 w-8 text-blue-600 mr-3" />
@@ -117,7 +117,7 @@ const Index = () => {
           </div>
 
           {/* 开发平台 */}
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/development-platform')}>
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <Code className="h-8 w-8 text-green-600 mr-3" />
@@ -141,7 +141,7 @@ const Index = () => {
           </div>
 
           {/* 测试平台 */}
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/testing-platform')}>
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <TestTube className="h-8 w-8 text-purple-600 mr-3" />
