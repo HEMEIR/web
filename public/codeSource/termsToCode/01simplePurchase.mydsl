@@ -1,0 +1,25 @@
+Rule{			
+		rule1:
+		Con: !isTime(giveTime),
+		Buyer transfer(Platform,price);
+		
+		rule2:
+		Con: isDone(rule1) and timeSub(now,giveTime,1 days,<),
+		Seller;
+		
+		rule3:
+		Con: isDone(rule2),
+		Platform;
+		
+		rule4:
+		Con: within 15 days after rule3,
+		Buyer;
+		
+		rule5:
+		Con: isDone(rule4),
+		Platform transfer(Seller,price) and end;
+		
+		rule6:
+		Con: isDone(rule3) and isTime(getRuleTime(rule3)+15days),
+		Platform transfer(Seller,price) and end
+}

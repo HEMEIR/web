@@ -1,0 +1,25 @@
+Rule{		
+		rule1:
+		Con: !isTime(startTime),
+		Auctioneer transfer(Platform,Commission);
+		
+		rule2:
+		Con: isDone(rule1) and timeSub(startTime,now,1 hours,<),
+		Platform;
+		
+		repeat
+		rule3:
+		setMessage(string bidder,uint bid)
+		Con: isDone(rule2) and isTime(startTime) 
+		and !isTime(finishTime) and logic(bid,highestBid,>) and logic(bid,reservePrice,>=),
+		change(highestBid,bid) and change(highestBidder,bidder);
+		
+		rule4:
+		setMessage(string bidder)
+		Con: isTime(finishTime) and compareString(bidder,highestBidder),
+		transfer(Platform,highestBid);
+		
+		rule5:
+		Con:isDone(rule4),
+		Platform transfer(Auctioneer,highestBid) and change(ContractState,finish)
+}

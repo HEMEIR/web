@@ -25,55 +25,8 @@
       flex-direction: column;
     }
     
-    /* 导航栏 */
-    nav {
-      background: white;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    }
-    
-    nav .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 64px;
-    }
-    
-    nav h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1f2937;
-    }
-    
-    nav .nav-items {
-      display: flex;
-      gap: 32px;
-    }
-    
-    nav .nav-item {
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #4b5563;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    
-    nav .nav-item:hover {
-      color: #111827;
-    }
-    
-    nav .nav-item.active {
-      color: #2563eb;
-      border-bottom: 2px solid #2563eb;
-    }
-    
-    /* 页面头部 */
-    .page-header {
+    /* 头部 */
+    .header {
       padding: 20px 40px;
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
@@ -83,7 +36,7 @@
       align-items: center;
     }
     
-    .page-header-title {
+    .header-title {
       font-size: 24px;
       font-weight: 700;
       background: linear-gradient(90deg, #409EFF, #67C23A);
@@ -92,7 +45,7 @@
       background-clip: text;
     }
     
-    .page-header-subtitle {
+    .header-subtitle {
       font-size: 14px;
       opacity: 0.8;
     }
@@ -238,85 +191,13 @@
 </head>
 <body>
   <div class="large-screen-container">
-    <!-- 导航栏 -->
-    <nav class="bg-white shadow-sm">
-      <div style="max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; height: 64px;">
-        <div style="display: flex; align-items: center;">
-          <a href="/" style="text-decoration: none;">
-            <h1 style="font-size: 20px; font-weight: 700; color: #1f2937;">智能法律合约开发引擎</h1>
-          </a>
-        </div>
-        <div style="display: flex; align-items: center; gap: 32px;">
-          <a href="/" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-home">系统总览</a>
-          <a href="/modeling-language" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-modeling">建模语言</a>
-          <a href="/development-platform" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-development">开发平台</a>
-          <a href="/testing-platform" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-testing">测试平台</a>
-          <a href="/intellectual-property" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #4b5563; text-decoration: none; transition: all 0.2s ease; cursor: pointer;" id="nav-ip">知识产权</a>
-        </div>
-      </div>
-    </nav>
-    
-    <script>
-      // 检查当前URL，设置活跃的导航项
-      function setActiveNavItem() {
-        const path = window.location.pathname;
-        const navItems = {
-          '/': 'nav-home',
-          '/modeling-language': 'nav-modeling',
-          '/development-platform': 'nav-development',
-          '/testing-platform': 'nav-testing',
-          '/intellectual-property': 'nav-ip'
-        };
-        
-        // 获取所有导航项
-        const allNavItems = document.querySelectorAll('nav a[href]');
-        
-        // 移除所有活跃状态
-        allNavItems.forEach(item => {
-          item.style.color = '#4b5563';
-          item.style.borderBottom = 'none';
-        });
-        
-        // 添加当前路径的活跃状态
-        const activeId = navItems[path];
-        if (activeId) {
-          const activeItem = document.getElementById(activeId);
-          activeItem.style.color = '#2563eb';
-          activeItem.style.borderBottom = '2px solid #2563eb';
-        }
-      }
-      
-      // 添加悬停效果
-      function addHoverEffects() {
-        const navItems = document.querySelectorAll('nav a[href]');
-        navItems.forEach(item => {
-          item.addEventListener('mouseenter', () => {
-            if (item.style.color !== 'rgb(37, 99, 235)') {
-              item.style.color = '#111827';
-            }
-          });
-          item.addEventListener('mouseleave', () => {
-            if (item.style.color !== 'rgb(37, 99, 235)') {
-              item.style.color = '#4b5563';
-            }
-          });
-        });
-      }
-      
-      // 页面加载时执行
-      window.addEventListener('load', () => {
-        setActiveNavItem();
-        addHoverEffects();
-      });
-    </script>
-    
-    <!-- 页面头部 -->
-    <header class="page-header">
+    <!-- 头部 -->
+    <header class="header">
       <div>
-        <h1 class="page-header-title">智能法律文本分析平台</h1>
-        <p class="page-header-subtitle">基于先进AI技术的法律文本智能分析解决方案</p>
+        <h1 class="header-title">智能法律文本分析平台</h1>
+        <p class="header-subtitle">基于先进AI技术的法律文本智能分析解决方案</p>
       </div>
-      <div class="page-header-time"></div>
+      <div class="header-time"></div>
     </header>
     
     <!-- 主要内容 -->
@@ -353,6 +234,24 @@
           <div class="chart-container" id="modelComparisonChart"></div>
         </div>
         <div class="chart-card">
+          <h3>模型对比优势</h3>
+          <div class="chart-container" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h4 style="font-size: 18px; margin-bottom: 20px;">CAM-CEE 相对基线模型提升</h4>
+              <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 20px; border-left: 4px solid #409EFF;">
+                  <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">准确率提升 (vs LWICNER)</div>
+                  <div style="font-size: 28px; font-weight: 700; color: #409EFF;">+10.51%</div>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 20px; border-left: 4px solid #67C23A;">
+                  <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">召回率提升 (vs Graph4CNER)</div>
+                  <div style="font-size: 28px; font-weight: 700; color: #67C23A;">+23.34%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
           <h3>法律类别分布</h3>
           <div class="chart-container" id="featuresChart"></div>
         </div>
@@ -366,6 +265,27 @@
         </div>
       </section>
       
+      <!-- 智能合约生成质量 -->
+      <section class="charts-section">
+        <div class="chart-card" style="grid-column: 1 / -1;">
+          <h3>智能合约生成质量</h3>
+          <div class="chart-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+              <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">代码准确率</div>
+              <div style="font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #409EFF, #67C23A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">97.1%</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+              <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">代码一致性</div>
+              <div style="font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #67C23A, #409EFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">97.9%</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+              <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">CodeBERTScore</div>
+              <div style="font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #E6A23C, #FAB005); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">88.35%</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <!-- 技术优势区域 -->
       <section class="charts-section">
         <div class="chart-card full-width" style="grid-column: 1 / -1;">
@@ -374,7 +294,72 @@
         </div>
       </section>
       
-      <!-- 功能演示区域 -->
+      <!-- 漏洞可视化展示区域 -->
+      <section class="charts-section">
+        <div class="chart-card full-width" style="grid-column: 1 / -1;">
+          <h3>漏洞安全级别可视化</h3>
+          <div class="chart-container" id="vulnerabilityChart"></div>
+        </div>
+      </section>
+
+      <!-- 漏洞代码展示区域 -->
+      <section class="demo-section">
+        <h3>漏洞代码安全级别展示</h3>
+        <div class="demo-content">
+          <div class="demo-item" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-left: 4px solid #3b82f6;">
+            <h4 style="color: #1e40af;">低风险漏洞</h4>
+            <p style="color: #3b82f6;">代码逻辑不严谨，但不会导致严重后果。例如：缺少输入验证、日志记录不完整等。</p>
+            <pre style="margin-top: 10px; background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
+// 示例：缺少输入验证
+function transfer(address to, uint amount) public {
+    balances[msg.sender] -= amount;
+    balances[to] += amount;
+}
+            </pre>
+          </div>
+          <div class="demo-item" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b;">
+            <h4 style="color: #92400e;">中风险漏洞</h4>
+            <p style="color: #f59e0b;">可能导致资产损失或功能异常。例如：整数溢出、权限控制不当等。</p>
+            <pre style="margin-top: 10px; background: rgba(245, 158, 11, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
+// 示例：整数溢出风险
+function withdraw(uint amount) public {
+    require(balances[msg.sender] >= amount);
+    balances[msg.sender] -= amount;
+    payable(msg.sender).transfer(amount);
+}
+            </pre>
+          </div>
+          <div class="demo-item" style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-left: 4px solid #ef4444;">
+            <h4 style="color: #991b1b;">高风险漏洞</h4>
+            <p style="color: #ef4444;">可能导致严重资产损失或系统完全崩溃。例如：重入攻击、逻辑漏洞等。</p>
+            <pre style="margin-top: 10px; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
+// 示例：重入攻击风险
+function withdraw(uint amount) public {
+    require(balances[msg.sender] >= amount);
+    payable(msg.sender).transfer(amount);
+    balances[msg.sender] -= amount;
+}
+            </pre>
+          </div>
+          <div class="demo-item" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-left: 4px solid #8b5cf6;">
+            <h4 style="color: #5b21b6;">关键风险漏洞</h4>
+            <p style="color: #8b5cf6;">直接导致合约完全失效或所有资产被盗。例如：私有变量可修改、构造函数漏洞等。</p>
+            <pre style="margin-top: 10px; background: rgba(139, 92, 246, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
+// 示例：构造函数漏洞（旧版Solidity）
+function Wallet() public {
+    owner = msg.sender;
+}
+
+// 被错误调用为普通函数，导致owner被篡改
+function wallet() public {
+    owner = msg.sender;
+}
+            </pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- 核心功能演示区域 -->
       <section class="demo-section">
         <h3>核心功能演示</h3>
         <div class="demo-content">
@@ -400,17 +385,27 @@
   </div>
 
   <script>
+    // 错误处理
+    console.log('开始加载图表...');
+    
     // 更新时间
     function updateTime() {
       const now = new Date();
       const timeString = now.toLocaleString('zh-CN');
-      document.querySelector('.page-header-time').textContent = timeString;
+      document.querySelector('.header-time').textContent = timeString;
     }
     setInterval(updateTime, 1000);
     updateTime();
     
     // 模型性能对比图表
-    const modelComparisonChart = echarts.init(document.getElementById('modelComparisonChart'));
+    console.log('初始化模型性能对比图表...');
+    const modelComparisonElement = document.getElementById('modelComparisonChart');
+    if (modelComparisonElement) {
+      console.log('找到modelComparisonChart元素');
+    } else {
+      console.error('未找到modelComparisonChart元素');
+    }
+    const modelComparisonChart = echarts.init(modelComparisonElement);
     const modelComparisonOption = {
       tooltip: {
         trigger: 'axis',
@@ -422,7 +417,7 @@
         }
       },
       legend: {
-        data: ['准确率', '召回率', 'F1值'],
+        data: ['准确率', '召回率'],
         textStyle: {
           color: '#fff',
           fontSize: 12
@@ -436,11 +431,11 @@
       },
       xAxis: {
         type: 'category',
-        data: ['民法典', '买卖合同纠纷', '知识产权', '商品房买卖'],
+        data: ['CAM-CEE', 'LWICNER', 'Graph4CNER', 'W2NER'],
         axisLabel: {
           color: '#fff',
           fontSize: 12,
-          rotate: 30
+          rotate: 0
         },
         axisLine: {
           lineStyle: {
@@ -450,8 +445,8 @@
       },
       yAxis: {
         type: 'value',
-        name: '准确率 (%)',
-        min: 95,
+        name: '性能指标 (%)',
+        min: 60,
         max: 100,
         axisLabel: {
           color: '#fff',
@@ -472,33 +467,30 @@
         {
           name: '准确率',
           type: 'bar',
-          data: [99.2, 98.8, 98.5, 98.2],
+          data: [92.33, 81.82, 89.15, null],
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: '#409EFF' },
-              { offset: 1, color: '#67C23A' }
+              { offset: 1, color: '#667EEA' }
             ])
+          },
+          emphasis: {
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#667EEA' },
+                { offset: 1, color: '#409EFF' }
+              ])
+            }
           }
         },
         {
           name: '召回率',
           type: 'bar',
-          data: [99.0, 98.6, 98.3, 98.0],
+          data: [85.62, 74.62, 62.28, 76.67],
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: '#67C23A' },
               { offset: 1, color: '#85CE61' }
-            ])
-          }
-        },
-        {
-          name: 'F1值',
-          type: 'bar',
-          data: [99.1, 98.7, 98.4, 98.1],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#E6A23C' },
-              { offset: 1, color: '#FAB005' }
             ])
           }
         }
@@ -507,7 +499,14 @@
     modelComparisonChart.setOption(modelComparisonOption);
     
     // 功能模块分布图表
-    const featuresChart = echarts.init(document.getElementById('featuresChart'));
+    console.log('初始化功能模块分布图表...');
+    const featuresElement = document.getElementById('featuresChart');
+    if (featuresElement) {
+      console.log('找到featuresChart元素');
+    } else {
+      console.error('未找到featuresChart元素');
+    }
+    const featuresChart = echarts.init(featuresElement);
     const featuresOption = {
       tooltip: {
         trigger: 'item',
@@ -588,7 +587,14 @@
     featuresChart.setOption(featuresOption);
     
     // 模型精度指标图表
-    const precisionChart = echarts.init(document.getElementById('precisionChart'));
+    console.log('初始化模型精度指标图表...');
+    const precisionElement = document.getElementById('precisionChart');
+    if (precisionElement) {
+      console.log('找到precisionChart元素');
+    } else {
+      console.error('未找到precisionChart元素');
+    }
+    const precisionChart = echarts.init(precisionElement);
     const precisionOption = {
       tooltip: {
         trigger: 'axis',
@@ -603,7 +609,7 @@
         }
       },
       legend: {
-        data: ['标的识别', '质量条款', '价款条款', '交付条款'],
+        data: ['R@1', 'R@3', 'R@5'],
         textStyle: {
           color: '#fff',
           fontSize: 12
@@ -617,11 +623,10 @@
       },
       xAxis: {
         type: 'category',
-        data: ['民法典', '买卖合同纠纷', '知识产权', '商品房买卖'],
+        data: ['LegalBERT', 'BERT', 'RoBERTa'],
         axisLabel: {
           color: '#fff',
-          fontSize: 12,
-          rotate: 30
+          fontSize: 12
         },
         axisLine: {
           lineStyle: {
@@ -631,7 +636,7 @@
       },
       yAxis: {
         type: 'value',
-        min: 90,
+        min: 85,
         max: 100,
         axisLabel: {
           color: '#fff',
@@ -650,9 +655,9 @@
       },
       series: [
         {
-          name: '标的识别',
+          name: 'R@1',
           type: 'bar',
-          data: [99.3, 98.9, 98.7, 98.4],
+          data: [88.39, 87.28, 89.06],
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: '#409EFF' },
@@ -661,9 +666,9 @@
           }
         },
         {
-          name: '质量条款',
+          name: 'R@3',
           type: 'bar',
-          data: [99.0, 98.6, 98.4, 98.1],
+          data: [95.31, 93.53, 94.42],
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: '#67C23A' },
@@ -672,24 +677,13 @@
           }
         },
         {
-          name: '价款条款',
+          name: 'R@5',
           type: 'bar',
-          data: [98.8, 98.5, 98.2, 97.9],
+          data: [97.54, 95.76, 96.88],
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: '#E6A23C' },
               { offset: 1, color: '#FAB005' }
-            ])
-          }
-        },
-        {
-          name: '交付条款',
-          type: 'bar',
-          data: [98.6, 98.3, 98.0, 97.7],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#F56C6C' },
-              { offset: 1, color: '#F78989' }
             ])
           }
         }
@@ -698,7 +692,14 @@
     precisionChart.setOption(precisionOption);
     
     // 处理效率分析图表
-    const efficiencyChart = echarts.init(document.getElementById('efficiencyChart'));
+    console.log('初始化处理效率分析图表...');
+    const efficiencyElement = document.getElementById('efficiencyChart');
+    if (efficiencyElement) {
+      console.log('找到efficiencyChart元素');
+    } else {
+      console.error('未找到efficiencyChart元素');
+    }
+    const efficiencyChart = echarts.init(efficiencyElement);
     const efficiencyOption = {
       tooltip: {
         trigger: 'axis',
@@ -806,7 +807,14 @@
     efficiencyChart.setOption(efficiencyOption);
     
     // 技术优势对比雷达图
-    const radarChart = echarts.init(document.getElementById('radarChart'));
+    console.log('初始化技术优势对比雷达图...');
+    const radarElement = document.getElementById('radarChart');
+    if (radarElement) {
+      console.log('找到radarChart元素');
+    } else {
+      console.error('未找到radarChart元素');
+    }
+    const radarChart = echarts.init(radarElement);
     const radarOption = {
       tooltip: {
         backgroundColor: 'rgba(44, 62, 80, 0.95)',
@@ -817,7 +825,7 @@
         }
       },
       legend: {
-        data: ['CAM-CEE', 'ProvBench-LegalBERT', 'AutoContractTag'],
+        data: ['CAM-CEE', 'LWICNER', 'Graph4CNER'],
         textStyle: {
           color: '#fff',
           fontSize: 14
@@ -828,10 +836,10 @@
       radar: {
         indicator: [
           { name: '准确率', max: 100 },
+          { name: '召回率', max: 100 },
           { name: '处理速度', max: 100 },
           { name: '资源效率', max: 100 },
           { name: '功能完整性', max: 100 },
-          { name: '易用性', max: 100 },
           { name: '可扩展性', max: 100 }
         ],
         axisName: {
@@ -856,7 +864,7 @@
           type: 'radar',
           data: [
             {
-              value: [98.5, 80, 75, 85, 80, 75],
+              value: [92.33, 85.62, 85, 80, 90, 85],
               name: 'CAM-CEE',
               areaStyle: {
                 color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
@@ -872,8 +880,8 @@
               }
             },
             {
-              value: [97.9, 50, 60, 75, 70, 70],
-              name: 'ProvBench-LegalBERT',
+              value: [81.82, 74.62, 90, 85, 75, 80],
+              name: 'LWICNER',
               areaStyle: {
                 color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
                   { offset: 0, color: 'rgba(103, 194, 58, 0.6)' },
@@ -888,8 +896,8 @@
               }
             },
             {
-              value: [99.2, 100, 85, 95, 90, 90],
-              name: 'AutoContractTag',
+              value: [89.15, 62.28, 80, 75, 80, 75],
+              name: 'Graph4CNER',
               areaStyle: {
                 color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
                   { offset: 0, color: 'rgba(230, 162, 60, 0.6)' },
@@ -909,6 +917,128 @@
     };
     radarChart.setOption(radarOption);
     
+    // 漏洞安全级别可视化图表
+    console.log('初始化漏洞安全级别可视化图表...');
+    const vulnerabilityElement = document.getElementById('vulnerabilityChart');
+    if (vulnerabilityElement) {
+      console.log('找到vulnerabilityChart元素');
+    } else {
+      console.error('未找到vulnerabilityChart元素');
+    }
+    const vulnerabilityChart = echarts.init(vulnerabilityElement);
+    const vulnerabilityOption = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        },
+        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+        borderColor: 'transparent',
+        borderRadius: 8,
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      legend: {
+        data: ['低风险', '中风险', '高风险', '关键风险'],
+        textStyle: {
+          color: '#fff',
+          fontSize: 14
+        },
+        bottom: 30,
+        left: 'center'
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '15%',
+        top: '15%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: ['合同模板', '智能合约', '法律条文', '数据集'],
+        axisLabel: {
+          color: '#fff',
+          fontSize: 14
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        name: '漏洞数量',
+        axisLabel: {
+          color: '#fff',
+          fontSize: 14
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      series: [
+        {
+          name: '低风险',
+          type: 'bar',
+          stack: 'total',
+          data: [12, 8, 15, 10],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#3b82f6' },
+              { offset: 1, color: '#93c5fd' }
+            ])
+          }
+        },
+        {
+          name: '中风险',
+          type: 'bar',
+          stack: 'total',
+          data: [8, 12, 10, 15],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#f59e0b' },
+              { offset: 1, color: '#fcd34d' }
+            ])
+          }
+        },
+        {
+          name: '高风险',
+          type: 'bar',
+          stack: 'total',
+          data: [5, 8, 6, 4],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#ef4444' },
+              { offset: 1, color: '#fca5a5' }
+            ])
+          }
+        },
+        {
+          name: '关键风险',
+          type: 'bar',
+          stack: 'total',
+          data: [2, 4, 3, 2],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#8b5cf6' },
+              { offset: 1, color: '#c4b5fd' }
+            ])
+          }
+        }
+      ]
+    };
+    vulnerabilityChart.setOption(vulnerabilityOption);
+
     // 响应式调整
     window.addEventListener('resize', () => {
       modelComparisonChart.resize();
@@ -916,6 +1046,19 @@
       precisionChart.resize();
       efficiencyChart.resize();
       radarChart.resize();
+      vulnerabilityChart.resize();
+    });
+    
+    // 页面加载完成后确保图表渲染
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        modelComparisonChart.resize();
+        featuresChart.resize();
+        precisionChart.resize();
+        efficiencyChart.resize();
+        radarChart.resize();
+        vulnerabilityChart.resize();
+      }, 100);
     });
   </script>
 </body>

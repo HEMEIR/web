@@ -1,8 +1,13 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 const Ceshipage = () => {
+  // 设置页面标题
+  useEffect(() => {
+    document.title = 'EyeLaw-测试';
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,11 +17,9 @@ const Ceshipage = () => {
         navigate('/');
         break;
       case '建模语言':
-        navigate('/modeling-language');
+        navigate('/');
         break;
-      case '开发平台':
-        navigate('/development-platform');
-        break;
+
       case '测试平台':
         navigate('/testing-platform');
         break;
@@ -31,31 +34,7 @@ const Ceshipage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 to-indigo-900">
       {/* 导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => navigate('/')}>智能法律合约开发引擎</h1>
-            </div>
-            <div className="flex items-center space-x-8">
-              {['系统总览', '建模语言', '开发平台', '测试平台', '知识产权'].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => handleNavClick(item)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    (item === '系统总览' && location.pathname === '/') || 
-                    (item === '测试平台' && location.pathname === '/testing-platform')
-                      ? 'text-blue-600 border-b-2 border-blue-600'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* 模块一：测试平台（总览介绍） */}
@@ -109,7 +88,7 @@ const Ceshipage = () => {
                   onClick={() => navigate('/gongnengpage')}
                   className="text-blue-300 hover:text-blue-200 underline"
                 >
-                  了解详情>>>
+                  了解详情&gt;&gt;&gt;
                 </button>
               </div>
             </div>
@@ -140,7 +119,7 @@ const Ceshipage = () => {
                   onClick={() => navigate('/anquanpage')}
                   className="text-blue-300 hover:text-blue-200 underline"
                 >
-                  了解详情>>>
+                  了解详情&gt;&gt;&gt;
                 </button>
               </div>
             </div>

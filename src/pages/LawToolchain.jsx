@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+
+
 
 const LawParsing = () => {
+  // 设置页面标题
+  useEffect(() => {
+    document.title = 'EyeLaw-控制台';
+  }, []);
+  
   // 响应式数据
-  const [activeTab, setActiveTab] = React.useState('extraction');
+  const [activeTab, setActiveTab] = React.useState('convert');
   const [loading, setLoading] = React.useState(false);
   const [result, setResult] = React.useState(null);
   const [error, setError] = React.useState('');
@@ -51,7 +59,7 @@ const LawParsing = () => {
             success: true,
             message: '模型训练完成',
             data: {
-              accuracy: 0.95,
+              accuracy: 0.915,
               loss: 0.08,
               epoch: 50,
               trainingTime: '2小时30分钟'
@@ -66,9 +74,9 @@ const LawParsing = () => {
               totalDatasets: 20,
               totalSamples: 5000,
               datasets: [
-                { id: 1, name: '劳动合同数据集', samples: 1500, status: '可用' },
-                { id: 2, name: '租赁合同数据集', samples: 1200, status: '可用' },
-                { id: 3, name: '借款合同数据集', samples: 800, status: '处理中' }
+                { id: 1, name: '买卖合同数据集', samples: 1000, status: '可用' },
+                { id: 2, name: '租赁合同数据集', samples: 303, status: '可用' },
+                { id: 3, name: '保险合同数据集', samples: 302, status: '可用' }
               ]
             }
           };
@@ -78,9 +86,8 @@ const LawParsing = () => {
             success: true,
             message: '模型评估完成',
             data: {
-              precision: 0.94,
-              recall: 0.95,
-              f1Score: 0.945,
+              precision: 0.91,
+              f1Score: 0.78,
               confusionMatrix: {
                 truePositive: 895,
                 falsePositive: 55,
@@ -214,9 +221,9 @@ const LawParsing = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">选择训练数据集</label>
             <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4">
-              <option>劳动合同数据集</option>
+              <option>买卖合同数据集</option>
               <option>租赁合同数据集</option>
-              <option>借款合同数据集</option>
+              <option>保险合同数据集</option>
             </select>
             
             <div className="grid grid-cols-2 gap-3">
@@ -274,12 +281,6 @@ const LawParsing = () => {
               <div className="bg-orange-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-600 mb-1">训练时间</p>
                 <p className="text-2xl font-bold text-orange-700">{result.data.trainingTime}</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 mb-3">训练过程</p>
-              <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center">
-                <div className="text-gray-500">训练曲线图</div>
               </div>
             </div>
           </div>
@@ -397,6 +398,41 @@ const LawParsing = () => {
     </div>
   );
 
+  // 实验对比数据
+  const experimentData = [
+    { model: 'MECT', accuracy: 86.25, microF1: 74.95, macroF1: 70.10, minF1: 38.62, trainTime: 52.00, memory: 16.54 },
+    { model: 'W2NER', accuracy: null, microF1: 77.45, macroF1: 74.92, minF1: 0, trainTime: 113.00, memory: 20.77 },
+    { model: 'Graph', accuracy: 85.44, microF1: 70.68, macroF1: 66.87, minF1: 41.90, trainTime: 88.00, memory: 1.04 },
+    { model: 'NFLAT', accuracy: 77.96, microF1: 59.31, macroF1: 51.92, minF1: 4.88, trainTime: 24.00, memory: 5.93 },
+    { model: 'LWICNER', accuracy: 81.20, microF1: 70.08, macroF1: 68.50, minF1: 35.90, trainTime: 376.00, memory: 1.12 },
+    { model: 'CAM-CEE(n)', accuracy: 91.74, microF1: 78.45, macroF1: 73.20, minF1: 49.12, trainTime: 206.00, memory: 8.96 },
+    { model: 'CAM-CEE(w)', accuracy: 91.87, microF1: 80.05, macroF1: 75.77, minF1: 55.63, trainTime: 205.00, memory: 8.96 },
+  ];
+
+  // ECharts 配置
+  const getBarOption = (metric, name, color) => ({
+    tooltip: { trigger: 'axis' },
+    grid: { left: 40, right: 20, bottom: 40, top: 40 },
+    xAxis: {
+      type: 'category',
+      data: experimentData.map(d => d.model),
+      axisLabel: { rotate: 30 }
+    },
+    yAxis: {
+      type: 'value',
+      name,
+      min: 0
+    },
+    series: [
+      {
+        data: experimentData.map(d => d[metric] !== null ? d[metric] : '-'),
+        type: 'bar',
+        itemStyle: { color },
+        barWidth: 32,
+      }
+    ]
+  });
+
   // 模型评估模块
   const EvaluationModule = () => (
     <div className="space-y-6">
@@ -437,6 +473,7 @@ const LawParsing = () => {
       
       {/* 评估结果 */}
       {result && result.success && (
+        <>
         <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
           <h4 className="text-lg font-semibold text-green-800 mb-4">评估结果</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -446,53 +483,45 @@ const LawParsing = () => {
                   <p className="text-sm text-gray-600 mb-1">精确率</p>
                   <p className="text-2xl font-bold text-blue-700">{result.data.precision.toFixed(3)}</p>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-gray-600 mb-1">召回率</p>
-                  <p className="text-2xl font-bold text-green-700">{result.data.recall.toFixed(3)}</p>
-                </div>
                 <div className="bg-purple-50 p-4 rounded-lg text-center">
                   <p className="text-sm text-gray-600 mb-1">F1分数</p>
                   <p className="text-2xl font-bold text-purple-700">{result.data.f1Score.toFixed(3)}</p>
                 </div>
               </div>
-              
-              <div>
-                <h5 className="text-sm font-semibold text-gray-700 mb-3">混淆矩阵</h5>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-green-50 p-4 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">真阳性 (TP)</p>
-                    <p className="text-xl font-bold text-green-700">{result.data.confusionMatrix.truePositive}</p>
-                  </div>
-                  <div className="bg-red-50 p-4 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">假阳性 (FP)</p>
-                    <p className="text-xl font-bold text-red-700">{result.data.confusionMatrix.falsePositive}</p>
-                  </div>
-                  <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">假阴性 (FN)</p>
-                    <p className="text-xl font-bold text-yellow-700">{result.data.confusionMatrix.falseNegative}</p>
-                  </div>
-                  <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">真阴性 (TN)</p>
-                    <p className="text-xl font-bold text-blue-700">{result.data.confusionMatrix.trueNegative}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h5 className="text-sm font-semibold text-gray-700 mb-3">评估报告</h5>
-              <div className="bg-gray-50 p-4 rounded-lg h-64 overflow-y-auto">
-                <p className="text-sm text-gray-700 mb-3">模型评估报告摘要：</p>
-                <ul className="list-disc pl-5 text-sm text-gray-600 space-y-2">
-                  <li>模型在测试集上表现优异，F1分数达到0.945</li>
-                  <li>精确率为0.94，召回率为0.95，整体性能平衡</li>
-                  <li>混淆矩阵显示假阳性和假阴性数量较少</li>
-                  <li>模型在各类合同要素上的表现一致</li>
-                  <li>建议在更多类型的合同数据上进行测试</li>
-                </ul>
-              </div>
             </div>
           </div>
         </div>
+        {/* 实验对比方案图 */}
+        <div className="bg-white rounded-lg shadow-md p-6 border border-orange-200 mt-6">
+          <h4 className="text-lg font-semibold text-orange-800 mb-4">实验对比方案图</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <ReactECharts option={getBarOption('accuracy', 'Accuracy/%', '#5470C6')} style={{height: 320}} />
+              <div className="text-center text-sm text-gray-500 mt-2">Accuracy/%</div>
+            </div>
+            <div>
+              <ReactECharts option={getBarOption('microF1', 'micro F1/%', '#91CC75')} style={{height: 320}} />
+              <div className="text-center text-sm text-gray-500 mt-2">micro F1/%</div>
+            </div>
+            <div>
+              <ReactECharts option={getBarOption('macroF1', 'macro F1/%', '#FAC858')} style={{height: 320}} />
+              <div className="text-center text-sm text-gray-500 mt-2">macro F1/%</div>
+            </div>
+            <div>
+              <ReactECharts option={getBarOption('minF1', 'minimum F1/%', '#EE6666')} style={{height: 320}} />
+              <div className="text-center text-sm text-gray-500 mt-2">minimum F1/%</div>
+            </div>
+            <div>
+              <ReactECharts option={getBarOption('trainTime', '每轮训练时间/s', '#73C0DE')} style={{height: 320}} />
+              <div className="text-center text-sm text-gray-500 mt-2">每轮训练时间/s</div>
+            </div>
+            <div>
+              <ReactECharts option={getBarOption('memory', '显存占用/GB', '#3BA272')} style={{height: 320}} />
+              <div className="text-center text-sm text-gray-500 mt-2">显存占用/GB</div>
+            </div>
+          </div>
+        </div>
+        </>
       )}
       
       {error && (
@@ -507,21 +536,23 @@ const LawParsing = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-8 px-4">
-      {/* 页面标题 */}
-      <div className="text-center mb-10">
-        <div className="flex items-center justify-center gap-4 mb-2">
-          <div className="text-blue-600 text-5xl">📄</div>
-          <div>
-            <h2 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">CAM-CEE 合约要素提取模型</h2>
-            <p className="text-xl text-gray-600 font-light italic">Contract Analysis Model - Contract Element Extraction</p>
+    <div className="min-h-screen">
+      {/* 页面标题区域 - 全宽蓝色背景 */}
+      <div className="bg-gradient-to-br from-blue-500 to-blue-700 py-16 px-4 w-full">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <div className="text-white text-5xl">📄</div>
+            <div>
+              <h2 className="text-4xl font-bold text-white">CAM-CEE 合约要素提取模型</h2>
+              <p className="text-xl text-blue-100 font-light italic">Contract Analysis Model - Contract Element Extraction</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 功能模块选择 */}
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* 功能模块选择 - 全宽白色背景 */}
+      <div className="bg-white py-8 w-full">
+        <div className="max-w-6xl mx-auto">
           {/* 标签页导航 */}
           <div className="bg-gray-50 border-b border-gray-200 rounded-t-xl">
             <div className="flex overflow-x-auto">
@@ -547,10 +578,34 @@ const LawParsing = () => {
 
           {/* 标签页内容 */}
           <div className="p-6">
-            {activeTab === 'extraction' && <ExtractionModule />}
-            {activeTab === 'training' && <TrainingModule />}
-            {activeTab === 'dataset' && <DatasetModule />}
-            {activeTab === 'evaluation' && <EvaluationModule />}
+            {activeTab === 'extraction' && (
+              <div className="bg-blue-50 py-8 px-4 w-full">
+                <div className="max-w-6xl mx-auto">
+                  <ExtractionModule />
+                </div>
+              </div>
+            )}
+            {activeTab === 'training' && (
+              <div className="bg-green-50 py-8 px-4 w-full">
+                <div className="max-w-6xl mx-auto">
+                  <TrainingModule />
+                </div>
+              </div>
+            )}
+            {activeTab === 'dataset' && (
+              <div className="bg-purple-50 py-8 px-4 w-full">
+                <div className="max-w-6xl mx-auto">
+                  <DatasetModule />
+                </div>
+              </div>
+            )}
+            {activeTab === 'evaluation' && (
+              <div className="bg-orange-50 py-8 px-4 w-full">
+                <div className="max-w-6xl mx-auto">
+                  <EvaluationModule />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -752,6 +807,8 @@ const getModelOutput = (modelType, inputText) => {
     setResults([]);
   };
 
+  // 编译器模块将在文件后续部分定义
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 py-8 px-4">
       {/* 输入模态框 */}
@@ -939,7 +996,6 @@ const getModelOutput = (modelType, inputText) => {
             </div>
           ))}
         </div>
-
         {/* 执行状态 */}
         {currentExecution.model && (
           <div className="mb-10">
@@ -1083,6 +1139,304 @@ const getModelOutput = (modelType, inputText) => {
             </div>
           </div>
         )}
+      {/* 实验对比图 */}
+      <div className="mt-16">
+        <div className="max-w-6xl mx-auto">
+          {/* 标题居中 */}
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">📈 模型性能实验对比</h3>
+            <p className="text-gray-600">不同文本编码器在法律条文推荐任务上的实验结果对比（数据来源于Table 3）</p>
+          </div>
+          
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-6">
+            {/* 图例 - 四个指标的颜色 - 居中 */}
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              {['R@1', 'R@3', 'R@5', 'Top-3 EM'].map((metric, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-sm" 
+                    style={{ 
+                      backgroundColor: idx === 0 ? '#3b82f6' : 
+                                    idx === 1 ? '#10b981' : 
+                                    idx === 2 ? '#8b5cf6' : '#f59e0b' 
+                    }}
+                  ></div>
+                  <span className="text-sm text-gray-700">{metric}</span>
+                </div>
+              ))}
+            </div>
+            
+            {/* 柱状图容器 - 居中 */}
+            <div className="relative overflow-x-auto">
+              <div className="flex h-96 min-w-max mx-auto justify-center">
+                {/* 柱状图主体 */}
+                <div className="flex items-end gap-8 px-8 h-full relative">
+                  {/* 背景网格线 */}
+                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                    {[...Array(5)].map((_, idx) => (
+                      <div 
+                        key={idx} 
+                        className="border-t border-gray-100"
+                      ></div>
+                    ))}
+                  </div>
+                  
+                  {/* T5 */}
+                  <div className="flex flex-col items-center z-10 h-full">
+                    <div className="text-sm font-medium text-gray-700 mb-2 h-6">T5</div>
+                    <div className="flex items-end gap-1 flex-1 w-full relative">
+                      <div 
+                        className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" 
+                        style={{ height: '86.38%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@1: 86.38%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" 
+                        style={{ height: '95.09%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@3: 95.09%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" 
+                        style={{ height: '97.10%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@5: 97.10%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" 
+                        style={{ height: '60.94%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          Top-3 EM: 60.94%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* BERT */}
+                  <div className="flex flex-col items-center z-10 h-full">
+                    <div className="text-sm font-medium text-gray-700 mb-2 h-6">BERT</div>
+                    <div className="flex items-end gap-1 flex-1 w-full relative">
+                      <div 
+                        className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" 
+                        style={{ height: '90.63%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@1: 90.63%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" 
+                        style={{ height: '96.86%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@3: 96.86%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" 
+                        style={{ height: '98.21%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@5: 98.21%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" 
+                        style={{ height: '76.79%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          Top-3 EM: 76.79%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* RoBERTa */}
+                  <div className="flex flex-col items-center z-10 h-full">
+                    <div className="text-sm font-medium text-gray-700 mb-2 h-6">RoBERTa</div>
+                    <div className="flex items-end gap-1 flex-1 w-full relative">
+                      <div 
+                        className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" 
+                        style={{ height: '89.96%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@1: 89.96%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" 
+                        style={{ height: '95.31%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@3: 95.31%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" 
+                        style={{ height: '97.54%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@5: 97.54%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" 
+                        style={{ height: '70.31%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          Top-3 EM: 70.31%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* LegalBERT */}
+                  <div className="flex flex-col items-center z-10 h-full">
+                    <div className="text-sm font-medium text-gray-700 mb-2 h-6">LegalBERT</div>
+                    <div className="flex items-end gap-1 flex-1 w-full relative">
+                      <div 
+                        className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" 
+                        style={{ height: '92.19%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@1: 92.19%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" 
+                        style={{ height: '97.77%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@3: 97.77%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" 
+                        style={{ height: '98.88%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@5: 98.88%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" 
+                        style={{ height: '73.88%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          Top-3 EM: 73.88%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Mamba */}
+                  <div className="flex flex-col items-center z-10 h-full">
+                    <div className="text-sm font-medium text-gray-700 mb-2 h-6">Mamba</div>
+                    <div className="flex items-end gap-1 flex-1 w-full relative">
+                      <div 
+                        className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" 
+                        style={{ height: '91.29%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@1: 91.29%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" 
+                        style={{ height: '97.99%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@3: 97.99%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" 
+                        style={{ height: '99.33%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          R@5: 99.33%
+                        </div>
+                      </div>
+                      <div 
+                        className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" 
+                        style={{ height: '57.37%' }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                          Top-3 EM: 57.37%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 数据表格 */}
+            <div className="mt-8 overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">TextEncoder</th>
+                    <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">R@1</th>
+                    <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">R@3</th>
+                    <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">R@5</th>
+                    <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">Top-3 EM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-gray-50">
+                    <td className="py-3 px-4 border-b font-medium text-blue-600">T5</td>
+                    <td className="py-3 px-4 border-b">86.38</td>
+                    <td className="py-3 px-4 border-b">95.09</td>
+                    <td className="py-3 px-4 border-b">97.10</td>
+                    <td className="py-3 px-4 border-b">60.94</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50">
+                    <td className="py-3 px-4 border-b font-medium text-green-600">BERT</td>
+                    <td className="py-3 px-4 border-b">90.63</td>
+                    <td className="py-3 px-4 border-b">96.86</td>
+                    <td className="py-3 px-4 border-b">98.21</td>
+                    <td className="py-3 px-4 border-b">76.79</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50">
+                    <td className="py-3 px-4 border-b font-medium text-purple-600">RoBERTa</td>
+                    <td className="py-3 px-4 border-b">89.96</td>
+                    <td className="py-3 px-4 border-b">95.31</td>
+                    <td className="py-3 px-4 border-b">97.54</td>
+                    <td className="py-3 px-4 border-b">70.31</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50">
+                    <td className="py-3 px-4 border-b font-medium text-amber-600">LegalBERT</td>
+                    <td className="py-3 px-4 border-b">92.19</td>
+                    <td className="py-3 px-4 border-b">97.77</td>
+                    <td className="py-3 px-4 border-b">98.88</td>
+                    <td className="py-3 px-4 border-b">73.88</td>
+                  </tr>
+                  <tr className="hover:bg-gray-50">
+                    <td className="py-3 px-4 font-medium text-red-600">Mamba</td>
+                    <td className="py-3 px-4">91.29</td>
+                    <td className="py-3 px-4">97.99</td>
+                    <td className="py-3 px-4">99.33</td>
+                    <td className="py-3 px-4">57.37</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="mt-6 text-sm text-gray-500">
+              <p>注：R@1、R@3、R@5表示召回率，Top-3 EM表示前3个结果的精确匹配率。LegalBERT在法律条文推荐任务中综合表现最佳。</p>
+            </div>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
   );
@@ -1134,6 +1488,21 @@ const AutoContractTag = () => {
 
   const [autoScrollLogs, setAutoScrollLogs] = React.useState(true);
   const [logs, setLogs] = React.useState([]);
+
+  // 检查是否有任何服务正在加载
+  const isAnyLoading = React.useMemo(() => {
+    return (
+      services.webserver.starting ||
+      services.task.starting ||
+      services.extract.starting ||
+      runningDiagnostics ||
+      checkingPorts ||
+      checkingProcesses ||
+      gettingLogs ||
+      gettingExtractLogs ||
+      troubleshooting
+    );
+  }, [services, runningDiagnostics, checkingPorts, checkingProcesses, gettingLogs, gettingExtractLogs, troubleshooting]);
 
   // 添加日志
   const addLog = (service, level, message) => {
@@ -1574,8 +1943,238 @@ const AutoContractTag = () => {
     addLog('system', 'info', '尝试打开提取界面');
   };
 
-// 响应式数据
-const [originalContract, setOriginalContract] = useState(`省级红色文化遗址保护标志树立项目
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 py-8 px-4">
+      {/* 页面标题 */}
+      <div className="text-center mb-10">
+        <div className="flex items-center justify-center gap-4 mb-3">
+          <div className="text-orange-600 text-5xl">⚙️</div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">服务管理系统</h1>
+            <p className="text-xl text-gray-600 font-light italic">Service Management System - 调试版本</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 服务状态卡片 */}
+      <div className="max-w-6xl mx-auto mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Object.entries(services).map(([serviceName, service]) => (
+            <div key={serviceName} className={`bg-white rounded-xl shadow-lg p-6 border ${service.running ? 'border-green-400' : 'border-gray-200'}`}>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">{serviceName === 'webserver' ? 'Web 服务器' : serviceName === 'task' ? '任务处理器' : '提取服务'}</h3>
+                  <p className={`text-sm font-medium ${service.running ? 'text-green-600' : 'text-red-600'}`}>
+                    {service.running ? '运行中' : '已停止'}
+                  </p>
+                </div>
+                <div className={`text-4xl ${service.running ? 'text-green-500' : 'text-red-500'}`}>
+                  {service.running ? '✅' : '❌'}
+                </div>
+              </div>
+              
+              {service.pid && (
+                <div className="bg-gray-50 p-3 rounded-lg mb-4">
+                  <p className="text-sm text-gray-600 mb-1">进程 ID</p>
+                  <p className="text-lg font-mono text-gray-900">{service.pid}</p>
+                </div>
+              )}
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => service.running ? (serviceName === 'webserver' ? stopWebServer() : serviceName === 'task' ? stopTaskWorker() : stopExtractScript()) : (serviceName === 'webserver' ? startWebServer() : serviceName === 'task' ? startTaskWorker() : startExtractScript())}
+                  disabled={service.starting || (service.running && (serviceName === 'webserver' ? services.webserver.stopping : serviceName === 'task' ? services.task.stopping : services.extract.stopping))}
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${service.running ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'} ${(service.starting || (service.running && (serviceName === 'webserver' ? services.webserver.stopping : serviceName === 'task' ? services.task.stopping : services.extract.stopping))) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {service.starting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {service.running ? '停止中...' : '启动中...'}
+                    </span>
+                  ) : service.running ? '停止服务' : '启动服务'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 操作按钮 */}
+      <div className="max-w-6xl mx-auto mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">服务管理</h3>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={startAllServices}
+              disabled={isAnyLoading || startingAll}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {startingAll ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  启动中...
+                </span>
+              ) : (
+                <>
+                  <span>🚀</span>
+                  启动所有服务
+                </>
+              )}
+            </button>
+            <button
+              onClick={stopAllServices}
+              disabled={isAnyLoading || stoppingAll}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {stoppingAll ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  停止中...
+                </span>
+              ) : (
+                <>
+                  <span>🛑</span>
+                  停止所有服务
+                </>
+              )}
+            </button>
+            <button
+              onClick={refreshAllStatus}
+              disabled={refreshing}
+              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {refreshing ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  刷新中...
+                </span>
+              ) : (
+                <>
+                  <span>🔄</span>
+                  刷新状态
+                </>
+              )}
+            </button>
+            <button
+              onClick={runFullDiagnostics}
+              disabled={runningDiagnostics}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {runningDiagnostics ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  诊断中...
+                </span>
+              ) : (
+                <>
+                  <span>🔍</span>
+                  运行诊断
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 界面访问 */}
+      <div className="max-w-6xl mx-auto mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">界面访问</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="text-blue-600 text-2xl">📝</div>
+                <div>
+                  <h4 className="text-lg font-semibold text-blue-800">Doccano UI</h4>
+                  <p className="text-blue-600 text-sm">数据标注界面</p>
+                </div>
+              </div>
+              <button
+                onClick={openDoccanoUI}
+                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center gap-2 justify-center"
+              >
+                <span>🌐</span>
+                打开 Doccano UI
+              </button>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="text-green-600 text-2xl">🔧</div>
+                <div>
+                  <h4 className="text-lg font-semibold text-green-800">提取界面</h4>
+                  <p className="text-green-600 text-sm">数据提取工具</p>
+                </div>
+              </div>
+              <button
+                onClick={openExtractUI}
+                className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center gap-2 justify-center"
+              >
+                <span>🌐</span>
+                打开提取界面
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 系统日志 */}
+      <div className="max-w-6xl mx-auto mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-900">系统日志</h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={clearLogs}
+                className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-1"
+              >
+                <span>🗑️</span>
+                清空日志
+              </button>
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={autoScrollLogs}
+                  onChange={(e) => setAutoScrollLogs(e.target.checked)}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                自动滚动
+              </label>
+            </div>
+          </div>
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 h-96 overflow-y-auto font-mono text-sm">
+            {logs.map((log, index) => (
+              <div key={index} className={`mb-2 ${log.level === 'error' ? 'text-red-600' : log.level === 'info' ? 'text-blue-600' : 'text-gray-600'}`}>
+                <span className="text-gray-400">[{log.time}]</span>
+                <span className="mx-2">[{log.service}]</span>
+                <span className="font-medium">{log.message}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 合同生成系统组件
+const ContractGenerator = () => {
+  // 响应式数据
+  const [originalContract, setOriginalContract] = useState(`省级红色文化遗址保护标志树立项目
 
 合同草案条款
 甲方（釆购人）：晋中市文化和旅游局
@@ -1672,6 +2271,507 @@ const [generatedContract, setGeneratedContract] = useState('');
 const [isGenerating, setIsGenerating] = useState(false);
 const [downloadUrl, setDownloadUrl] = useState('');
 const [fileInputRef] = useState(React.createRef());
+const [isAnnotationModalOpen, setIsAnnotationModalOpen] = useState(false);
+
+  // 响应式数据
+  const [services, setServices] = React.useState({
+    webserver: {
+      running: false,
+      starting: false,
+      pid: null,
+      error: null
+    },
+    task: {
+      running: false,
+      starting: false,
+      pid: null,
+      error: null
+    },
+    extract: {
+      running: false,
+      starting: false,
+      pid: null,
+      error: null,
+      scriptOutput: null
+    }
+  });
+
+  const [runningDiagnostics, setRunningDiagnostics] = React.useState(false);
+  const [diagnosticVisible, setDiagnosticVisible] = React.useState(false);
+  const [diagnosticResult, setDiagnosticResult] = React.useState(null);
+
+  const [checkingPorts, setCheckingPorts] = React.useState(false);
+  const [portStatus, setPortStatus] = React.useState(null);
+
+  const [checkingProcesses, setCheckingProcesses] = React.useState(false);
+  const [processInfo, setProcessInfo] = React.useState(null);
+
+  const [gettingLogs, setGettingLogs] = React.useState(false);
+  const [gettingExtractLogs, setGettingExtractLogs] = React.useState(false);
+  const [scriptLogs, setScriptLogs] = React.useState(null);
+
+  const [troubleshooting, setTroubleshooting] = React.useState(false);
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [startingAll, setStartingAll] = React.useState(false);
+  const [stoppingAll, setStoppingAll] = React.useState(false);
+
+  const [autoScrollLogs, setAutoScrollLogs] = React.useState(true);
+  const [logs, setLogs] = React.useState([]);
+
+  // 检查是否有任何服务正在加载
+  const isAnyLoading = React.useMemo(() => {
+    return (
+      services.webserver.starting ||
+      services.task.starting ||
+      services.extract.starting ||
+      runningDiagnostics ||
+      checkingPorts ||
+      checkingProcesses ||
+      gettingLogs ||
+      gettingExtractLogs ||
+      troubleshooting
+    );
+  }, [services, runningDiagnostics, checkingPorts, checkingProcesses, gettingLogs, gettingExtractLogs, troubleshooting]);
+
+  // 添加日志
+  const addLog = (service, level, message) => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString();
+
+    setLogs(prev => {
+      const newLogs = [
+        { time: timeStr, service, level, message },
+        ...prev
+      ];
+      // 限制日志数量
+      if (newLogs.length > 200) {
+        return newLogs.slice(0, 100);
+      }
+      return newLogs;
+    });
+  };
+
+  // 清空日志
+  const clearLogs = () => {
+    setLogs([]);
+  };
+
+  // 获取服务状态类型
+  const getServiceStatusType = (service) => {
+    const s = services[service];
+    if (s.starting) return 'warning';
+    if (s.running) return 'success';
+    if (s.error) return 'danger';
+    return 'info';
+  };
+
+  // 获取服务状态文本
+  const getServiceStatusText = (service) => {
+    const s = services[service];
+    if (s.starting) return '启动中';
+    if (s.running) return '运行中';
+    if (s.error) return '错误';
+    return '未运行';
+  };
+
+  // 完整诊断
+  const runFullDiagnostics = async () => {
+    setRunningDiagnostics(true);
+    try {
+      addLog('system', 'info', '开始运行完整诊断...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = {
+        backend_connected: true,
+        port_8000_active: true,
+        port_8000_status: '运行中',
+        port_8001_active: false,
+        port_8001_status: '未运行',
+        services: {
+          webserver: { running: true, pid: 1234, error: null, logs: 'Web服务运行正常' },
+          task: { running: true, pid: 5678, error: null, logs: '任务服务运行正常' },
+          extract: { running: false, pid: null, error: '服务未启动', logs: '' }
+        },
+        recommendations: ['启动Extract服务', '检查8001端口配置']
+      };
+      setDiagnosticResult(result);
+      setDiagnosticVisible(true);
+      addLog('system', 'success', '完整诊断完成');
+    } catch (err) {
+      addLog('system', 'error', `诊断失败: ${err.message}`);
+    } finally {
+      setRunningDiagnostics(false);
+    }
+  };
+
+  // 检查端口状态
+  const checkPorts = async () => {
+    setCheckingPorts(true);
+    try {
+      addLog('system', 'info', '检查端口状态...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = {
+        port8000: { active: true, status: '运行中' },
+        port8001: { active: false, status: '未运行' }
+      };
+      setPortStatus(result);
+      addLog('system', 'info', `端口检查完成: 8000=${result.port8000.status}, 8001=${result.port8001.status}`);
+    } catch (err) {
+      addLog('system', 'error', `端口检查失败: ${err.message}`);
+    } finally {
+      setCheckingPorts(false);
+    }
+  };
+
+  // 检查进程状态
+  const checkProcesses = async () => {
+    setCheckingProcesses(true);
+    try {
+      addLog('system', 'info', '检查进程状态...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = {
+        webserver: { running: true, pid: 1234 },
+        task: { running: true, pid: 5678 },
+        extract: { running: false, pid: null }
+      };
+      setProcessInfo(result);
+      addLog('system', 'info', '进程状态检查完成');
+    } catch (err) {
+      addLog('system', 'error', `进程检查失败: ${err.message}`);
+    } finally {
+      setCheckingProcesses(false);
+    }
+  };
+
+  // 获取脚本日志
+  const getScriptLogs = async () => {
+    setGettingLogs(true);
+    try {
+      addLog('system', 'info', '获取脚本日志...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = {
+        logs: ['服务启动成功', '处理了10个文件', '出现错误: 端口已被占用', '尝试重启服务', '服务重启成功']
+      };
+      setScriptLogs(result.logs);
+      addLog('system', 'info', '脚本日志获取完成');
+    } catch (err) {
+      addLog('system', 'error', `获取日志失败: ${err.message}`);
+    } finally {
+      setGettingLogs(false);
+    }
+  };
+
+  // 获取提取脚本日志
+  const getExtractLogs = async () => {
+    setGettingExtractLogs(true);
+    try {
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = {
+        logs: ['提取服务启动', '监听端口8001', '接收请求', '处理完成', '出现错误: 连接超时']
+      };
+      
+      if (result.logs && result.logs.length > 0) {
+        setServices(prev => ({
+          ...prev,
+          extract: {
+            ...prev.extract,
+            scriptOutput: result.logs.slice(-3).join(' | ')
+          }
+        }));
+        addLog('extract', 'info', `脚本输出: ${result.logs.slice(-1)[0]}`);
+      } else {
+        addLog('extract', 'warning', '没有找到脚本输出日志');
+      }
+    } catch (err) {
+      addLog('extract', 'error', `获取提取脚本日志失败: ${err.message}`);
+    } finally {
+      setGettingExtractLogs(false);
+    }
+  };
+
+  // 测试端口连接
+  const testPort = async (port) => {
+    try {
+      addLog('system', 'info', `测试端口 ${port} 连接...`);
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      addLog('system', 'success', `端口 ${port} 连接成功`);
+    } catch (err) {
+      addLog('system', 'error', `端口 ${port} 连接失败: ${err.message}`);
+    }
+  };
+
+  // 故障排除8001端口
+  const troubleshootExtract = async () => {
+    setTroubleshooting(true);
+    try {
+      addLog('system', 'info', '开始排除8001端口故障...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = {
+        message: '故障排除完成',
+        success: true,
+        recommendations: ['重启Extract服务', '检查端口占用情况', '查看服务日志']
+      };
+      
+      addLog('system', 'info', `故障排除结果: ${result.message}`);
+      
+      if (result.recommendations) {
+        result.recommendations.forEach(rec => {
+          addLog('system', 'warning', `建议: ${rec}`);
+        });
+      }
+    } catch (err) {
+      addLog('system', 'error', `故障排除失败: ${err.message}`);
+    } finally {
+      setTroubleshooting(false);
+    }
+  };
+
+  // 服务管理方法
+  const startWebServer = async () => {
+    setServices(prev => ({
+      ...prev,
+      webserver: {
+        ...prev.webserver,
+        starting: true
+      }
+    }));
+    try {
+      addLog('webserver', 'info', '正在启动 Doccano Web 服务器...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setServices(prev => ({
+        ...prev,
+        webserver: {
+          ...prev.webserver,
+          running: true,
+          pid: Math.floor(Math.random() * 10000),
+          error: null,
+          starting: false
+        }
+      }));
+      addLog('webserver', 'success', `Web 服务器启动成功 (PID: ${services.webserver.pid})`);
+    } catch (err) {
+      setServices(prev => ({
+        ...prev,
+        webserver: {
+          ...prev.webserver,
+          error: err.message,
+          starting: false
+        }
+      }));
+      addLog('webserver', 'error', `Web 服务器启动失败: ${err.message}`);
+    }
+  };
+
+  const startTaskWorker = async () => {
+    setServices(prev => ({
+      ...prev,
+      task: {
+        ...prev.task,
+        starting: true
+      }
+    }));
+    try {
+      addLog('task', 'info', '正在启动任务处理器...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setServices(prev => ({
+        ...prev,
+        task: {
+          ...prev.task,
+          running: true,
+          pid: Math.floor(Math.random() * 10000),
+          error: null,
+          starting: false
+        }
+      }));
+      addLog('task', 'success', `任务处理器启动成功 (PID: ${services.task.pid})`);
+    } catch (err) {
+      setServices(prev => ({
+        ...prev,
+        task: {
+          ...prev.task,
+          error: err.message,
+          starting: false
+        }
+      }));
+      addLog('task', 'error', `任务处理器启动失败: ${err.message}`);
+    }
+  };
+
+  const startExtractScript = async () => {
+    setServices(prev => ({
+      ...prev,
+      extract: {
+        ...prev.extract,
+        starting: true
+      }
+    }));
+    try {
+      addLog('extract', 'info', '正在启动合同提取脚本...');
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setServices(prev => ({
+        ...prev,
+        extract: {
+          ...prev.extract,
+          running: true,
+          pid: Math.floor(Math.random() * 10000),
+          error: null,
+          starting: false
+        }
+      }));
+      addLog('extract', 'success', `提取脚本启动成功 (PID: ${services.extract.pid})`);
+      
+      // 等待几秒后自动获取日志
+      setTimeout(() => {
+        getExtractLogs();
+      }, 3000);
+    } catch (err) {
+      setServices(prev => ({
+        ...prev,
+        extract: {
+          ...prev.extract,
+          error: err.message,
+          starting: false
+        }
+      }));
+      addLog('extract', 'error', `提取脚本启动失败: ${err.message}`);
+    }
+  };
+
+  const stopWebServer = async () => {
+    try {
+      setServices(prev => ({
+        ...prev,
+        webserver: {
+          ...prev.webserver,
+          running: false,
+          pid: null
+        }
+      }));
+      addLog('webserver', 'info', 'Web 服务器已停止');
+    } catch (err) {
+      addLog('webserver', 'error', `停止失败: ${err.message}`);
+    }
+  };
+
+  const stopTaskWorker = async () => {
+    try {
+      setServices(prev => ({
+        ...prev,
+        task: {
+          ...prev.task,
+          running: false,
+          pid: null
+        }
+      }));
+      addLog('task', 'info', '任务处理器已停止');
+    } catch (err) {
+      addLog('task', 'error', `停止失败: ${err.message}`);
+    }
+  };
+
+  const stopExtractScript = async () => {
+    try {
+      setServices(prev => ({
+        ...prev,
+        extract: {
+          ...prev.extract,
+          running: false,
+          pid: null,
+          scriptOutput: null
+        }
+      }));
+      addLog('extract', 'info', '提取脚本已停止');
+    } catch (err) {
+      addLog('extract', 'error', `停止失败: ${err.message}`);
+    }
+  };
+
+  const startAllServices = async () => {
+    setStartingAll(true);
+    try {
+      addLog('system', 'info', '开始启动所有服务...');
+      
+      // 模拟启动所有服务
+      await startWebServer();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      await startTaskWorker();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      await startExtractScript();
+      
+      addLog('system', 'success', '所有服务启动完成');
+    } catch (err) {
+      addLog('system', 'error', `启动服务失败: ${err.message}`);
+    } finally {
+      setStartingAll(false);
+    }
+  };
+
+  const stopAllServices = async () => {
+    setStoppingAll(true);
+    try {
+      await Promise.all([
+        stopWebServer(),
+        stopTaskWorker(),
+        stopExtractScript()
+      ]);
+      addLog('system', 'info', '所有服务已停止');
+    } finally {
+      setStoppingAll(false);
+    }
+  };
+
+  const refreshAllStatus = async () => {
+    setRefreshing(true);
+    try {
+      // 模拟API请求
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const status = {
+        webserver: { running: true, pid: 1234 },
+        task: { running: true, pid: 5678 },
+        extract: { running: false, pid: null }
+      };
+      
+      setServices(prev => {
+        const updated = { ...prev };
+        for (const [serviceName, serviceStatus] of Object.entries(status)) {
+          if (updated[serviceName]) {
+            updated[serviceName].running = serviceStatus.running;
+            updated[serviceName].pid = serviceStatus.pid;
+          }
+        }
+        return updated;
+      });
+      
+      addLog('system', 'info', '状态已刷新');
+    } catch (err) {
+      addLog('system', 'error', `刷新状态失败: ${err.message}`);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // 界面访问
+  const openDoccanoUI = () => {
+    window.open('http://127.0.0.1:8000', '_blank');
+    addLog('system', 'info', '尝试打开 Doccano UI');
+  };
+
+  const openExtractUI = () => {
+    window.open('http://127.0.0.1:8001', '_blank');
+    addLog('system', 'info', '尝试打开提取界面');
+  };
 
 // 处理文件上传
 const handleFileUpload = () => {
@@ -1969,65 +3069,114 @@ return (
             </div>
           </div>
           
-          {/* 生成按钮区域 */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex-1">
-                <div className="text-sm text-gray-600 mb-2">生成进度</div>
-                {isGenerating ? (
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-blue-600 h-2.5 rounded-full animate-pulse w-3/4"></div>
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500">
-                    {originalContract ? '准备就绪' : '请输入或上传合同内容'}
-                  </div>
-                )}
+      {/* 生成按钮区域 */}
+      <div className="mt-6 pt-6 border-t border-gray-200">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex-1">
+            <div className="text-sm text-gray-600 mb-2">生成进度</div>
+            {isGenerating ? (
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div className="bg-blue-600 h-2.5 rounded-full animate-pulse w-3/4"></div>
               </div>
-              
-              <div className="flex gap-3">
+            ) : (
+              <div className="text-sm text-gray-500">
+                {originalContract ? '准备就绪' : '请输入或上传合同内容'}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={handleGenerateContract}
+              disabled={isGenerating || !originalContract.trim()}
+              className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  生成中...
+                </>
+              ) : (
+                <>
+                  <span className="text-lg">▶</span>
+                  开始生成
+                </>
+              )}
+            </button>
+            
+            {/* 添加：查看标注按钮 */}
+            <button
+              onClick={() => setIsAnnotationModalOpen(true)}
+              disabled={!generatedContract || isGenerating}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+            >
+              <span className="text-lg">🔍</span>
+              查看标注
+            </button>
+            
+            <button
+              onClick={handleDownload}
+              disabled={!generatedContract || isGenerating}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+            >
+              <span className="text-lg">📥</span>
+              下载合同文档
+            </button>
+            
+            {generatedContract && (
+              <button
+                onClick={clearGeneratedContract}
+                className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-lg transition-all duration-300 flex items-center gap-2 font-medium"
+              >
+                <span className="text-lg">🗑️</span>
+                清空结果
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+        {/* 在合同生成系统模块的最后，return语句之前添加标注弹窗 */}
+        {isAnnotationModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+              <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                <h3 className="text-xl font-bold text-gray-800">合同标注示意图</h3>
                 <button
-                  onClick={handleGenerateContract}
-                  disabled={isGenerating || !originalContract.trim()}
-                  className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+                  onClick={() => setIsAnnotationModalOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
-                  {isGenerating ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      生成中...
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-lg">▶</span>
-                      开始生成
-                    </>
-                  )}
+                  &times;
                 </button>
-                
+              </div>
+              <div className="p-4 overflow-auto max-h-[calc(90vh-120px)]">
+                <div className="text-center">
+                  <img 
+                    src="./biaozhu.png" 
+                    alt="合同标注示意图" 
+                    className="max-w-full h-auto mx-auto rounded-lg shadow-md"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://via.placeholder.com/800x600?text=标注图片加载中...";
+                    }}
+                  />
+                  <p className="text-sm text-gray-500 mt-4">图例说明：合同标注过程</p>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-200 flex justify-end">
                 <button
-                  onClick={handleDownload}
-                  disabled={!generatedContract || isGenerating}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+                  onClick={() => setIsAnnotationModalOpen(false)}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <span className="text-lg">📥</span>
-                  下载合同文档
+                  关闭
                 </button>
-                
-                {generatedContract && (
-                  <button
-                    onClick={clearGeneratedContract}
-                    className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-lg transition-all duration-300 flex items-center gap-2 font-medium"
-                  >
-                    <span className="text-lg">🗑️</span>
-                    清空结果
-                  </button>
-                )}
               </div>
             </div>
           </div>
+        )}
         </div>
         
         {/* 生成统计信息 */}
@@ -2492,8 +3641,6 @@ return (
     </div>
   );
 };
-
-
 
 
 const DocTransPro = () => {
@@ -3208,18 +4355,221 @@ const DocTransPro = () => {
 // 
 const AutoGeneration = () => {
   const [activeTab, setActiveTab] = React.useState('editor');
+  const [innerTab, setInnerTab] = React.useState('purchase');
   const [loading, setLoading] = React.useState(false);
   const [result, setResult] = React.useState(null);
   const [error, setError] = React.useState('');
+  const [contentTab, setContentTab] = React.useState('terms'); // terms 表示条文，contract 表示合约
+  const [selectedDirectory, setSelectedDirectory] = React.useState('text'); // text, model, logic
+  const [selectedOption, setSelectedOption] = React.useState(''); // 空字符串表示默认选项
   
-  // 代码内容状态
+  // 代码内容状态 - 分别为每个标签页存储
+  const [purchaseCode, setPurchaseCode] = React.useState('');
+  const [auctionCode, setAuctionCode] = React.useState('');
+  const [leaseCode, setLeaseCode] = React.useState('');
+  
+  // 合同内容状态 - 分别为每个标签页存储
+  const [purchaseContract, setPurchaseContract] = React.useState('');
+  const [auctionContract, setAuctionContract] = React.useState('');
+  const [leaseContract, setLeaseContract] = React.useState('');
+  
+  // 当前显示的代码和合同内容
   const [code, setCode] = React.useState('');
+  const [contractContent, setContractContent] = React.useState('');
   
+  // 文本区域内容状态
+  const [termsContent, setTermsContent] = React.useState('');
+  const [contractTabContent, setContractTabContent] = React.useState('');
+  
+  // 处理下拉列表变化
+  const handleOptionChange = async (e) => {
+    const value = e.target.value;
+    setSelectedOption(value);
+    await updateContent(value, selectedDirectory, contentTab);
+  };
+  
+  // 处理目录项点击
+  const handleDirectoryClick = async (directory) => {
+    setSelectedDirectory(directory);
+    await updateContent(selectedOption, directory, contentTab);
+  };
+  
+  // 处理标签切换
+  const handleContentTabChange = async (tab) => {
+    setContentTab(tab);
+    await updateContent(selectedOption, selectedDirectory, tab);
+  };
+  
+  // 更新内容
+  const updateContent = async (option, directory, tab) => {
+    let content = '';
+    
+    // 文件路径映射
+    const filePathMap = {
+      purchase: {
+        text: {
+          terms: '/codeSource/termsToCode/01Simple Purchase Agreement.txt',
+          contract: '/codeSource/agreementToCode/03ComplexPurchaseAgreement.txt'
+        },
+        model: {
+          terms: '/codeSource/termsToCode/01simplePurchase.mydsl',
+          contract: '/codeSource/agreementToCode/03complexPurchase.mydsl'
+        }
+      },
+      auction: {
+        text: {
+          terms: '/codeSource/termsToCode/04Simple Auction Agreement.txt',
+          contract: '/codeSource/agreementToCode/06ComplexAuctionAgreement.txt'
+        },
+        model: {
+          terms: '/codeSource/termsToCode/04simpleAuction.mydsl',
+          contract: '/codeSource/agreementToCode/06complexAuction.mydsl'
+        }
+      },
+      rent: {
+        text: {
+          terms: '/codeSource/termsToCode/07Simple Rent Agreement.txt',
+          contract: '/codeSource/agreementToCode/09ComplexRentAgreement.txt'
+        },
+        model: {
+          terms: '/codeSource/termsToCode/07simpleRent.mydsl',
+          contract: '/codeSource/agreementToCode/09complexRent.mydsl'
+        }
+      }
+    };
+    
+    // 在选择条文或合约标签且选项不为空时加载文件
+    if ((tab === 'terms' || tab === 'contract') && option) {
+      // 根据目录和选项加载文件
+      if (directory === 'text' || directory === 'model') {
+        try {
+          const filePath = filePathMap[option][directory][tab];
+          content = await loadFileContent(filePath);
+        } catch (error) {
+          console.error('Error loading file:', error);
+          content = '加载文件失败，请重试...';
+        }
+      }
+      
+      // 更新对应标签的内容
+      if (tab === 'terms') {
+        setTermsContent(content);
+      } else {
+        setContractTabContent(content);
+      }
+    } else {
+      // 其他情况 - 清空内容
+      if (tab === 'terms') {
+        setTermsContent('');
+      } else if (tab === 'contract') {
+        setContractTabContent('');
+      } else {
+        setTermsContent('');
+        setContractTabContent('');
+      }
+    }
+  };
   
   // 语法错误状态
   const [syntaxErrors, setSyntaxErrors] = React.useState([]);
   // 是否已经执行过语法检查
   const [hasCheckedSyntax, setHasCheckedSyntax] = React.useState(false);
+  
+  // 文件读取函数
+  const loadFileContent = async (filePath) => {
+    try {
+      const response = await fetch(filePath);
+      if (!response.ok) {
+        throw new Error(`Failed to load file: ${filePath}`);
+      }
+      return await response.text();
+    } catch (error) {
+      console.error('Error loading file:', error);
+      return '';
+    }
+  };
+
+  // 加载对应标签页的内容
+  const loadTabContent = async (tabId) => {
+    let contractContent = '';
+    let codeContent = '';
+    
+    try {
+      // 根据当前主标签页和内部标签页加载不同的文件
+      if (activeTab === 'editor') {
+        // 条文映射代码页面 - 加载termsToCode目录下的文件
+        switch (tabId) {
+          case 'purchase':
+            contractContent = await loadFileContent('/codeSource/termsToCode/01Simple Purchase Agreement.txt');
+            codeContent = await loadFileContent('/codeSource/termsToCode/01simplePurchase.mydsl');
+            setPurchaseContract(contractContent);
+            setPurchaseCode(codeContent);
+            break;
+          case 'auction':
+            contractContent = await loadFileContent('/codeSource/termsToCode/04Simple Auction Agreement.txt');
+            codeContent = await loadFileContent('/codeSource/termsToCode/04simpleAuction.mydsl');
+            setAuctionContract(contractContent);
+            setAuctionCode(codeContent);
+            break;
+          case 'lease':
+            contractContent = await loadFileContent('/codeSource/termsToCode/07Simple Rent Agreement.txt');
+            codeContent = await loadFileContent('/codeSource/termsToCode/07simpleRent.mydsl');
+            setLeaseContract(contractContent);
+            setLeaseCode(codeContent);
+            break;
+          default:
+            break;
+        }
+      } else if (activeTab === 'contract') {
+        // 合约映射代码页面 - 继续加载agreementToCode目录下的文件
+        switch (tabId) {
+          case 'purchase':
+            contractContent = await loadFileContent('/codeSource/agreementToCode/03ComplexPurchaseAgreement.txt');
+            codeContent = await loadFileContent('/codeSource/agreementToCode/03complexPurchase.mydsl');
+            setPurchaseContract(contractContent);
+            setPurchaseCode(codeContent);
+            break;
+          case 'auction':
+            contractContent = await loadFileContent('/codeSource/agreementToCode/06ComplexAuctionAgreement.txt');
+            codeContent = await loadFileContent('/codeSource/agreementToCode/06complexAuction.mydsl');
+            setAuctionContract(contractContent);
+            setAuctionCode(codeContent);
+            break;
+          case 'lease':
+            contractContent = await loadFileContent('/codeSource/agreementToCode/09ComplexRentAgreement.txt');
+            codeContent = await loadFileContent('/codeSource/agreementToCode/09complexRent.mydsl');
+            setLeaseContract(contractContent);
+            setLeaseCode(codeContent);
+            break;
+          default:
+            break;
+        }
+      }
+      
+      // 更新当前显示的内容
+      setContractContent(contractContent);
+      setCode(codeContent);
+    } catch (error) {
+      console.error('Error loading tab content:', error);
+    }
+  };
+
+  // 初始加载购买协议内容
+  React.useEffect(() => {
+    loadTabContent('purchase');
+  }, [activeTab]);
+
+  // 当activeTab切换时，设置对应页面的默认子页面
+  React.useEffect(() => {
+    if (activeTab === 'editor' || activeTab === 'contract') {
+      setInnerTab('purchase');
+    }
+  }, [activeTab]);
+
+  // 当innerTab变化时，加载对应标签页的内容
+  React.useEffect(() => {
+    loadTabContent(innerTab);
+  }, [innerTab]);
 
   // 处理标签页切换
   const handleTabChange = (tabName) => {
@@ -3423,6 +4773,42 @@ const AutoGeneration = () => {
     simulateApiRequest('compile');
   };
 
+  // 下载输入内容
+  const handleDownloadInput = () => {
+    if (!contractContent) return;
+    
+    const blob = new Blob([contractContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `input_${Date.now()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // 下载输出结果
+  const handleDownloadOutput = () => {
+    if (!code) return;
+    
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `output_${Date.now()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 py-8 px-4">
       {/* 页面标题 */}
@@ -3431,354 +4817,1291 @@ const AutoGeneration = () => {
           <div className="text-purple-600 text-5xl">📝</div>
           <div>
             <h2 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Sparrow设计语言</h2>
-            <p className="text-xl text-gray-600 font-light italic">Sparrow Design Language</p>
+            <p className="text-lg text-gray-600 font-light italic">Sparrow Design Language</p>
           </div>
+        </div>
+        {/* 页面描述 */}
+        <div className="max-w-3xl mx-auto mt-4">
+          <p className="text-gray-700 text-lg">Sparrow设计语言是一种专为智能合约开发设计的领域特定语言，旨在简化法律条文到代码的转换过程，提高合约代码的可读性和可维护性。</p>
         </div>
       </div>
 
-      {/* 功能模块选择 */}
-      <div className="max-w-6xl mx-auto">
+      {/* 新增区域：搜索框、目录和文本区域 */}
+      <div className="max-w-6xl mx-auto mb-10">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* 标签页导航 */}
-          <div className="bg-gray-50 border-b border-gray-200 rounded-t-xl">
-            <div className="flex overflow-x-auto">
-              {
-                [
-                  { id: 'editor', label: '代码编辑器', icon: '✏️' },
-                  { id: 'features', label: '核心特性', icon: '✨' },
-                  { id: 'application', label: '应用场景', icon: '💡' },
-                  { id: 'principles', label: '设计原则', icon: '🎯' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
-                    className={`px-6 py-4 whitespace-nowrap font-medium transition-all duration-300 flex items-center gap-2 ${activeTab === tab.id
-                      ? 'bg-purple-600 text-white'
-                      : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600'}`}
-                  >
-                    <span className="text-lg">{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                ))
-              }
+          {/* 下拉列表 */}
+          <div className="bg-gray-50 p-4 border-b border-gray-200">
+            <select 
+              className="w-full px-4 py-2 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              value={selectedOption}
+              onChange={handleOptionChange}
+              style={{
+                color: selectedOption ? 'inherit' : '#9CA3AF'
+              }}
+            >
+              <option value="" disabled hidden>请选择模板类型</option>
+              <option value="purchase">Purchase</option>
+              <option value="auction">Auction</option>
+              <option value="rent">Rent</option>
+            </select>
+          </div>
+          
+          {/* 目录和文本区域 */}
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* 左侧目录 */}
+              <div className="md:col-span-1">
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <ul className="space-y-3">
+                    <li>
+                      <a 
+                        href="#" 
+                        className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'text' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDirectoryClick('text');
+                        }}
+                      >
+                        <span>📄</span>
+                        <span>文本</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a 
+                        href="#" 
+                        className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'model' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDirectoryClick('model');
+                        }}
+                      >
+                        <span>🤖</span>
+                        <span>Sparrow</span>
+                      </a>
+                    </li>
+
+                    
+                    {/* 导出按钮 */}
+                    <li className="pt-4">
+                      <button 
+                        className="w-1/2 px-3 py-2 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 font-medium justify-center mx-auto"
+                        onClick={() => {
+                          const content = contentTab === 'terms' ? termsContent : contractTabContent;
+                          if (!content) return;
+                          
+                          const blob = new Blob([content], { type: 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `export_${Date.now()}.txt`;
+                          
+                          document.body.appendChild(a);
+                          a.click();
+                          
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        导出
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              
+              {/* 右侧文本区域 */}
+              <div className="md:col-span-3">
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 border-b border-gray-200 flex">
+                    <button 
+                      className={`px-4 py-2 text-base font-medium transition-colors ${contentTab === 'terms' ? 'text-purple-600 bg-white border-b-2 border-purple-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                      onClick={() => handleContentTabChange('terms')}
+                    >
+                      条文
+                    </button>
+                    <button 
+                      className={`px-4 py-2 text-base font-medium transition-colors ${contentTab === 'contract' ? 'text-purple-600 bg-white border-b-2 border-purple-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                      onClick={() => handleContentTabChange('contract')}
+                    >
+                      合约
+                    </button>
+                  </div>
+                  <textarea 
+                    className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
+                    value={contentTab === 'terms' ? termsContent : contractTabContent}
+                    onChange={(e) => contentTab === 'terms' ? setTermsContent(e.target.value) : setContractTabContent(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-          {/* 标签页内容 */}
-          <div className="p-6">
-            {/* 代码编辑器标签页 */}
-            {activeTab === 'editor' && (
-              <div className="space-y-6">
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-3">Sparrow 程序编辑器</h3>
-                  <p className="text-gray-700 mb-4">编写Sparrow程序，支持语法检查和编译功能。</p>
+// 单语言转换模块
+const ConvertModule = () => {
+  const [sourceCode, setSourceCode] = React.useState('');
+  const [targetCode, setTargetCode] = React.useState('');
+  const [sourceLanguage, setSourceLanguage] = React.useState('');
+  const [localLoading, setLocalLoading] = React.useState(false);
+  const [selectedDirectory, setSelectedDirectory] = React.useState('source');
+  const [logicCode, setLogicCode] = React.useState('');
+
+  // 处理目录点击
+  const handleDirectoryClick = (directory) => {
+    setSelectedDirectory(directory);
+  };
+
+  // 加载转换逻辑文件
+  React.useEffect(() => {
+    const loadLogicFile = async () => {
+      if (selectedDirectory !== 'logic') return;
+      
+      setLocalLoading(true);
+      try {
+        let filePath = '';
+        
+        if (sourceLanguage === 'epc') {
+          filePath = '/codeSource/codeToCode/epcToSolidity/epc_parser.py';
+        } else if (['sparrow-purchase', 'sparrow-auction', 'sparrow-rental'].includes(sourceLanguage)) {
+          filePath = '/codeSource/codeToCode/sparrowToSolidity/parse_solidity_ast.py';
+        } else if (sourceLanguage === 'bpmn') {
+          filePath = '/codeSource/codeToCode/BPMNToSolidity/Prompt.txt';
+        } else if (sourceLanguage === 'fsm') {
+          filePath = '/codeSource/codeToCode/FSMToSolidity/Prompt.txt';
+        }
+        
+        if (filePath) {
+          const content = await loadFileContent(filePath);
+          setLogicCode(content);
+        } else {
+          setLogicCode('');
+        }
+      } catch (error) {
+        console.error('Error loading logic file:', error);
+        setLogicCode('转换逻辑文件加载失败');
+      } finally {
+        setLocalLoading(false);
+      }
+    };
+
+    loadLogicFile();
+  }, [sourceLanguage, selectedDirectory]);
+
+  // 文件路径映射
+  const filePaths = {
+    'sparrow-purchase': {
+      input: '/codeSource/codeToCode/sparrowToSolidity/03complexPurchase.mydsl',
+      output: '/codeSource/codeToCode/sparrowToSolidity/03complexPurchase.sol'
+    },
+    'sparrow-auction': {
+      input: '/codeSource/codeToCode/sparrowToSolidity/06complexAuction.mydsl',
+      output: '/codeSource/codeToCode/sparrowToSolidity/06complexAuction.sol'
+    },
+    'sparrow-rental': {
+      input: '/codeSource/codeToCode/sparrowToSolidity/09complexRent.mydsl',
+      output: '/codeSource/codeToCode/sparrowToSolidity/09complexRent.sol'
+    },
+    'epc': {
+      input: '/codeSource/codeToCode/epcToSolidity/auction_simple.epml',
+      output: '/codeSource/codeToCode/epcToSolidity/auction_simple.sol'
+    },
+    'bpmn': {
+      input: '/codeSource/codeToCode/BPMNToSolidity/Auction_Contract.txt',
+      output: '/codeSource/codeToCode/BPMNToSolidity/AuctionContract_response_output.sol'
+    },
+    'fsm': {
+      input: '/codeSource/codeToCode/FSMToSolidity/FSM.txt',
+      output: '/codeSource/codeToCode/FSMToSolidity/llama3_0-5.sol'
+    }
+  };
+
+  // 加载文件内容
+  const loadFileContent = async (filePath) => {
+    try {
+      const response = await fetch(filePath);
+      if (!response.ok) {
+        throw new Error(`Failed to load file: ${filePath}`);
+      }
+      return await response.text();
+    } catch (error) {
+      console.error('Error loading file:', error);
+      return '文件加载失败，请稍后重试';
+    }
+  };
+
+  // 源语言选择变化时加载对应文件
+  React.useEffect(() => {
+    const loadFiles = async () => {
+      setLocalLoading(true);
+      try {
+        const paths = filePaths[sourceLanguage];
+        if (paths) {
+          const inputContent = await loadFileContent(paths.input);
+          setSourceCode(inputContent);
+          // 同时加载输出文件内容
+          const outputContent = await loadFileContent(paths.output);
+          setTargetCode(outputContent);
+        }
+      } catch (error) {
+        console.error('Error loading files:', error);
+      } finally {
+        setLocalLoading(false);
+      }
+    };
+
+    loadFiles();
+  }, [sourceLanguage]);
+
+  // 下载代码功能
+  const handleDownload = () => {
+    if (!targetCode) return;
+    
+    // 创建Blob对象
+    const blob = new Blob([targetCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    // 创建下载链接
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `converted_code_${Date.now()}.txt`;
+    
+    // 触发下载
+    document.body.appendChild(a);
+    a.click();
+    
+    // 清理
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // 下载输入内容
+  const handleDownloadInput = () => {
+    if (!sourceCode) return;
+    
+    const blob = new Blob([sourceCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `input_${Date.now()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // 下载输出结果
+  const handleDownloadOutput = () => {
+    if (!targetCode) return;
+    
+    const blob = new Blob([targetCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `solidity_output_${Date.now()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // 源语言选项
+  const sourceLanguages = [
+    { value: 'sparrow-purchase', label: 'Sparrow-Purchase' },
+    { value: 'sparrow-auction', label: 'Sparrow-Auction' },
+    { value: 'sparrow-rental', label: 'Sparrow-Rent' },
+    { value: 'epc', label: 'EPC' },
+    { value: 'bpmn', label: 'BPMN' },
+    { value: 'fsm', label: 'FSM' }
+  ];
+
+  const handleConvert = async () => {
+    setLocalLoading(true);
+    try {
+      // 模拟API请求延迟
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // 加载对应输出文件
+      const paths = filePaths[sourceLanguage];
+      if (paths) {
+        const outputContent = await loadFileContent(paths.output);
+        setTargetCode(outputContent);
+      }
+    } catch (error) {
+      console.error('代码转换失败:', error);
+      setTargetCode('代码转换失败，请稍后重试');
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+        <h3 className="text-lg font-semibold text-purple-800 mb-3">单语言转换</h3>
+        <p className="text-gray-700 mb-4">支持将Sparrow、EPC、BPMN、FSM等多种形式化描述语言转换为Solidity智能合约代码，提供源语言编辑、转换逻辑查看和转换结果展示功能，并对BPMN和FSM转换提供准确率和一致性分析。</p>
+        
+        <div className="grid grid-cols-1 gap-6 mb-6">
+          <div>
+            <label className="block text-base font-medium text-gray-700 mb-2">源语言</label>
+            <select 
+              className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 text-base"
+              value={sourceLanguage}
+              onChange={(e) => setSourceLanguage(e.target.value)}
+              style={{ color: sourceLanguage ? '' : '#9ca3af' }}
+            >
+              <option value="" disabled hidden>请选择源语言</option>
+              {sourceLanguages.map(lang => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        
+        {/* 目录和文本区域 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* 左侧目录 */}
+          <div className="md:col-span-1">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <ul className="space-y-3">
+                <li>
+                  <a 
+                    href="#" 
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'source' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDirectoryClick('source');
+                    }}
+                  >
+                    <span>📄</span>
+                    <span>源语言</span>
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'solidity' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDirectoryClick('solidity');
+                    }}
+                  >
+                    <span>🔗</span>
+                    <span>Solidity</span>
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'logic' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDirectoryClick('logic');
+                    }}
+                  >
+                    <span>🔄</span>
+                    <span>转换逻辑</span>
+                  </a>
+                </li>
+                
+                <li className="pt-4">
+                  <button 
+                    className="w-1/2 px-3 py-2 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-medium justify-center mx-auto"
+                    onClick={() => {
+                      const content = selectedDirectory === 'source' ? sourceCode : selectedDirectory === 'solidity' ? targetCode : '转换逻辑将显示在这里';
+                      if (!content || content === '转换逻辑将显示在这里') return;
+                       
+                      const blob = new Blob([content], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                       
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `export_${Date.now()}.txt`;
+                       
+                      document.body.appendChild(a);
+                      a.click();
+                       
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    导出
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* 右侧文本区域 */}
+          <div className="md:col-span-3">
+            <div className="border border-gray-300 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
+                <span className="text-base font-medium text-gray-700">
+                  {selectedDirectory === 'source' && (sourceLanguage ? `${sourceLanguages.find(l => l.value === sourceLanguage)?.label}` : 'unknown')}
+                  {selectedDirectory === 'solidity' && 'Solidity'}
+                  {selectedDirectory === 'logic' && '转换逻辑'}
+                </span>
+              </div>
+              <textarea 
+                className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
+                value={selectedDirectory === 'source' ? sourceCode : selectedDirectory === 'solidity' ? targetCode : logicCode}
+                onChange={(e) => {
+                  if (selectedDirectory === 'source') {
+                    setSourceCode(e.target.value);
+                  } else if (selectedDirectory === 'solidity') {
+                    setTargetCode(e.target.value);
+                  }
+                }}
+                placeholder=""
+                spellCheck={false}
+              />
+            </div>
+          </div>
+        </div>
+        
+        {targetCode && (
+          <>
+            {(sourceLanguage === 'bpmn' || sourceLanguage === 'fsm') && (
+              <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
+                <h4 className="text-lg font-semibold text-green-800 mb-4">转换准确率</h4>
+                <div className="flex justify-center items-center py-4">
+                  <div className="flex items-center gap-4">
+                    {sourceLanguage === 'fsm' ? (
+                      <>
+                        <p className="text-xl">准确率 = (1 - </p>
+                        <div className="text-center">
+                          <p className="text-lg font-medium">编辑距离(Edit Distance)</p>
+                          <hr className="w-full border-t-2 border-gray-800 my-1" />
+                          <p className="text-lg font-medium">有效代码行数(Effective Lines of Code)</p>
+                        </div>
+                        <p className="text-xl">) × 100%</p>
+                        <p className="text-xl">≈</p>
+                        <p className="text-xl font-medium">88.35%</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xl">准确率 = (1 - </p>
+                        <div className="text-center">
+                          <p className="text-lg font-medium">确保正确执行而需要修改的代码行数(Lines of Modified Code)</p>
+                          <hr className="w-full border-t-2 border-gray-800 my-1" />
+                          <p className="text-lg font-medium">代码总行数(Lines of Code)</p>
+                        </div>
+                        <p className="text-xl">) × 100%</p>
+                        <p className="text-xl">≈</p>
+                        <p className="text-xl font-medium">97.1%</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            {(sourceLanguage === 'bpmn' || sourceLanguage === 'fsm') && (
+              <div className="bg-white rounded-lg shadow-md p-6 border border-green-200 mt-6">
+                <h4 className="text-lg font-semibold text-green-800 mb-4">转换一致性</h4>
+                {sourceLanguage === 'bpmn' ? (
+                  <div className="flex justify-center items-center py-4">
+                    <div className="flex items-center gap-4">
+                      <p className="text-xl">一致性 = (1 - </p>
+                      <div className="text-center">
+                        <p className="text-lg font-medium">实现预期功能而需要修改的代码行数(Lines to be Fixed of Code)</p>
+                        <hr className="w-full border-t-2 border-gray-800 my-1" />
+                        <p className="text-lg font-medium">代码总行数(Lines of Code)</p>
+                      </div>
+                      <p className="text-xl">) × 100%</p>
+                      <p className="text-xl">≈</p>
+                      <p className="text-xl font-medium">97.9%</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-center items-center py-4">
+                    <div className="flex items-center gap-4">
+                      <p className="text-xl">一致性 = </p>
+                      <div className="text-center">
+                        <p className="text-lg font-medium">2 × 精确率(Precision) × 召回率(Recall)</p>
+                        <hr className="w-full border-t-2 border-gray-800 my-1" />
+                        <p className="text-lg font-medium">精确率(Precision) + 召回率(Recall)</p>
+                      </div>
+                      <p className="text-xl">× 100%</p>
+                      <p className="text-xl">≈</p>
+                      <p className="text-xl font-medium">92.16%</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 编译器模块
+const CompilerModule = () => {
+  const [language, setLanguage] = React.useState('go');
+  const [code, setCode] = React.useState('');
+  const [correctedCode, setCorrectedCode] = React.useState('');
+  const [lineAccuracy, setLineAccuracy] = React.useState(0);
+  const [byteAccuracy, setByteAccuracy] = React.useState(0);
+  const [result, setResult] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  // 文件上传处理
+  const [uploadedFile, setUploadedFile] = React.useState(null);
+  
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCode(event.target.result);
+      };
+      reader.readAsText(file);
+      // 重置文件输入，确保可以重复上传同一个文件
+      e.target.value = '';
+    }
+  };
+  
+  // 清除上传的文件
+  const clearUploadedFile = () => {
+    setUploadedFile(null);
+    // 不清除代码内容，只清除文件信息
+  };
+
+  // 语法纠错处理
+  const handleSyntaxCorrection = () => {
+    if (!code) {
+      setError('请输入或上传代码');
+      return;
+    }
+
+    // 构建提示词
+    let prompt = '';
+    if (language === 'go') {
+      prompt = `请对以下Go代码进行语法纠错，使其能正确编译运行。只返回纠错后的代码，不要添加任何解释或注释。\n\n${code}`;
+    } else if (language === 'vyper') {
+      prompt = `请对以下Vyper代码进行语法纠错，使其能正确编译运行。只返回纠错后的代码，不要添加任何解释或注释。\n\n${code}`;
+    }
+
+    // 打开deepseek网站并预填充提示词
+    const encodedPrompt = encodeURIComponent(prompt);
+    window.open(`https://chat.deepseek.com/?prompt=${encodedPrompt}`, '_blank');
+  };
+
+  // 编译处理
+  const handleCompileRun = async () => {
+    if (!code) {
+      setError('请输入或上传代码');
+      return;
+    }
+
+    // 安全检查
+    const unsafePatterns = {
+      go: [
+        'os/exec',
+        'syscall',
+        'net/http',
+        'os.Remove',
+        'os.RemoveAll',
+        'os.Rename',
+        'os.Chmod',
+        'os.Chown',
+        'os.Mkdir',
+        'os.MkdirAll',
+        'os.OpenFile',
+        'os.Create',
+        'ioutil.WriteFile',
+        'io/ioutil.WriteFile',
+        'os.Exit',
+        'runtime.GOMAXPROCS',
+        'runtime.LockOSThread',
+        'reflect.MakeFunc',
+        'reflect.Value.Call',
+        'plugin.Open'
+      ],
+      vyper: [
+        'selfdestruct',
+        'delegatecall',
+        'callcode',
+        'suicide',
+        'raw_call',
+        'create2',
+        'create'
+      ]
+    };
+
+    // 检查代码是否包含危险操作
+    const patterns = unsafePatterns[language] || [];
+    for (const pattern of patterns) {
+      if (code.includes(pattern)) {
+        setError(`代码包含危险操作：${pattern}，请移除后再编译`);
+        return;
+      }
+    }
+
+
+
+    setLoading(true);
+    setError('');
+    setResult('');
+
+    try {
+      // 调用后端API编译运行代码
+      const response = await fetch(`/api/compile/${language}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ code })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '编译失败');
+      }
+
+      const data = await response.json();
+
+      // 构建结果
+      let resultText = '';
+      if (language === 'go') {
+        resultText = `Go编译${data.success ? '成功' : '失败'}！\n\n编译信息：\n${data.compileOutput}\n\n执行结果：\n${data.runOutput}`;
+      } else if (language === 'vyper') {
+        resultText = `Vyper编译${data.success ? '成功' : '失败'}！\n\n编译结果：\n${data.compileOutput}`;
+      }
+
+      setResult(resultText);
+    } catch (err) {
+      setError(`编译失败：${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h3 className="text-lg font-semibold text-blue-800 mb-3">编译器</h3>
+        <p className="text-gray-700 mb-4">上传或输入Go语言和Vyper语言的代码，进行编译运行，查看编译结果。</p>
+        
+        <div className="flex flex-wrap items-end gap-4 mb-6">
+          <div className="w-1/2 max-w-[200px]">
+            <label className="block text-base font-medium text-gray-700 mb-2">语言选择</label>
+            <select 
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+            >
+              <option value="go">Go</option>
+              <option value="vyper">Vyper</option>
+            </select>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              {/* 文件上传按钮 */}
+              <label 
+                className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all duration-300 cursor-pointer"
+              >
+                <span>文件上传</span>
+                <input 
+                  type="file" 
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept=".go,.vy,.txt"
+                />
+              </label>
+              
+              {/* 上传文件信息显示 */}
+              {uploadedFile && (
+                <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-2">
+                  <div className="text-green-500">📄</div>
+                  <div className="text-base">
+                    <span className="font-medium truncate max-w-xs">{uploadedFile.name}</span>
+                    <span className="text-sm text-gray-500 ml-1">({Math.round(uploadedFile.size / 1024)} KB)</span>
+                  </div>
+                  <button
+                    onClick={clearUploadedFile}
+                    className="text-gray-400 hover:text-red-600 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-base font-medium text-gray-700 mb-2">代码输入</label>
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div className="relative">
+                  <textarea
+                    className="w-full border-none px-4 py-3 text-base h-96 resize-none bg-white z-10 relative font-mono"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder={`请输入${language === 'go' ? 'Go' : 'Vyper'}代码...`}
+                    spellCheck={false}
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-base font-medium text-gray-700 mb-2">正确内容</label>
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div className="relative">
+                  <textarea
+                    className="w-full border-none px-4 py-3 text-base h-96 resize-none bg-white z-10 relative font-mono"
+                    value={correctedCode}
+                    onChange={(e) => setCorrectedCode(e.target.value)}
+                    placeholder="请将deepseek纠错后的代码粘贴到这里..."
+                    spellCheck={false}
+                  />
+                </div>
+              </div>
+              <div className="mt-4 flex gap-3">
+                <button 
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                  onClick={() => {
+                    if (!code || !correctedCode) {
+                      setError('请输入代码和纠错结果');
+                      return;
+                    }
+
+                    // 计算行正确率
+                    const originalLines = code.split('\n');
+                    const correctedLines = correctedCode.split('\n');
+                    const totalLines = originalLines.length;
+                    let modifiedLines = 0;
+
+                    for (let i = 0; i < Math.max(originalLines.length, correctedLines.length); i++) {
+                      const originalLine = originalLines[i] || '';
+                      const correctedLine = correctedLines[i] || '';
+                      if (originalLine !== correctedLine) {
+                        modifiedLines++;
+                      }
+                    }
+
+                    const lineAcc = (1 - modifiedLines / totalLines) * 100;
+                    setLineAccuracy(lineAcc);
+
+                    // 计算字节正确率 (UTF-8编码)
+                    const encoder = new TextEncoder();
+                    const originalBytes = encoder.encode(code).length;
+                    const correctedBytes = encoder.encode(correctedCode).length;
+                    const modifiedBytes = Math.abs(correctedBytes - originalBytes);
+                    const byteAcc = (1 - modifiedBytes / originalBytes) * 100;
+                    setByteAccuracy(byteAcc);
+                  }}
+                >
+                  📊
+                  计算正确率
+                </button>
+              </div>
+              {lineAccuracy > 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">行正确率</p>
+                    <p className="text-lg font-semibold text-blue-700">{lineAccuracy.toFixed(2)}%</p>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">字节正确率</p>
+                    <p className="text-lg font-semibold text-green-700">{byteAccuracy.toFixed(2)}%</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button 
+            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2"
+            onClick={handleSyntaxCorrection}
+          >
+            📝
+            语法纠错
+          </button>
+          <button 
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+            onClick={handleCompileRun}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                编译中...
+              </>
+            ) : (
+              <>
+                🔄
+                编译运行
+              </>
+            )}
+          </button>
+          <button 
+            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2"
+            onClick={() => {
+              setCode('');
+              setCorrectedCode('');
+              setLineAccuracy(0);
+              setByteAccuracy(0);
+              setUploadedFile(null);
+            }}
+          >
+            🗑️
+            清空代码
+          </button>
+        </div>
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="text-red-500 text-xl">❌</div>
+              <h4 className="text-lg font-semibold text-red-800">{error}</h4>
+            </div>
+          </div>
+        )}
+        
+        {result && (
+          <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
+            <h4 className="text-lg font-semibold text-green-800 mb-4">编译运行结果</h4>
+            <div className="border border-gray-300 rounded-lg overflow-hidden">
+              <div className="relative">
+                <textarea
+                  className="w-full border-none px-4 py-3 text-base h-96 resize-none bg-gray-50 z-10 relative font-mono"
+                  value={result}
+                  readOnly
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 多语言转换模块
+const MultiConvertModule = () => {
+  const [sourceCode, setSourceCode] = React.useState('');
+  const [goCode, setGoCode] = React.useState('');
+  const [vyperCode, setVyperCode] = React.useState('');
+  const [sourceLanguage, setSourceLanguage] = React.useState('');
+  const [localLoading, setLocalLoading] = React.useState(false);
+  const [selectedDirectory, setSelectedDirectory] = React.useState('source');
+  const [logicCode, setLogicCode] = React.useState('');
+
+  // 处理目录点击
+  const handleDirectoryClick = (directory) => {
+    setSelectedDirectory(directory);
+  };
+
+  // 加载转换逻辑文件
+  React.useEffect(() => {
+    const loadLogicFile = async () => {
+      if (selectedDirectory !== 'logic') return;
+      
+      setLocalLoading(true);
+      try {
+        let filePath = '';
+        
+        if (['sparrow-purchase', 'sparrow-auction', 'sparrow-rent'].includes(sourceLanguage)) {
+          filePath = '/codeSource/codeToCode/sparrowToVyper/parse_vyper_ast.py';
+        }
+        
+        if (filePath) {
+          const content = await loadFileContent(filePath);
+          setLogicCode(content);
+        } else {
+          setLogicCode('');
+        }
+      } catch (error) {
+        console.error('Error loading logic file:', error);
+        setLogicCode('转换逻辑文件加载失败');
+      } finally {
+        setLocalLoading(false);
+      }
+    };
+
+    loadLogicFile();
+  }, [sourceLanguage, selectedDirectory]);
+
+  // 文件路径映射
+  const filePaths = {
+    'sparrow-purchase-go': {
+      input: '/codeSource/codeToCode/sparrowToGo/03complexPurchase.sparrow',
+      output: '/codeSource/codeToCode/sparrowToGo/complexPurchase.go'
+    },
+    'sparrow-purchase-vyper': {
+      input: '/codeSource/codeToCode/sparrowToVyper/03complexPurchase.sparrow',
+      output: '/codeSource/codeToCode/sparrowToVyper/complexPurchase.vy'
+    },
+    'sparrow-auction-go': {
+      input: '/codeSource/codeToCode/sparrowToGo/06complexAuction.sparrow',
+      output: '/codeSource/codeToCode/sparrowToGo/complexAuction.go'
+    },
+    'sparrow-auction-vyper': {
+      input: '/codeSource/codeToCode/sparrowToVyper/06complexAuction.sparrow',
+      output: '/codeSource/codeToCode/sparrowToVyper/complexAuction.vy'
+    },
+    'sparrow-rent-go': {
+      input: '/codeSource/codeToCode/sparrowToGo/09complexRent.sparrow',
+      output: '/codeSource/codeToCode/sparrowToGo/complexRent.go'
+    },
+    'sparrow-rent-vyper': {
+      input: '/codeSource/codeToCode/sparrowToVyper/09complexRent.sparrow',
+      output: '/codeSource/codeToCode/sparrowToVyper/complexRent.vy'
+    }
+  };
+
+  // 源语言选项
+  const sourceLanguages = [
+    { value: 'sparrow-purchase', label: 'Sparrow-Purchase' },
+    { value: 'sparrow-auction', label: 'Sparrow-Auction' },
+    { value: 'sparrow-rent', label: 'Sparrow-Rent' }
+  ];
+
+  // 目标语言选项
+  const targetLanguages = [
+    { value: 'go', label: 'Go' },
+    { value: 'vyper', label: 'Vyper' }
+  ];
+
+  // 加载文件内容
+  const loadFileContent = async (filePath) => {
+    try {
+      const response = await fetch(filePath);
+      if (!response.ok) {
+        throw new Error(`Failed to load file: ${filePath}`);
+      }
+      return await response.text();
+    } catch (error) {
+      console.error('Error loading file:', error);
+      return '文件加载失败，请稍后重试';
+    }
+  };
+
+  // 源语言选择变化时加载对应文件
+  React.useEffect(() => {
+    const loadFiles = async () => {
+      setLocalLoading(true);
+      try {
+        // 加载输入文件
+        const goKey = `${sourceLanguage}-go`;
+        const vyperKey = `${sourceLanguage}-vyper`;
+        
+        const goPaths = filePaths[goKey];
+        const vyperPaths = filePaths[vyperKey];
+        
+        if (goPaths) {
+          const inputContent = await loadFileContent(goPaths.input);
+          setSourceCode(inputContent);
+          // 加载Go输出文件内容
+          const goOutputContent = await loadFileContent(goPaths.output);
+          setGoCode(goOutputContent);
+        }
+        
+        if (vyperPaths) {
+          // 加载Vyper输出文件内容
+          const vyperOutputContent = await loadFileContent(vyperPaths.output);
+          setVyperCode(vyperOutputContent);
+        }
+      } catch (error) {
+        console.error('Error loading files:', error);
+      } finally {
+        setLocalLoading(false);
+      }
+    };
+
+    loadFiles();
+  }, [sourceLanguage]);
+
+  // 处理多语言转换
+  const handleConvert = async () => {
+    setLocalLoading(true);
+    try {
+      // 模拟API请求延迟
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // 加载对应输出文件
+      const goKey = `${sourceLanguage}-go`;
+      const vyperKey = `${sourceLanguage}-vyper`;
+      
+      const goPaths = filePaths[goKey];
+      const vyperPaths = filePaths[vyperKey];
+      
+      if (goPaths) {
+        const goOutputContent = await loadFileContent(goPaths.output);
+        setGoCode(goOutputContent);
+      }
+      
+      if (vyperPaths) {
+        const vyperOutputContent = await loadFileContent(vyperPaths.output);
+        setVyperCode(vyperOutputContent);
+      }
+    } catch (error) {
+      console.error('多语言转换失败:', error);
+      setGoCode('多语言转换失败，请稍后重试');
+      setVyperCode('多语言转换失败，请稍后重试');
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  const handleDownloadInput = () => {
+    if (!sourceCode) return;
+    
+    const blob = new Blob([sourceCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `input_${Date.now()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadOutput = () => {
+    if (!goCode) return;
+    
+    const blob = new Blob([goCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `output_${Date.now()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+        <h3 className="text-lg font-semibold text-purple-800 mb-3">多语言转换</h3>
+        <p className="text-gray-700 mb-4">支持将Sparrow语言同时转换为Go和Vyper两种目标编程语言，提供源语言编辑、双语言转换结果对比展示和转换逻辑查看功能，实现一次转换多语言输出。</p>
+        
+        <div className="grid grid-cols-1 gap-6 mb-6">
+          <div>
+            <label className="block text-base font-medium text-gray-700 mb-2">源语言</label>
+            <select 
+              className="w-1/2 border border-gray-300 rounded-lg px-3 py-2 text-base"
+              value={sourceLanguage}
+              onChange={(e) => setSourceLanguage(e.target.value)}
+              style={{ color: sourceLanguage ? '' : '#9ca3af' }}
+            >
+              <option value="" disabled hidden>请选择源语言</option>
+              {sourceLanguages.map(lang => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        
+        {/* 目录和文本区域 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* 左侧目录 */}
+          <div className="md:col-span-1">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <ul className="space-y-3">
+                <li>
+                  <a 
+                    href="#" 
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'source' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDirectoryClick('source');
+                    }}
+                  >
+                    <span>📄</span>
+                    <span>源语言</span>
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'convert' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDirectoryClick('convert');
+                    }}
+                  >
+                    <span>🔄</span>
+                    <span>转换</span>
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'logic' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDirectoryClick('logic');
+                    }}
+                  >
+                    <span>🧠</span>
+                    <span>转换逻辑</span>
+                  </a>
+                </li>
+                
+                <li className="pt-4">
+                  {selectedDirectory === 'source' && (
+                    <button 
+                      className="w-1/2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-medium justify-center mx-auto"
+                      onClick={() => {
+                        if (!sourceCode) return;
+                        const blob = new Blob([sourceCode], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `source_${Date.now()}.txt`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                    >
+                      导出
+                    </button>
+                  )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="md:col-span-2">
-
-                      <div className="border border-gray-300 rounded-lg overflow-hidden">
-                        {/* 编辑器头部 */}
-                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700">代码编辑区</span>
-                          <div className="flex items-center gap-3">
-                            {hasCheckedSyntax && (
-                              syntaxErrors.length > 0 ? (
-                                <span className="text-sm text-red-600">发现 {syntaxErrors.length} 个语法错误</span>
-                              ) : (
-                                <span className="text-sm text-green-600">无语法错误</span>
-                              )
-                            )}
-                            <label className="cursor-pointer px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors duration-300 flex items-center gap-1">
-                              📁 上传文件
-                              <input
-                                type="file"
-                                accept=".txt"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files[0];
-                                  if (file) {
-                                    const reader = new FileReader();
-                                    reader.onload = (event) => {
-                                      setCode(event.target.result || '');
-                                    };
-                                    reader.readAsText(file);
-                                  }
-                                }}
-                              />
-                            </label>
-                          </div>
-                        </div>
-                        {/* 代码输入区域 - 带错误高亮 */}
-                        <div className="relative">
-                          {/* 代码编辑器 */}
-                          <textarea
-                            className="code-editor-textarea w-full border-none px-4 py-3 text-sm font-mono h-72 resize-none bg-transparent z-10 relative"
-                            value={code}
-                            onChange={handleCodeChange}
-                            placeholder="在这里编写 Sparrow 程序..."
-                            spellCheck={false}
-                          />
-                          {/* 错误高亮层 - 移除背景色样式 */}
-                          {syntaxErrors.length > 0 && (
-                            <div className="absolute top-0 left-0 right-0 bottom-0 px-4 py-3 font-mono text-sm pointer-events-none">
-                              {syntaxErrors.map((error, index) => {
-                                // 创建一个包含相同换行符的占位符字符串，用于定位错误行
-                                const lines = code.split('\n');
-                                const lineText = lines[error.line - 1] || '';
-                                
-                                return (
-                                  <div key={index} className="relative">
-                                    {/* 前面的行 */}
-                                    <div style={{ height: `${(error.line - 1) * 20}px` }}></div>
-                                    {/* 错误行 */}
-                                    <div>
-                                      {lineText}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  {selectedDirectory === 'convert' && (
+                    <div className="flex gap-2">
+                      <button 
+                        className="w-1/2 px-3 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:from-green-700 hover:to-teal-700 transition-all duration-300 font-medium justify-center"
+                        onClick={() => {
+                          if (!goCode) return;
+                          const blob = new Blob([goCode], { type: 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `go_output_${Date.now()}.txt`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        导出Go
+                      </button>
+                      <button 
+                        className="w-1/2 px-3 py-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg hover:from-purple-700 hover:to-violet-700 transition-all duration-300 font-medium justify-center"
+                        onClick={() => {
+                          if (!vyperCode) return;
+                          const blob = new Blob([vyperCode], { type: 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `vyper_output_${Date.now()}.txt`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        导出Vyper
+                      </button>
                     </div>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">操作选项</label>
-                        <div className="space-y-3">
-                          <button
-                            onClick={handleCheckSyntax}
-                            disabled={loading}
-                            className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
-                          >
-                            {loading ? (
-                              <span className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                检查中...
-                              </span>
-                            ) : (
-                              '检查语法'
-                            )}
-                          </button>
-                          <button
-                            onClick={handleCompile}
-                            disabled={loading}
-                            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
-                          >
-                            {loading ? (
-                              <span className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                编译中...
-                              </span>
-                            ) : (
-                              '编译代码'
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* 语法错误列表 */}
-                      {syntaxErrors.length > 0 && (
-                        <div className="bg-white border border-red-200 rounded-lg p-4">
-                          <h4 className="text-sm font-semibold text-red-800 mb-2">语法错误列表</h4>
-                          <ul className="list-disc pl-5 text-sm text-red-700 space-y-2 max-h-40 overflow-y-auto">
-                            {syntaxErrors.map((error, index) => (
-                              <li key={index}>
-                                <span className="font-medium">第 {error.line} 行</span>: {error.message}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  )}
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* 右侧文本区域 */}
+          <div className="md:col-span-3">
+            {selectedDirectory === 'source' && (
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
+                  <span className="text-base font-medium text-gray-700">{sourceLanguage ? sourceLanguages.find(l => l.value === sourceLanguage)?.label : 'unknown'}</span>
                 </div>
-                
-                {/* 操作结果 */}
-                {result && (
-                  <div className={`bg-white rounded-lg shadow-md p-6 border ${result.success ? 'border-green-200' : 'border-red-200'}`}>
-                    <h4 className={`text-lg font-semibold ${result.success ? 'text-green-800' : 'text-red-800'} mb-4`}>操作结果</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                          <p className="text-sm text-gray-600 mb-1">操作类型</p>
-                          <p className="text-lg font-medium">{result.message === '语法检查完成' ? '语法检查' : '编译'}</p>
-                        </div>
-                        <div className={`${result.success ? 'bg-green-50' : 'bg-red-50'} p-4 rounded-lg`}>
-                          <p className="text-sm text-gray-600 mb-1">结果状态</p>
-                          <p className={`text-lg font-medium ${result.success ? 'text-green-700' : 'text-red-700'}`}>
-                            {result.success ? '成功' : '失败'}
-                          </p>
-                        </div>
-                        {result.message === '语法检查完成' && (
-                          <>
-                            <div className="bg-blue-50 p-4 rounded-lg">
-                              <p className="text-sm text-gray-600 mb-1">错误数量</p>
-                              <p className="text-lg font-medium">{result.data.totalErrors}</p>
-                            </div>
-                            <div className="bg-yellow-50 p-4 rounded-lg">
-                              <p className="text-sm text-gray-600 mb-1">检查行数</p>
-                              <p className="text-lg font-medium">{result.data.checkedLines}</p>
-                            </div>
-                          </>
-                        )}
-                        {result.message === '编译成功' && (
-                          <>
-                            <div className="bg-blue-50 p-4 rounded-lg">
-                              <p className="text-sm text-gray-600 mb-1">代码大小</p>
-                              <p className="text-lg font-medium">{result.data.size} bytes</p>
-                            </div>
-                            <div className="bg-yellow-50 p-4 rounded-lg">
-                              <p className="text-sm text-gray-600 mb-1">警告数量</p>
-                              <p className="text-lg font-medium">{result.data.warnings.length}</p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-3">操作选项</p>
-                        <div className="flex flex-wrap gap-3">
-                          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                            💾 保存结果
-                          </button>
-                          <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                            ✅ 验证结果
-                          </button>
-                          <button className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                            ⚡ 优化代码
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="text-red-500 text-xl">❌</div>
-                      <h4 className="text-lg font-semibold text-red-800">{error}</h4>
-                    </div>
-                  </div>
-                )}
+                <textarea
+                  className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
+                  value={sourceCode}
+                  onChange={(e) => setSourceCode(e.target.value)}
+                  placeholder=""
+                  spellCheck={false}
+                />
               </div>
             )}
             
-            {/* 核心特性标签页 */}
-            {activeTab === 'features' && (
-              <div className="space-y-6">
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-3">核心特性</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border border-purple-200 rounded-lg p-4 bg-white">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">简洁明了</h4>
-                      <p className="text-gray-700">语法设计简洁易懂，降低学习成本，便于快速上手。</p>
-                    </div>
-                    <div className="border border-purple-200 rounded-lg p-4 bg-white">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">法律条文形式化</h4>
-                      <p className="text-gray-700">专门为智能合约法律条文诠释设计，支持精确的形式化描述。</p>
-                    </div>
-                    <div className="border border-purple-200 rounded-lg p-4 bg-white">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">严格的语法语义</h4>
-                      <p className="text-gray-700">具有严格的语法和语义定义，确保计算机可理解和处理。</p>
-                    </div>
-                    <div className="border border-purple-200 rounded-lg p-4 bg-white">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">双向映射</h4>
-                      <p className="text-gray-700">支持与自然语言法律条文的双向映射，保持语义一致性。</p>
-                    </div>
-                    <div className="border border-purple-200 rounded-lg p-4 bg-white">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">自动验证推理</h4>
-                      <p className="text-gray-700">支持自动验证和推理，确保智能合约的合法性和正确性。</p>
-                    </div>
-                    <div className="border border-purple-200 rounded-lg p-4 bg-white">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">实时预览</h4>
-                      <p className="text-gray-700">支持实时查看设计效果，提高开发效率。</p>
-                    </div>
+            {selectedDirectory === 'convert' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
+                    <span className="text-base font-medium text-gray-700">Go</span>
                   </div>
+                  <textarea
+                    className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
+                    value={goCode}
+                    onChange={(e) => setGoCode(e.target.value)}
+                    placeholder=""
+                    spellCheck={false}
+                  />
+                </div>
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
+                    <span className="text-base font-medium text-gray-700">Vyper</span>
+                  </div>
+                  <textarea
+                    className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
+                    value={vyperCode}
+                    onChange={(e) => setVyperCode(e.target.value)}
+                    placeholder=""
+                    spellCheck={false}
+                  />
                 </div>
               </div>
             )}
             
-            {/* 应用场景标签页 */}
-            {activeTab === 'application' && (
-              <div className="space-y-6">
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-3">应用场景</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-md border border-purple-100">
-                      <div className="text-purple-600 text-3xl mb-3">📄</div>
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">法律条文形式化</h4>
-                      <p className="text-gray-700">将自然语言法律条文转换为计算机可理解的形式化描述。</p>
-                    </div>
-                    <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-md border border-purple-100">
-                      <div className="text-purple-600 text-3xl mb-3">⚖️</div>
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">智能合约生成</h4>
-                      <p className="text-gray-700">基于形式化描述自动生成智能合约代码。</p>
-                    </div>
-                    <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-md border border-purple-100">
-                      <div className="text-purple-600 text-3xl mb-3">🔍</div>
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">合同合规性审查</h4>
-                      <p className="text-gray-700">自动审查智能合约的合规性和合法性。</p>
-                    </div>
-                    <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-md border border-purple-100">
-                      <div className="text-purple-600 text-3xl mb-3">🤝</div>
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">多方合约协商</h4>
-                      <p className="text-gray-700">支持多方参与的合约协商和修订。</p>
-                    </div>
-                    <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-md border border-purple-100">
-                      <div className="text-purple-600 text-3xl mb-3">📊</div>
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">合约执行监控</h4>
-                      <p className="text-gray-700">实时监控智能合约的执行状态和结果。</p>
-                    </div>
-                    <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-md border border-purple-100">
-                      <div className="text-purple-600 text-3xl mb-3">📚</div>
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">法律知识库构建</h4>
-                      <p className="text-gray-700">构建结构化的法律知识库，支持智能检索和推理。</p>
-                    </div>
-                  </div>
+            {selectedDirectory === 'logic' && (
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
+                  <span className="text-base font-medium text-gray-700">转换逻辑</span>
                 </div>
-              </div>
-            )}
-            
-            {/* 设计原则标签页 */}
-            {activeTab === 'principles' && (
-              <div className="space-y-6">
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-3">设计原则</h3>
-                  <div className="space-y-4">
-                    <div className="bg-white p-4 rounded-lg border border-purple-100">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">法律准确性优先</h4>
-                      <p className="text-gray-700">确保形式化描述与自然语言法律条文的语义一致性，优先保证法律准确性。</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border border-purple-100">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">计算机可理解性</h4>
-                      <p className="text-gray-700">设计清晰的语法结构，便于计算机解析和处理，支持自动验证和推理。</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border border-purple-100">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">人类可读性</h4>
-                      <p className="text-gray-700">保持良好的人类可读性，便于开发人员理解和维护。</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border border-purple-100">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">扩展性</h4>
-                      <p className="text-gray-700">支持扩展，能够适应不同领域和场景的法律条文形式化需求。</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg border border-purple-100">
-                      <h4 className="text-md font-semibold text-purple-700 mb-2">安全性</h4>
-                      <p className="text-gray-700">考虑智能合约的安全性，支持安全属性的形式化描述和验证。</p>
-                    </div>
-                  </div>
-                </div>
+                <textarea
+                  className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
+                  value={logicCode}
+                  readOnly
+                  spellCheck={false}
+                />
               </div>
             )}
           </div>
         </div>
       </div>
+      
+
     </div>
   );
 };
@@ -3817,14 +6140,7 @@ const ComplianceCheck = () => {
               targetLanguage: 'Solidity',
               conversionTime: '15秒',
               codeQuality: 0.92,
-              generatedCode: `pragma solidity ^0.8.0;\n\ncontract LaborContract {\n    // 合同双方\n    address public employer;\n    address public employee;\n    \n    // 合同期限\n    uint public startTime;\n    uint public endTime;\n    \n    // 薪资待遇\n    uint public salary;\n    \n    // 工作地点\n    string public workplace;\n    \n    constructor(address _employer, address _employee, uint _salary, string memory _workplace, uint _duration) {
-        employer = _employer;
-        employee = _employee;
-        salary = _salary;
-        workplace = _workplace;
-        startTime = block.timestamp;
-        endTime = block.timestamp + _duration;
-    }\n}`
+              generatedCode: `pragma solidity ^0.8.0;\n\ncontract LaborContract {\n    // 合同双方\n    address public employer;\n    address public employee;\n    \n    // 合同期限\n    uint public startTime;\n    uint public endTime;\n    \n    // 薪资待遇\n    uint public salary;\n    \n    // 工作地点\n    string public workplace;\n    \n    constructor(address _employer, address _employee, uint _salary, string memory _workplace, uint _duration) {\n        employer = _employer;\n        employee = _employee;\n        salary = _salary;\n        workplace = _workplace;\n        startTime = block.timestamp;\n        endTime = block.timestamp + _duration;\n    }\n}`
             }
           };
           break;
@@ -3882,686 +6198,6 @@ const ComplianceCheck = () => {
     }
   };
 
-  // 代码转换模块
-  const ConvertModule = () => {
-    const [sourceCode, setSourceCode] = React.useState('');
-    const [targetCode, setTargetCode] = React.useState('');
-    const [sourceLanguage, setSourceLanguage] = React.useState('sparrow');
-    const [targetLanguage, setTargetLanguage] = React.useState('solidity');
-    const [localLoading, setLocalLoading] = React.useState(false);
-
-    // 源语言选项
-    const sourceLanguages = [
-      { value: 'sparrow', label: 'Sparrow' },
-      { value: 'epc', label: 'EPC' },
-      { value: 'bpmn', label: 'BPMN' },
-      { value: 'fsm', label: 'FSM' }
-    ];
-
-    // 目标语言选项
-    const targetLanguages = [
-      { value: 'solidity', label: 'Solidity' }
-    ];
-
-    const handleConvert = async () => {
-      setLocalLoading(true);
-      try {
-        // 模拟API请求延迟
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // 模拟读取文件内容 - 01CarRent.txt的内容
-        const fileContent = `pragma solidity ^0.8.0;
-
-// 租车智能合约
-contract CarRental {
-    // 合约所有者
-    address public owner;
-    
-    // 车辆状态枚举
-    enum CarStatus {
-        Available,
-        Rented,
-        Maintenance
-    }
-    
-    // 车辆结构体
-    struct Car {
-        string brand;
-        string model;
-        uint24 year;
-        string licensePlate;
-        CarStatus status;
-        address currentRenter;
-        uint256 rentalStart;
-        uint256 dailyRate;
-    }
-    
-    // 租车记录结构体
-    struct RentalRecord {
-        uint256 carId;
-        address renter;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 totalCost;
-        bool returned;
-    }
-    
-    // 合约事件
-    event CarAdded(uint256 carId, string brand, string model);
-    event CarRented(uint256 carId, address renter, uint256 startTime, uint256 dailyRate);
-    event CarReturned(uint256 carId, address renter, uint256 endTime, uint256 totalCost);
-    event CarMaintenance(uint256 carId, CarStatus newStatus);
-    
-    // 合约状态变量
-    uint256 public nextCarId;
-    mapping(uint256 => Car) public cars;
-    mapping(uint256 => RentalRecord[]) public rentalHistory;
-    
-    // 修饰符
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
-    }
-    
-    // 构造函数
-    constructor() {
-        owner = msg.sender;
-        nextCarId = 0;
-    }
-    
-    // 添加车辆
-    function addCar(
-        string memory brand,
-        string memory model,
-        uint24 year,
-        string memory licensePlate,
-        uint256 dailyRate
-    ) public onlyOwner {
-        cars[nextCarId] = Car({
-            brand: brand,
-            model: model,
-            year: year,
-            licensePlate: licensePlate,
-            status: CarStatus.Available,
-            currentRenter: address(0),
-            rentalStart: 0,
-            dailyRate: dailyRate
-        });
-        
-        emit CarAdded(nextCarId, brand, model);
-        nextCarId++;
-    }
-    
-    // 租车
-    function rentCar(uint256 carId) public payable {
-        Car storage car = cars[carId];
-        require(car.status == CarStatus.Available, "Car is not available for rent");
-        require(msg.value >= car.dailyRate, "Insufficient payment for one day rental");
-        
-        car.status = CarStatus.Rented;
-        car.currentRenter = msg.sender;
-        car.rentalStart = block.timestamp;
-        
-        RentalRecord memory newRecord = RentalRecord({
-            carId: carId,
-            renter: msg.sender,
-            startTime: block.timestamp,
-            endTime: 0,
-            totalCost: 0,
-            returned: false
-        });
-        
-        rentalHistory[carId].push(newRecord);
-        
-        emit CarRented(carId, msg.sender, block.timestamp, car.dailyRate);
-    }
-    
-    // 还车
-    function returnCar(uint256 carId) public {
-        Car storage car = cars[carId];
-        require(car.status == CarStatus.Rented, "Car is not currently rented");
-        require(car.currentRenter == msg.sender, "You are not the current renter");
-        
-        // 计算租车天数和费用
-        uint256 rentalDuration = block.timestamp - car.rentalStart;
-        uint256 rentalDays = (rentalDuration / 86400) + 1; // 每天86400秒，不足一天按一天计算
-        uint256 totalCost = rentalDays * car.dailyRate;
-        
-        // 更新车辆状态
-        car.status = CarStatus.Available;
-        car.currentRenter = address(0);
-        car.rentalStart = 0;
-        
-        // 更新租车记录
-        RentalRecord[] storage records = rentalHistory[carId];
-        for (uint256 i = 0; i < records.length; i++) {
-            if (!records[i].returned && records[i].renter == msg.sender) {
-                records[i].endTime = block.timestamp;
-                records[i].totalCost = totalCost;
-                records[i].returned = true;
-                break;
-            }
-        }
-        
-        emit CarReturned(carId, msg.sender, block.timestamp, totalCost);
-    }
-    
-    // 设置车辆维护状态
-    function setCarMaintenance(uint256 carId, bool isInMaintenance) public onlyOwner {
-        Car storage car = cars[carId];
-        require(car.status != CarStatus.Rented, "Cannot put a rented car into maintenance");
-        
-        car.status = isInMaintenance ? CarStatus.Maintenance : CarStatus.Available;
-        
-        emit CarMaintenance(carId, car.status);
-    }
-    
-    // 获取租车记录
-    function getRentalHistory(uint256 carId) public view returns (RentalRecord[] memory) {
-        return rentalHistory[carId];
-    }
-    
-    // 获取可用车辆
-    function getAvailableCars() public view returns (uint256[] memory) {
-        uint256 count = 0;
-        
-        // 先计算可用车辆数量
-        for (uint256 i = 0; i < nextCarId; i++) {
-            if (cars[i].status == CarStatus.Available) {
-                count++;
-            }
-        }
-        
-        // 创建结果数组
-        uint256[] memory availableCars = new uint256[](count);
-        uint256 index = 0;
-        
-        // 填充可用车辆ID
-        for (uint256 i = 0; i < nextCarId; i++) {
-            if (cars[i].status == CarStatus.Available) {
-                availableCars[index] = i;
-                index++;
-            }
-        }
-        
-        return availableCars;
-    }
-    
-    // 提取合约余额
-    function withdraw() public onlyOwner {
-        payable(owner).transfer(address(this).balance);
-    }
-}`;
-        
-        // 直接输出文件内容到结果中
-        setTargetCode(fileContent);
-      } catch (error) {
-        console.error('代码转换失败:', error);
-        setTargetCode('代码转换失败，请稍后重试');
-      } finally {
-        setLocalLoading(false);
-      }
-    };
-
-    return (
-      <div className="space-y-6">
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <h3 className="text-lg font-semibold text-purple-800 mb-3">代码转换</h3>
-          <p className="text-gray-700 mb-4">可将多种可执行的智能合约代码转换为目标编程语言。</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">源语言</label>
-              <select 
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                value={sourceLanguage}
-                onChange={(e) => setSourceLanguage(e.target.value)}
-              >
-                {sourceLanguages.map(lang => (
-                  <option key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">目标语言</label>
-              <select 
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                value={targetLanguage}
-                onChange={(e) => setTargetLanguage(e.target.value)}
-                disabled
-              >
-                {targetLanguages.map(lang => (
-                  <option key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button
-                onClick={handleConvert}
-                disabled={localLoading}
-                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {localLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    转换中...
-                  </span>
-                ) : (
-                  '开始转换'
-                )}
-              </button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700">输入内容</label>
-                <label className="cursor-pointer px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors duration-300 flex items-center gap-1">
-                  📁 上传文件
-                  <input
-                    type="file"
-                    accept=".txt"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          setSourceCode(event.target.result || '');
-                        };
-                        reader.readAsText(file);
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-              <textarea 
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-72 font-mono"
-                value={sourceCode}
-                onChange={(e) => setSourceCode(e.target.value)}
-                placeholder={`请输入${sourceLanguages.find(l => l.value === sourceLanguage)?.label}代码...`}
-              ></textarea>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">输出结果</label>
-              <div className="border border-gray-300 rounded-lg h-72 overflow-y-auto bg-gray-50 p-3 text-sm font-mono">
-                {targetCode ? (
-                  <pre className="whitespace-pre-wrap">{targetCode}</pre>
-                ) : (
-                  <div className="text-gray-400 flex items-center justify-center h-full">
-                    转换结果将显示在这里
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {targetCode && (
-          <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-            <h4 className="text-lg font-semibold text-green-800 mb-4">转换结果摘要</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">源语言</p>
-                  <p className="text-lg font-medium">{sourceLanguages.find(l => l.value === sourceLanguage)?.label}</p>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">目标语言</p>
-                  <p className="text-lg font-medium">Solidity</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">转换时间</p>
-                  <p className="text-lg font-medium">1.5s</p>
-                </div>
-                <div className="bg-orange-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">代码质量</p>
-                  <p className="text-lg font-medium">95.50</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-3">操作选项</p>
-                <div className="flex flex-wrap gap-3">
-                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                    💾 下载代码
-                  </button>
-                  <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                    ✅ 验证代码
-                  </button>
-                  <button className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                    ⚡ 优化代码
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // 代码优化模块
-  const OptimizeModule = () => (
-    <div className="space-y-6">
-      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-        <h3 className="text-lg font-semibold text-yellow-800 mb-3">代码优化</h3>
-        <p className="text-gray-700 mb-4">优化生成的智能合约代码，减小代码体积，降低gas消耗，提高执行效率。</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择优化策略</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="sizeOpt" className="w-4 h-4 text-yellow-600 rounded" defaultChecked />
-                <label htmlFor="sizeOpt" className="text-sm text-gray-700">减小代码体积</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="gasOpt" className="w-4 h-4 text-yellow-600 rounded" defaultChecked />
-                <label htmlFor="gasOpt" className="text-sm text-gray-700">降低Gas消耗</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="speedOpt" className="w-4 h-4 text-yellow-600 rounded" />
-                <label htmlFor="speedOpt" className="text-sm text-gray-700">提高执行速度</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="readOpt" className="w-4 h-4 text-yellow-600 rounded" />
-                <label htmlFor="readOpt" className="text-sm text-gray-700">优化可读性</label>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => simulateApiRequest('optimize')}
-              disabled={loading}
-              className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  优化中...
-                </span>
-              ) : (
-                '开始优化'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* 优化结果 */}
-      {result && result.success && result.data.optimizationRate && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">优化结果</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">原始大小</p>
-                <p className="text-lg font-medium">{result.data.originalSize}</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">优化后大小</p>
-                <p className="text-lg font-medium">{result.data.optimizedSize}</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">优化率</p>
-                <p className="text-lg font-medium">{result.data.optimizationRate}</p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Gas节省</p>
-                <p className="text-lg font-medium">{result.data.gasSaved}</p>
-              </div>
-            </div>
-            <div>
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <p className="text-sm text-gray-600 mb-3">优化前后对比</p>
-                <div className="relative pt-1">
-                  <div className="flex mb-2 items-center justify-between">
-                    <div>
-                      <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-yellow-200 text-yellow-700">
-                        原始大小
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-green-200 text-green-700">
-                        优化后大小
-                      </span>
-                    </div>
-                  </div>
-                  <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
-                    <div style={{ width: '100%' }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-yellow-500"></div>
-                    <div style={{ width: `${parseFloat(result.data.optimizationRate)}` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 -ml-full"></div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                  💾 保存优化结果
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="text-red-500 text-xl">❌</div>
-            <h4 className="text-lg font-semibold text-red-800">{error}</h4>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  // 代码验证模块
-  const ValidateModule = () => (
-    <div className="space-y-6">
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h3 className="text-lg font-semibold text-blue-800 mb-3">代码验证</h3>
-        <p className="text-gray-700 mb-4">验证生成的智能合约代码的正确性、安全性和合规性，确保代码符合最佳实践。</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择验证规则</label>
-            <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              <option>默认规则集</option>
-              <option>严格规则集</option>
-              <option>安全优先</option>
-              <option>效率优先</option>
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => simulateApiRequest('validate')}
-              disabled={loading}
-              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  验证中...
-                </span>
-              ) : (
-                '开始验证'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* 验证结果 */}
-      {result && result.success && result.data.validationResult && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">验证结果</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">验证结果</p>
-                <p className={`text-lg font-medium ${result.data.validationResult === '通过' ? 'text-green-700' : 'text-red-700'}`}>
-                  {result.data.validationResult}
-                </p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">问题数量</p>
-                <p className="text-lg font-medium">{result.data.issues}</p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">警告数量</p>
-                <p className="text-lg font-medium">{result.data.warnings}</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">验证时间</p>
-                <p className="text-lg font-medium">{result.data.validationTime}</p>
-              </div>
-            </div>
-            <div>
-              {result.data.warnings > 0 && (
-                <div className="bg-yellow-50 p-4 rounded-lg mb-4">
-                  <h5 className="text-sm font-semibold text-yellow-800 mb-2">警告详情</h5>
-                  <ul className="list-disc pl-5 text-sm text-yellow-700 space-y-2">
-                    {result.data.warningsDetails.map((warning, index) => (
-                      <li key={index}>{warning}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="flex justify-end">
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                  📄 生成验证报告
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="text-red-500 text-xl">❌</div>
-            <h4 className="text-lg font-semibold text-red-800">{error}</h4>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  // 平台适配模块
-  const PlatformModule = () => (
-    <div className="space-y-6">
-      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-        <h3 className="text-lg font-semibold text-green-800 mb-3">平台适配</h3>
-        <p className="text-gray-700 mb-4">将生成的智能合约代码适配到不同的区块链平台和网络环境。</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择区块链平台</label>
-            <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              <option>以太坊</option>
-              <option>Polygon</option>
-              <option>BSC</option>
-              <option>Solana</option>
-              <option>Avalanche</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择网络</label>
-            <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              <option>主网</option>
-              <option>Goerli测试网</option>
-              <option>Sepolia测试网</option>
-              <option>Rinkeby测试网</option>
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => simulateApiRequest('platform')}
-              disabled={loading}
-              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  适配中...
-                </span>
-              ) : (
-                '开始适配'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* 适配结果 */}
-      {result && result.success && result.data.compatibility && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">适配结果</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">区块链平台</p>
-                <p className="text-lg font-medium">{result.data.platform}</p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">网络</p>
-                <p className="text-lg font-medium">{result.data.network}</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">兼容性</p>
-                <p className="text-lg font-medium">{result.data.compatibility}</p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">部署成本</p>
-                <p className="text-lg font-medium">{result.data.deploymentCost}</p>
-              </div>
-            </div>
-            <div className="flex flex-col justify-center">
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <h5 className="text-sm font-semibold text-gray-700 mb-2">适配建议</h5>
-                <p className="text-sm text-gray-600">
-                  智能合约代码已成功适配到{result.data.platform}平台的{result.data.network}网络，
-                  兼容性达到{result.data.compatibility}。建议在部署前进行充分的测试和审计。
-                </p>
-              </div>
-              <div className="flex justify-end">
-                <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-                  🚀 准备部署
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="text-red-500 text-xl">❌</div>
-            <h4 className="text-lg font-semibold text-red-800">{error}</h4>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 py-8 px-4">
       {/* 页面标题 */}
@@ -4570,8 +6206,14 @@ contract CarRental {
           <div className="text-orange-600 text-5xl">⚙️</div>
           <div>
             <h2 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">可编程语言转换引擎</h2>
-            <p className="text-xl text-gray-600 font-light italic">Programmable Language Conversion Engine</p>
+            <p className="text-lg text-gray-600 font-light italic">Programmable Language Conversion Engine</p>
           </div>
+        </div>
+        <div className="max-w-3xl mx-auto mt-4">
+          <p className="text-gray-700 text-lg">
+            可编程语言转换引擎是一种强大的工具，专门用于不同编程语言之间的智能转换，特别是在法律条文到形式化语言、形式化语言到智能合约代码的转换过程中发挥关键作用。
+            该引擎支持多种语言格式的转换，包括自然语言、Sparrow、BPMN、FSM等，能够自动分析输入内容并生成符合语法规范的目标语言代码，大大提高了开发效率和代码质量。
+          </p>
         </div>
       </div>
 
@@ -4581,39 +6223,38 @@ contract CarRental {
           {/* 标签页导航 */}
           <div className="bg-gray-50 border-b border-gray-200 rounded-t-xl">
             <div className="flex overflow-x-auto">
-              {[
-                { id: 'convert', label: '代码转换', icon: '🔄' },
-                { id: 'optimize', label: '代码优化', icon: '⚡' },
-                { id: 'validate', label: '代码验证', icon: '✅' },
-                { id: 'platform', label: '平台适配', icon: '🌐' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`px-6 py-4 whitespace-nowrap font-medium transition-all duration-300 flex items-center gap-2 ${activeTab === tab.id
-                    ? 'bg-orange-600 text-white'
-                    : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'}`}
-                >
-                  <span className="text-lg">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
+              {
+                [
+                  { id: 'convert', label: '单语言转换', icon: '🔄' },
+                  { id: 'multi-convert', label: '多语言转换', icon: '🌐' },
+                  { id: 'compiler', label: '编译器', icon: '⚙️' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`px-6 py-4 whitespace-nowrap font-medium text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === tab.id
+                      ? 'bg-orange-600 text-white'
+                      : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'}`}
+                  >
+                    <span className="text-lg">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))
+              }
             </div>
           </div>
 
           {/* 标签页内容 */}
           <div className="p-6">
             {activeTab === 'convert' && <ConvertModule />}
-            {activeTab === 'optimize' && <OptimizeModule />}
-            {activeTab === 'validate' && <ValidateModule />}
-            {activeTab === 'platform' && <PlatformModule />}
+            {activeTab === 'multi-convert' && <MultiConvertModule />}
+            {activeTab === 'compiler' && <CompilerModule />}
           </div>
         </div>
       </div>
     </div>
   );
 };
-
 
 /*
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4640,143 +6281,178 @@ contract CarRental {
 
 
 
-// 目录项配置 - 分成两组
-const menuItemsGroup1 = [
-  { id: 'law-parsing', title: 'CAM-CEE', component: <LawParsing /> },
-  { id: 'intelligent-matching', title: 'ProvBench', component: <IntelligentMatching /> },
-  { id: 'auto-contract-tag', title: 'AutoContractTag', component: <AutoContractTag /> },
-  { id: 'doc-trans-pro', title: 'DocTransPro', component: <DocTransPro /> }
-];
-
-const menuItemsGroup2 = [
-  { id: 'auto-generation', title: 'Sparrow语言', component: <AutoGeneration /> },
-  { id: 'compliance-check', title: '可编程语言转换引擎', component: <ComplianceCheck /> }
+// 目录项配置 - 按要求重新组织成三个下拉菜单
+const dropdownMenus = [
+  {
+    title: '提取与判定',
+    items: [
+      { id: 'law-parsing', title: 'CAM-CEE', component: <LawParsing /> },
+      { id: 'intelligent-matching', title: 'ProvBench', component: <IntelligentMatching /> }
+    ]
+  },
+  {
+    title: '标注与转化',
+    items: [
+      { id: 'auto-contract-tag', title: 'AutoContractTag', component: <AutoContractTag /> },
+      { id: 'doc-trans-pro', title: 'DocTransPro', component: <DocTransPro /> }
+    ]
+  },
+  {
+    title: '语言与转换',
+    items: [
+      { id: 'auto-generation', title: 'Sparrow设计语言', component: <AutoGeneration /> },
+      { id: 'compliance-check', title: '可编程语言转换引擎', component: <ComplianceCheck /> }
+    ]
+  }
 ];
 
 // 合并所有菜单项用于查找
-const allMenuItems = [...menuItemsGroup1, ...menuItemsGroup2];
+const allMenuItems = dropdownMenus.flatMap(menu => menu.items);
 
 const LawToolchain = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeMenuItem, setActiveMenuItem] = useState('law-parsing');
-
-  // 获取当前激活的组件
-  const ActiveComponent = () => {
-    const item = allMenuItems.find(item => item.id === activeMenuItem);
-    return item ? item.component : <LawParsing />;
-  };
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   // 处理菜单点击
   const handleMenuItemClick = (itemId) => {
     setActiveMenuItem(itemId);
+    setOpenDropdown(null); // 关闭所有下拉菜单
     // 使用replace而不是push，避免浏览器历史记录堆积
     navigate(`/law-toolchain#${itemId}`, { replace: true });
+  };
+
+  // 缓存当前激活的组件实例，只有当activeMenuItem变化时才重新创建
+  const cachedComponent = React.useMemo(() => {
+    const item = allMenuItems.find(item => item.id === activeMenuItem);
+    return item ? item.component : <LawParsing />;
+  }, [activeMenuItem]);
+
+  // 切换下拉菜单
+  const toggleDropdown = (dropdownIndex) => {
+    setOpenDropdown(openDropdown === dropdownIndex ? null : dropdownIndex);
+  };
+
+  // 点击空白处关闭下拉菜单
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      // 检查点击目标是否在下拉菜单外部
+      const dropdowns = document.querySelectorAll('.relative');
+      let isClickInside = false;
+      
+      dropdowns.forEach(dropdown => {
+        if (dropdown.contains(event.target)) {
+          isClickInside = true;
+        }
+      });
+      
+      if (!isClickInside) {
+        setOpenDropdown(null);
+      }
+    };
+
+    // 添加事件监听器
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // 清除事件监听器
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // 下拉菜单关闭计时器
+  const [closeTimer, setCloseTimer] = React.useState(null);
+
+  // 延迟关闭下拉菜单
+  const delayCloseDropdown = () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+    }
+    const timer = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 200);
+    setCloseTimer(timer);
+  };
+
+  // 取消关闭计时器
+  const cancelCloseDropdown = () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      setCloseTimer(null);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* 导航栏 */}
-      <nav className="bg-white shadow-sm">
+      <Navbar />
+
+      {/* 法条智能处理工具链导航 - 移动到导航栏下方 */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => navigate('/')}>智能合约法律条文诠释原型系统与应用平台 V1.0</h1>
-            </div>
-            <div className="flex items-center space-x-8">
-              {['系统总览', '建模语言', '开发平台', '测试平台', '知识产权'].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => {
-                    switch (item) {
-                      case '系统总览':
-                        navigate('/');
-                        break;
-                      case '建模语言':
-                        navigate('/modeling-language');
-                        break;
-                      case '开发平台':
-                        navigate('/development-platform');
-                        break;
-                      case '测试平台':
-                        navigate('/testing-platform');
-                        break;
-                      case '知识产权':
-                        navigate('/intellectual-property');
-                        break;
-                      default:
-                        break;
-                    }
+          <div className="flex items-center h-16">
+            <h2 className="text-xl font-bold text-gray-900 mr-8">{allMenuItems.find(item => item.id === activeMenuItem)?.title || '法条智能处理工具链'}</h2>
+            
+            {/* 下拉菜单导航 */}
+            <div className="flex items-center space-x-4">
+              {dropdownMenus.map((menu, index) => (
+                <div 
+                  key={index} 
+                  className="relative"
+                  onMouseEnter={() => {
+                    cancelCloseDropdown();
+                    setOpenDropdown(index);
                   }}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors 
-                    ${(item === '系统总览' && location.pathname === '/') || 
-                    (item === '建模语言' && location.pathname === '/modeling-language')
-                      ? 'text-blue-600 border-b-2 border-blue-600'
-                      : 'text-gray-600 hover:text-gray-900'}
-                  `}
+                  onMouseLeave={delayCloseDropdown}
                 >
-                  {item}
-                </button>
+                  {/* 下拉菜单按钮 */}
+                  <button
+                    onClick={() => toggleDropdown(index)}
+                    className="flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors"
+                  >
+                    {menu.title}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* 下拉菜单内容 */}
+                  {openDropdown === index && (
+                    <div 
+                      className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10"
+                      onMouseEnter={cancelCloseDropdown}
+                      onMouseLeave={delayCloseDropdown}
+                    >
+                      <div className="py-1">
+                        {menu.items.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => handleMenuItemClick(item.id)}
+                            className={`block w-full text-left px-4 py-2 text-sm transition-colors 
+                              ${item.id === activeMenuItem
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700 hover:bg-gray-50'}
+                            `}
+                          >
+                            {item.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
         </div>
-      </nav>
+      </div>
 
       {/* 主内容区域 */}
-      <div className="flex">
-        {/* 左侧目录 */}
-        <div className="w-64 bg-white shadow-md sticky top-0 h-screen overflow-y-auto">
-          <div className="p-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">法条智能处理工具链</h2>
-            
-            {/* 第一组：前面四个子目录 */}
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">核心处理模块</h3>
-              <nav className="space-y-1">
-                {menuItemsGroup1.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleMenuItemClick(item.id)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors 
-                      ${item.id === activeMenuItem
-                      ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent'}
-                    `}
-                  >
-                    {item.title}
-                  </button>
-                ))}
-              </nav>
-            </div>
-            
-            {/* 第二组：后面两个子目录 */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">语言与转换模块</h3>
-              <nav className="space-y-1">
-                {menuItemsGroup2.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleMenuItemClick(item.id)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors 
-                      ${item.id === activeMenuItem
-                      ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent'}
-                    `}
-                  >
-                    {item.title}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
-        </div>
-
-        {/* 右侧内容区域 */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <ActiveComponent />
-          </div>
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          {/* 渲染缓存的组件实例 */}
+          {cachedComponent}
         </div>
       </div>
     </div>

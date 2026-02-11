@@ -1,10 +1,8 @@
 import { HomeIcon } from "lucide-react";
 import Index from "./pages/Index.jsx";
-import ModelingLanguage from "./pages/ModelingLanguage.jsx";
 import Benmodel from "./pages/Benmodel.jsx";
 import Yemodel from "./pages/Yemodel.jsx";
 import Jiamodel from "./pages/Jiamodel.jsx";
-import Kaifapage from "./pages/Kaifapage.jsx";
 import Mubiaopage from "./pages/Mubiaopage.jsx";
 import Kaifatoolpage from "./pages/Kaifatoolpage.jsx";
 import Yingshepage from "./pages/Yingshepage.jsx";
@@ -13,6 +11,8 @@ import Gongnengpage from "./pages/Gongnengpage.jsx";
 import Anquanpage from "./pages/Anquanpage.jsx";
 import Zhishipage from "./pages/Zhishipage.jsx";
 import LawToolchain from "./pages/LawToolchain.jsx";
+import Register from "./pages/Register.jsx";
+import Login from "./pages/Login.jsx";
 /**
 * Central place for defining the navigation items. Used for navigation components and routing.
 */
@@ -24,14 +24,19 @@ export const navItems = [
     page: <Index />,
 },
 {
+    title: "Register",
+    to: "/register",
+    page: <Register />,
+},
+{
+    title: "Login",
+    to: "/login",
+    page: <Login />,
+},
+{
     title: "LawToolchain",
     to: "/law-toolchain",
     page: <LawToolchain />,
-},
-{
-    title: "ModelingLanguage",
-    to: "/modeling-language",
-    page: <ModelingLanguage />,
 },
 {
     title: "Benmodel",
@@ -48,11 +53,7 @@ export const navItems = [
     to: "/jiamodel",
     page: <Jiamodel />,
 },
-{
-    title: "Kaifapage",
-    to: "/development-platform",
-    page: <Kaifapage />,
-},
+
 {
     title: "Mubiaopage",
     to: "/mubiaopage",

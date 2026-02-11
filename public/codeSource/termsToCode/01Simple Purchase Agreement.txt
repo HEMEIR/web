@@ -1,0 +1,13 @@
+Clauses:
+
+1. Payment and Confirmation of Purchase: Prior to the Delivery Date, the Buyer, A, confirms the purchase and pays the total payment to the Platform, P.
+
+2. Seller's Delivery Commitment: Following the receipt of payment, the Seller, B, shall dispatch the goods in accordance with the Delivery Date.
+
+3. Platform's Confirmation of Delivery: After the goods have been dispatched, the Platform, P, shall confirm the arrival of the goods.
+
+4. Buyer's Confirmation of Receipt: Upon confirmation of delivery by the Platform, the Buyer, A, shall confirm receipt of the goods within the Confirmation of Receipt Period.
+
+5. Completion of Transaction: Once the Buyer confirms receipt, the Platform, P, shall transfer the payment to the Seller, B, and this Agreement shall be deemed complete.
+
+6. Automatic Completion in Case of No Confirmation: If the Buyer fails to confirm receipt within the Confirmation of Receipt Period, the Platform, P, shall transfer the payment to the Seller after the expiration of the period, and this Agreement shall be deemed complete.

@@ -1,0 +1,150 @@
+Contract complexRent{
+	PA Person
+	AA aa
+	CA ca
+	RA ra
+	Token token{
+		string name,
+		uint price,
+		uint day,
+		string ownership,
+		string useRight
+	}
+	Init {
+		Person lessor = ('A',a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person lessee = ('B',a'0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2')
+		aa aaAccount = ('aa',a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db')
+		ca caAccount = ('ca',a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db',123,3)
+		ra raAccount = ('ra',a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db'),
+		token Service =('thing',100,30,'A','A') 
+	}
+	ContractMessage{
+		date startTime=2000/10/05,12:00,
+	 	date finishTime=2000/11/05,12:00,
+	 	date payTime=2000/10/05,12:00,
+	 	duration period=10 days,
+	 	duration max_late=5 days,
+	 	uint late_days=0,
+	 	ufixed breakIR=0.2,
+	 	uint rent=1000,
+	 	uint deposit=500,
+	 	uint continueRent=200,
+	 	bool iscontinue=false,
+	 	uint continueDays=0,
+	 	bool checkResult=false,
+	 	string faultyParty='',
+	    uint compensation=0
+	}
+	
+	Conditions[
+		condition1: isDone(rule3) or isDone(rule4)
+	]
+	
+	Operations[
+		operation1:assign(o Service.useRight, s lessee.name),
+		operation2:assign(o Service.useRight, s lessor.name),
+		operation3:assign(ContractState,finish),
+		operation4:assign(ContractState,terminate)
+		]
+	
+	Rules{
+		rule1:
+		SetMessage(bool checkResult)
+		If: !isTime(startTime),
+		caAccount;
+		
+		rule2:
+		If: !isTime(startTime) and isTrue(checkResult),
+		lessee transfer(lessor,rent+deposit);
+		
+		rule3:
+		If: isDone(rule2) and !isTime(startTime),
+		lessor operation1;
+		
+		rule4:
+		SetMessage(uint late_days)
+		If: !isTime(startTime+max_late) and !isDone(rule3),
+		lessor transfer(lessee,rent*5*f breakIR) and operation1;
+		
+		rule5:
+		If: isTime(startTime+max_late) and !isDone(rule3) and !isDone(rule4),
+		lessor transfer(lessee,rent*5*f breakIR+rent+deposit)
+		and operation4;
+		
+		Repeat 
+		rule6:
+		If: condition1 and isTime(payTime+period) 
+		and !isTime(payTime+period+1days)
+		and !isTime(finishTime),
+		lessee transfer(lessor,rent) and assign(payTime,payTime+period)
+		and assign(rule8,true);
+		
+		Repeat
+		rule7:
+		SetMessage(uint late_days)
+		If: isTime(payTime+period+1days) and !isTime(payTime+period+5days),
+		lessee transfer(lessor,rent*late_days*f breakIR)
+		and assign(payTime,payTime+period)
+		and assign(rule8,true);
+		
+		rule8:
+		SetMessage(uint late_days)
+		If: isTime(payTime+period+5days),
+		lessor operation2 and operation4;
+		
+		Repeat
+		rule9:
+		SetMessage(uint continueDays)
+		If: !isTime(finishTime),
+		lessee transfer(lessor,rent*continueDays);
+		
+		
+		Repeat
+		rule10:
+		SetMessage(bool iscontinue)
+		If:isDone(rule9),
+		lessor
+		SubRule{
+			If: isTrue(iscontinue),
+			assign(finishTime,finishTime+continueDays days)
+		}
+		SubRule{
+			If: !isTrue(iscontinue),
+			transfer(lessee,rent*continueDays)
+		};
+		
+		rule11:
+		If:isTime(finishTime),
+		lessor operation2 and transfer(lessee,deposit) and operation3
+		
+		Additional[
+		Repeat
+		rule12:
+		raAccount assign(ContractState,pause);
+		
+		Repeat
+		rule13:
+		raAccount assign(ContractState,restart)
+		]
+		
+		rule14:lessee;
+		
+		rule15:lessor;
+		
+		rule16:
+		SetMessage(string faultyParty,uint compensation)
+		If: isDone(rule14) or isDone(rule15),
+		aaAccount;
+		
+		rule17_1:
+		If:logic(faultyParty,s lessor.name,==),
+		lessor transfer(lessee,compensation) and operation4;
+		
+		rule17_2:
+		If:logic(faultyParty,s lessee.name,==),
+		lessee transfer(lessor,compensation) and operation4
+		
+	}
+	
+	Require:isDone,isTime,transfer,logic;
+}

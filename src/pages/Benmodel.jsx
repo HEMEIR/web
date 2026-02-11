@@ -1,9 +1,15 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 const Benmodel = () => {
+  // 设置页面标题
+  useEffect(() => {
+    document.title = 'EyeLaw-本体建模';
+  }, []);
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -13,11 +19,9 @@ const Benmodel = () => {
         navigate('/');
         break;
       case '建模语言':
-        navigate('/modeling-language');
+        navigate('/');
         break;
-      case '开发平台':
-        navigate('/development-platform');
-        break;
+
       case '测试平台':
         navigate('/testing-platform');
         break;
@@ -32,39 +36,14 @@ const Benmodel = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* 导航栏 */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">智能法律合约开发引擎</h1>
-            </div>
-            <div className="flex items-center space-x-8">
-              {['系统总览', '建模语言', '开发平台', '测试平台', '知识产权'].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => handleNavClick(item)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    (item === '系统总览' && location.pathname === '/') || 
-                    (item === '建模语言' && location.pathname === '/modeling-language') ||
-                    (item === '建模语言' && location.pathname === '/benmodel')
-                      ? 'text-blue-600 border-b-2 border-blue-600'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* 页面内容 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center mb-6">
           <Button 
             variant="outline" 
-            onClick={() => navigate('/modeling-language')}
+            onClick={() => navigate('/')}
             className="flex items-center border-blue-600 text-blue-600 hover:bg-blue-50"
           >
             <ChevronLeft className="mr-1 h-4 w-4" />

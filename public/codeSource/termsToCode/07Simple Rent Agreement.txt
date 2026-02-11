@@ -1,0 +1,13 @@
+Clauses:
+
+1. Initial Payment and Security Deposit: Prior to the Start Date, the Lessee, B, shall pay to the Lessor, A, the first payment for the rent plus the Security Deposit.
+
+2. Regular Rent Payments: Commencing from the Start Date, the Lessee shall make rent payments every ten days up to and including the End Date.
+
+3. Lease Extension: Prior to the End Date, the Lessee may input the number of days for lease extension and make the corresponding Extension Payment (this process may be repeated).
+
+4. Lessor's Decision on Extension: Following the Lessee's request for extension as per Clause 3, the Lessor shall decide whether to agree to the extension (this process may be repeated).
+   - If the Lessor agrees to the extension, the End Date shall be amended accordingly.
+   - If the Lessor does not agree to the extension, the Extension Payment shall be refunded to the Lessee.
+
+5. Contract Termination and Refund of Security Deposit: After the End Date, the Lessor shall conclude the contract, return the Security Deposit to the Lessee, and this Agreement shall be deemed complete.

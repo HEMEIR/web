@@ -1,0 +1,85 @@
+ Complex Purchase Agreement 
+（Based on StandardPurchase Agreement plus Inspection, Arbitration, and Regulatory Provisions）
+
+This Agreement is executed on the 1st day of October, 2000, between A, whose Ethereum address is 0x..., as the Buyer; B, whose Ethereum address is 0x..., as the Seller; P, whose Ethereum address is 0x..., as the Platform; CA, with the Ethereum address 0x... and the key 123, as the Inspection Agency, valid for 3 years; AA, with the Ethereum address 0x..., as the Arbitration Agency; RA, with the Ethereum address 0x..., as the Regulatory Agency; and Court, with the Ethereum address 0x..., as the Court of Jurisdiction.
+
+Subject of the Contract: The Buyer, A, agrees to purchase from the Seller, B, the following goods:
+- Product Name: thing
+- Unit Price: 100 currency units
+- Quantity: 1
+- Ownership: The goods shall remain the property of the Seller, B, until full payment is received.
+
+Contract Terms:
+- Delivery Date: The goods are to be delivered on or before the 5th day of October, 2000.
+- Delivery Location: The goods are to be delivered to the location known as place.
+- Maximum Delay in Delivery: The Seller is allowed a grace period of 5 days for delivery, with a penalty of 0.05% daily interest on the total purchase price for each day of delay.
+- Confirmation of Receipt Period: The Buyer shall confirm receipt of the goods within 15 days of the goods' arrival.
+- Termination for Convenience Penalty Interest Rate: Should either party elect to terminate the contract without cause, they shall pay a penalty at the rate of 20% of the total purchase price.
+- Total Payment for Goods: The total purchase price for the goods is 100 currency units.
+- Compensation Amount: 0 currency units at the signing of this contract.
+
+Clauses:
+
+1. Inspection Results: The Inspection Agency, CA, shall provide inspection results to both the Buyer and the Seller.
+
+2. Purchase Confirmation and Payment: Upon receipt of satisfactory inspection results, the Buyer, A, shall confirm the purchase and pay the total amount to the Platform, P.
+
+3. Seller's Delivery: Following the Buyer's payment, the Seller, B, shall dispatch the goods by the agreed Delivery Date.
+
+4. Platform's Confirmation of Arrival: The Platform, P, shall confirm the arrival of the goods, either after the Seller's dispatch or following a delay.
+
+5. Confirmation of Receipt and Transfer of Ownership: The Buyer, A, shall confirm receipt within 15 days of the Platform's confirmation of arrival, upon which the ownership of the goods shall pass to the Buyer.
+
+6. Payment Transfer and Contract Completion: Upon the Buyer's confirmation of receipt, the Platform, P, shall transfer the payment to the Seller, B, and the contract shall be concluded.
+
+7. Automatic Payment and Ownership Transfer: If the Buyer fails to confirm receipt within 15 days, the Platform, P, shall automatically transfer the payment to the Seller, B, the ownership of the goods shall pass to the Buyer, A, and the contract shall be concluded.
+
+8. Seller's Delay and Penalty: If the Seller, B, is delayed but delivers within 5 days, they shall pay the Buyer, A, the daily penalty for the delay before dispatching the goods.
+
+9. Breach by Seller - Termination Penalty: If the Seller, B, fails to deliver beyond the allowed delay, they shall pay the Buyer, A, the termination penalty as per the Contract Terms.
+
+10. Refund and Termination by Platform: In the event of the Seller's breach as described in Clause 9, the Platform, P, shall refund the Buyer, A, and the contract shall be terminated.
+
+11. Mutual Termination: Either party may terminate the contract before its conclusion by paying the stipulated termination penalty to the other party.
+
+12. Refund and Contract Termination upon Mutual Agreement: Following mutual agreement for termination as per Clause 11, the Platform, P, shall process the refund and the contract shall be terminated.
+
+13. Regulatory Intervention: The Regulatory Agency, RA, may suspend or terminate the contract upon discovering any issues.
+
+14. Resumption by Regulation: Once issues are resolved, the Regulatory Agency, RA, shall restore the contract.
+
+15. Dispute Resolution Selection: The Buyer and Seller shall select a dispute resolution method, which may include negotiation, court trial, or arbitration.
+
+16. Negotiation Result: Following mutual agreement through negotiation, the Buyer, A, shall provide the negotiation result, including the at-fault party and the compensation amount.
+
+17. Seller's Confirmation of Negotiation Result: The Seller, B, shall confirm the negotiation result.
+
+18. Execution Based on Negotiation Result: The compensation shall be executed as follows:
+    - If the Buyer, A, is at fault, they shall pay the compensation amount to the Seller, B.
+    - If the Seller, B, is at fault, they shall pay the compensation amount to the Buyer, A.
+
+19. Court Ruling: If the dispute is resolved through court trial, the court's ruling, including the at-fault party and the compensation amount, shall be final.
+
+20. Execution Based on Court Ruling: The compensation shall be executed as follows:
+    - If the Buyer, A, is at fault according to the court ruling, they shall pay the compensation amount to the Seller, B.
+    - If the Seller, B, is at fault according to the court ruling, they shall pay the compensation amount to the Buyer, A.
+
+21. Arbitration Decision: If the dispute is resolved through arbitration, the Arbitration Agency, AA, shall provide the arbitration decision, including the at-fault party and the compensation amount.
+
+22. Execution Based on Arbitration Decision: The compensation shall be executed as follows:
+    - If the Buyer, A, is at fault according to the arbitration decision, they shall pay the compensation amount to the Seller, B.
+    - If the Seller, B, is at fault according to the arbitration decision, they shall pay the compensation amount to the Buyer, A.
+
+Governing Law and Jurisdiction: This Agreement shall be governed by and construed in accordance with the laws of the jurisdiction where the Court of Jurisdiction, Court, is located. Any disputes arising out of or in connection with this contract shall be resolved in accordance with the selected dispute resolution method.
+
+IN WITNESS WHEREOF, the parties have executed this Complex Purchase Agreement on the date first above written.
+
+Signed by:
+
+- Buyer: A (Signature / Ethereum Signature)
+- Seller: B (Signature / Ethereum Signature)
+- Platform: P (Authorized Signature / Ethereum Signature)
+- Inspection Agency: CA (Authorized Signature)
+- Arbitration Agency: AA (Authorized Signature)
+- Regulatory Agency: RA (Authorized Signature)
+- Court of Jurisdiction: Court (Authorized Signature) (Acknowledged)

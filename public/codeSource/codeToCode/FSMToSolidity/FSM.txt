@@ -1,0 +1,149 @@
+contract initialization:
+    <partyA.name>: "CUTANEA Life Sciences, Inc."
+    <partyB.name>: "Ferrer Internacional, S.A."
+    <partyA.signed>: false
+    <partyB.signed>: false
+    <executionDate>: null
+    <effectiveDate>: "2018-03-01"
+    <isTerminated>: false
+    <terminationDate>: null
+    <insuranceStatus>: true
+    <insuranceProofProvided>: false
+    <insuranceLimits>: {
+        "singleIncident": null,
+        "annualAggregate": null,
+        "rating": ""
+    }
+    <insuranceRating>: "A"
+    <forecastedNeeds>: null
+    <supplySpecifications>: ""
+    <shelfLifePercentage>: null
+    <auditAccess>: false
+    <auditFrequency>: 1 per year
+    <lastAuditDate>: null
+    <auditNoticeProvided>: false
+    <auditDetails>: ""
+    <violationStatus>: false
+    <violationDetails>: ""
+    <violationDate>: null
+
+
+on draft:
+    initial: true
+    next_state: active
+    actor: Either Party
+    event: sign_agreement
+    actions:
+        - update <partyA.signed> to true if current actor is <partyA.name>
+        - update <partyB.signed> to true if current actor is <partyB.name>
+        - if both <partyA.signed> and <partyB.signed>:
+            - record <executionDate>
+            - update <lastAuditDate> as <effectiveDate>
+
+on active:
+    event: supply_products
+    actor: <partyB.name>
+    input: <forecastedNeeds>, <supplySpecifications>
+    guards: <forecastedNeeds> is not null
+    actions:
+        - update <forecastedNeeds>
+        - update <supplySpecifications>
+
+on active:
+    event: ensure_shelf_life
+    actor: <partyB.name>
+    input: <shelfLifePercentage>
+    guards: <shelfLifePercentage> >= 80%
+    actions:
+        - update <shelfLifePercentage>
+
+on active:
+    event: approve_specification_deviation
+    actor: <partyA.name>
+    input: <deviationDetails>
+    guards:
+        - <deviationDetails> is not null
+    actions:
+        - record <deviationDetails>
+
+on active:
+    event: maintain_insurance
+    actor: Either Party
+    input: <insuranceDetails>
+    guards:
+        - <insuranceDetails.singleIncident> >= 100000
+        - <insuranceDetails.annualAggregate> >= 1000000
+        - <insuranceDetails.rating> is "A" or better
+    actions:
+        - update <insuranceStatus> to true
+        - update <insuranceLimits>
+
+on active:
+    event: provide_insurance_proof
+    actor: Either Party
+    guards: <insuranceStatus> is true
+    actions:
+        - update <insuranceProofProvided> to true
+
+on active:
+    event: notify_insurance_change
+    actor: Either Party
+    input: <changeDetails>
+    guards:
+        - <insuranceStatus> is true
+    actions:
+        - update <changeDetails>
+
+state: active
+    event: request_audit
+    actor: <partyA.name>
+    guards:
+        - <auditNoticeProvided> is false
+        - after  <lastAuditDate> + 365 days
+    actions:
+        - update <lastAuditDate> to current_timestamp
+        - update <auditNoticeProvided> to true
+
+
+on active:
+    event: conduct_audit
+    actor: <partyA.name>
+    guards:
+        - <auditNoticeProvided> is true
+    actions:
+        - update <auditAccess> to true
+        - record <auditDetails>
+        - update <auditNoticeProvided> as false
+
+
+on active:
+    next_state: terminated
+    event: terminate_contract
+    actor: Either Party
+    guards:
+        - after <effectiveDate>
+        - <isTerminated> is false
+    actions:
+        - update <isTerminated> to true
+        - record <terminationDate>
+
+
+on active:
+    next_state: violated
+    event: breach_contract
+    actor: Either Party
+    input: <violationDetails>
+    guards:
+        - <violationDetails> is not empty
+    actions:
+        - update <violationStatus> to true
+        - update <violationDetails>
+        - record <violationDate>
+
+
+on terminated:
+    final: true
+
+
+on violated:
+    final: true

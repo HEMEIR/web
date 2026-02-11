@@ -1,0 +1,113 @@
+Contract complexAuction{
+	PA Person
+	AA aa
+	CA ca
+	RA ra
+	Token token{
+	  string name,
+	  uint number,
+	  string ownership
+	}
+	Init {
+		Person Platform = ('B',a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db')
+		Person Auctioneer = ('A',a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		aa aaAccount = ('aa',a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db')
+		ca caAccount = ('ca',a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db',123,3)
+		ra raAccount = ('ra',a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db'),
+		token Service =('thing',1,'A') 
+	}
+	ContractMessage{
+	  date startTime=2000/10/05,14:00,
+	  date giveTime=2000/10/05,00:00,
+	  date finishTime=2000/10/05,15:00,
+	  string highestBidder='',
+	  uint highestBid=0,
+	  string bidder='',
+	  uint bid=0,
+	  duration biddingTime=1 hours,
+	  uint reservePrice=10000,
+	  uint Commission=1000,
+	  date signTime=2000/09/30,00:00,
+	  uint FineIR=0.2,
+	  duration payTime=12 hours,
+	  bool test_result=false,
+	  string faultyParty='',
+	  uint compensation=0
+	}
+	
+	Rules{
+		
+		rule1:
+		SetMessage(bool test_result)
+		If: !isTime(giveTime),
+		caAccount;	
+		
+		rule2:
+		If: !isTime(startTime) and isTrue(test_result),
+		Auctioneer transfer(Platform,Commission)
+		and assign(o Service.ownership,s Platform.name);
+		
+		rule3:
+		If: isDone(rule1) and timeSub(startTime,now,1 hours,<),
+		Platform;
+		
+		Repeat
+		rule4:
+		SetMessage(string bidder,uint bid)
+		If: isDone(rule3) and isTime(startTime) 
+		and !isTime(finishTime) and logic(bid,highestBid,>) and logic(bid,reservePrice,>=),
+		assign(highestBid,bid) and assign(highestBidder,bidder);
+		
+		rule5:
+		SetMessage(string bidder)
+		If: isTime(finishTime) and logic(bidder,highestBidder,==)
+		and timeSub(now,finishTime,12 hours,<),
+		transfer(Platform,highestBid);
+		
+		rule6:
+		If: isDone(rule5),
+		Platform transfer(Auctioneer,highestBid) and assign(o Service.ownership,bidder)
+		and assign(ContractState,finish);
+		
+		rule8:
+		SetMessage(string bidder)
+		If: logic(bidder,highestBidder,==) and timeSub(now,finishTime,12 hours,>=)
+		and !isDone(rule5),
+		transfer(Platform,highestBid*f FineIR);
+		
+		rule9:
+		If: isDone(rule8),
+		Platform transfer(Auctioneer,highestBid*f FineIR)
+		
+		Additional[
+		Repeat
+		rule10:
+		raAccount assign(ContractState,pause);
+		
+		Repeat
+		rule11:
+		raAccount assign(ContractState,restart)
+		]
+		
+		rule12:
+		If: !isDone(rule4) and !isDone(rule8),
+		Platform;
+		
+		rule13:
+		SetMessage(string faultyParty,uint compensation)
+		If: isDone(rule12),
+		aaAccount;
+		
+		rule14_1:
+		SetMessage(string bidder)
+		If: logic(faultyParty,s Platform.name,==),
+		Platform;
+		
+		rule14_2:
+		If: logic(faultyParty,highestBidder,==),
+		transfer(Platform,compensation)
+		
+		
+	}
+	Require:isDone,isTime,transfer,logic,timeSub;
+}

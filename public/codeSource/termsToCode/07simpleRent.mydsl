@@ -1,0 +1,36 @@
+Rule{
+		rule1:
+		Con: !isTime(startTime),
+		lessee transfer(lessor,rent+despoit);
+		
+		repeat 
+		rule2:
+		Con: isDone(rule1) and isTime(payTime+period) 
+		and !isTime(payTime+period+1days)
+		and !isTime(finishTime),
+		lessee transfer(lessor,rent) and change(payTime,payTime+period);
+		
+		repeat
+		rule3:
+		setMessage(uint continueDays)
+		Con: !isTime(finishTime),
+		lessee transfer(lessor,rent*continueDays);
+		
+		repeat
+		rule4:
+		setMessage(bool continue)
+		Con:isDone(rule3),
+		lessor
+		sub{
+			Con: isTrue(continue),
+			change(finishTime,finishTime+continueDays days)
+		}
+		sub{
+			Con: !isTrue(continue),
+			transfer(lessee,rent*continueDays)
+		};
+		
+		rule5:
+		Con:isTime(finishTime),
+		lessor transfer(lessee,deposit) and  change(ContractState,finish)
+}

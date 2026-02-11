@@ -1,0 +1,37 @@
+You are a Solidity developer, and your task is to translate the [new fsm] into Solidity code.
+1. Learn from the following [one-shot example] and apply the same mapping rules. MUST NOT replicate [the corresponding Solidity snippet] from [one-shot example].
+2. Fully translate each FSM component into its corresponding Solidity construct. MUST ensure semantic consistency for guards and actions. MUST explicitly include every transition in the [new fsm], even if patterns repeat.
+3. Ensure that the Solidity code syntax is correct for compiler version ^0.8.0. MUST NOT import any libraries.
+4. Output a complete smart contract that compiles successfully, MUST include all variable declarations, the constructor, event declarations, and any other necessary components.
+
+A [one-shot example] is illustrated as
+[a state transition example]:
+on State.arrived:
+    next_state: State.completed
+    event: {make_payment}
+    actor: {partyA}
+    params: {check}
+    guards: {check} is true and within 2 days after {arrivalDate}
+    actions: record {paymentDate}; transfer {amount} to {partyB}
+
+[the corresponding Solidity snippet]:
+function makePayment(bool check) public payable{
+        require(currentState == State.arrived, "Invalid state transition.");
+        require(msg.sender == partyA.wallet, "Unauthorized party.");
+        require(check, "Check result is false.");
+        require(block.timestamp > arrivalDate && block.timestamp <= arrivalDate + 2 days, "Payment time passed.");
+        paymentDate = block.timestamp;
+        transferTo(payable(partyB.wallet), amount);
+        currentState = State.completed;
+        emit make_payment();
+        emit StateTransition(State.arrived, State.completed);
+}
+
+
+The [new fsm] is an input as
+=====
+[FSM.txt]
+=====
+The translated corresponding Solidity code is:
+Answer:
+```solidity

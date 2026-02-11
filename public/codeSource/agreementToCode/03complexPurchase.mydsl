@@ -1,0 +1,162 @@
+Contract complexPurchase{
+	PA Person
+	AA aa
+	CA ca
+	RA ra
+	Token token{
+	  string name,	
+	  uint number,
+	  ufixed unit_price,
+	  string ownership
+	}
+	init {
+		s Person Buyer = ('A',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		s Person Seller = ('B',
+			a'0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2')
+		s Person Platform = ('P',
+			a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db')
+		s aa aa = ('aa',
+			a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db')
+		s aa court = ('court',
+			a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db')
+		s ca ca = ('ca',
+			a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db',123,3)
+		s ra ra = ('ra',
+			a'0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db')
+		o token Thing =('thing',1,100,'A') 
+	}
+	ContractMessage{
+	  string place='place',
+	  date giveTime=2000/10/05,00:00,
+	  date signTime=2000/10/01,00:00,
+	  uint price=100,
+	  ufixed late_deliveryIR=0.05,
+	  ufixed terminatedIR=0.2,
+	  uint late_days=0,
+	  duration late=5 days,
+	  duration period=15 days,
+	  string faultyParty='',
+	  uint compensation=0,
+	  bool test_result=false,
+	  string solutionA='',
+	  string solutionB='',
+	  string solution_1='Negotiate',
+	  string solution_2='Court',
+	  string solution_3='ca'
+	}
+	
+	Conditions[
+		compareResult:compareString(solutionA,solutionB),
+		chooseSolution: isDone(rule19) Or isDone(rule21) Or isDone(rule23)
+	]
+	
+	Operations[
+		end:change(ContractState,finish),
+		end2:change(ContractState,terminate),
+		terminate_pay:transfer(Buyer,price*f terminatedIR),
+		transfer_own:changeString(o Thing.ownership,s Buyer.name)
+	]
+	
+	Rule{
+		
+		rule1:
+		setMessage(bool test_result)
+		Con: !isTime(giveTime),
+		ca;		
+		
+		rule2:
+		Con: !isTime(giveTime) and isTrue(test_result),
+		Buyer transfer(Platform,price);
+		
+		rule3:
+		Con: isDone(rule1) and timeSub(now,giveTime,1 days,<),
+		Seller;
+		
+		rule4:
+		Con: isDone(rule2) or isDone(rule8),
+		Platform;
+		
+		rule5:
+		Con: within 15 days after rule3,
+		Buyer transfer_own;
+		
+		rule6:
+		Con: isDone(rule5),
+		Platform transfer(Seller,price) and end;
+		
+		rule7:
+		Con: isDone(rule4) and isTime(getRuleTime(rule4)+15days),
+		Platform transfer(Seller,price) and transfer_own and end;
+		
+		rule8:
+		setMessage(uint late_days)
+		Con: timeSub(now,giveTime,5 days,<=),
+		Seller transfer(Buyer,late_days*price*f late_deliveryIR);
+		
+		rule9:
+		Con:timeSub(now,giveTime,5 days,>) and !isDone(rule7),
+		Seller terminate_pay and end2;
+		
+		rule10:
+		Con: isDone(rule9),
+		Platform transfer(Buyer,price);
+		
+		rule11:
+		Buyer terminate_pay;
+		
+		rule12:
+		Seller terminate_pay;
+		
+		rule13:
+		Con: isDone(rule11) or isDone(rule12),
+		Platform transfer(Buyer,price) and end2
+		
+		Addition[
+		repeat
+		rule14:
+		ra change(ContractState,pause);
+		
+		repeat
+		rule15:
+		ra change(ContractState,restart)
+		]
+		
+		rule16:
+		setMessage(string solution1)
+		Buyer;
+		
+		rule17:
+		setMessage(string solution2)
+		Seller;
+		
+		rule18:
+		setMessage(string fault_party,uint compensation)
+		Con: compareString(solutionA,solution_1) and compareResult,
+		Buyer
+		
+		rule19:
+		Con: isDone(rule18),
+		Seller;
+		
+		rule20_1:
+		Con: chooseSolution and compareString(fault_party,s Buyer.name),
+		Buyer transfer(Seller,compensation);
+		
+		rule20_2:
+		Con: chooseSolution and compareString(fault_party,s Seller.name),
+		Seller transfer(Buyer,compensation);
+		
+		rule21:
+		setMessage(string fault_party,uint compensation)
+		Con: compareString(solutionA,solution_2) and compareResult,
+		court;
+		
+		rule23:
+		setMessage(string fault_party,uint compensation)
+		Con: compareString(solutionA,solution_2) and compareResult,
+		aa
+	}
+	
+	require:isDone,isTime,isTrue,transfer,timeSub;
+}

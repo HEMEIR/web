@@ -1,0 +1,13 @@
+Clauses:
+
+1. Commission and Consignment: Upon signing of this Agreement, the Auctioneer, A, shall pay the commission to the Platform and consign the item to the Platform's custody.
+
+2. Auction Opening: Once the Auction Start Time arrives, the Platform, B, shall open the auction for bidding.
+
+3. Bidding Process:
+   - Any person (everyone) may place a bid before the Auction End Time.
+   - A bid higher than the current highest bid shall replace the previous highest bid and the bidder.
+
+4. End of Auction and Payment: After the Auction End Time, the highest bidder shall pay the Platform the highest bid price and shall take possession of the item.
+
+5. Payment to Auctioneer and Contract Completion: Following receipt of the highest bid price, the Platform shall pay the Auctioneer the highest bid price, minus the Platform Commission, and this Agreement shall be deemed complete.

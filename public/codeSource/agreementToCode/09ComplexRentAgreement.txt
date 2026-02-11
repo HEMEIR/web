@@ -1,0 +1,73 @@
+ Complex Lease Agreement 
+(Based on Standard Lease Agreement plus  Inspection, Arbitration, and Regulatory Provisions)
+
+This Lease Agreement is executed on the 1st day of October, 2000, between A, identified by the Ethereum address 0x..., as the Lessor; B, identified by the Ethereum address 0x..., as the Lessee; CA, with the Ethereum address 0x... and the key 123, as the Inspection Agency, valid for 3 years; AA, with the Ethereum address 0x..., as the Arbitration Agency; and RA, with the Ethereum address 0x..., as the Regulatory Agency, for the rental of the following item:
+
+- Product Name: thing
+- Daily Rent: 100 currency units
+- Rental Period: 30 days
+- Ownership: The Lessor, A
+- Usage Right: The Lessor, A (transferred to the Lessee during the rental period)
+
+Lease Terms:
+- Start Date: The lease commences on the 5th day of October, 2000.
+- End Date: The lease concludes on the 5th day of November, 2000.
+- Payment Interval: Rent is payable every 10 days.
+- Regular Payment: The amount for regular rent payments is 1,000 currency units.
+- Extension Daily Rent: The daily rent for lease extension is 200 currency units.
+- Security Deposit: A security deposit of 500 currency units is required.
+- Maximum Delay in Delivery/Payment: 5 days.
+- Daily Penalty for Delay in Delivery/Payment: 20% of the daily rent.
+- Contract Execution Date: This Agreement is entered into on the 1st day of October, 2000.
+
+Clauses:
+
+1. Inspection Results: Prior to the Start Date, the Inspection Agency, CA, shall provide inspection results to both the Lessor and the Lessee.
+
+2. Initial Payment by Lessee: Upon receipt of satisfactory inspection results, the Lessee, B, shall pay to the Lessor, A, the first payment for the rent prior to the Start Date.
+
+3. Transfer of Usage Right by Lessor: Following the payment in Clause 2, the Lessor shall transfer the usage right of the item to the Lessee before the Start Date.
+
+4. Delayed Transfer of Usage Right with Penalty: If the transfer of usage right in Clause 3 is not completed within five days after the Start Date, the Lessor shall pay a daily penalty and transfer the usage right.
+
+5. Breach for Failure to Transfer: If the usage right transfer and payment in Clauses 3 and 4 are not completed more than five days after the Start Date, the Lessor shall pay a daily penalty, the rent, and return the Security Deposit, and terminate this Agreement.
+
+6. Regular Rent Payments: Commencing from the Start Date, the Lessee shall make rent payments every ten days up to and including the End Date.
+
+7. Late Payment with Penalty by Lessee: If the Lessee's payment is delayed but does not exceed five days, the Lessee shall pay a penalty in addition to the payment.
+
+8. Breach for Late Delivery by Lessee: If the Lessee's delivery is delayed for more than five days, the Lessor may repossess the property, and this Agreement shall be terminated.
+
+9. Lease Extension by Lessee: Prior to the End Date, the Lessee may request a lease extension for a specified number of days and make the corresponding Extension Payment (this process may be repeated).
+
+10. Lessor's Decision on Extension: Following the Lessee's request for extension as per Clause 9, the Lessor shall decide whether to agree to the extension (this process may be repeated).
+    - If the Lessor agrees to the extension, the End Date shall be amended accordingly.
+    - If the Lessor does not agree to the extension, the Extension Payment shall be refunded to the Lessee.
+
+11. Contract Termination: After the End Date, the Lessor shall repossess the usage right of the property and return the Security Deposit.
+
+12. Regulatory Intervention: The Regulatory Agency, RA, may suspend or terminate the contract upon discovering any issues.
+
+13. Resumption by Regulation: Once issues are resolved, the Regulatory Agency, RA, shall restore the contract.
+
+14. Lessor's Right to Arbitrate: The Lessor reserves the right to apply for arbitration in case of disputes.
+
+15. Lessee's Right to Arbitrate: The Lessee reserves the right to apply for arbitration in case of disputes.
+
+16. Arbitration Decision: The Arbitration Agency, AA, shall provide an arbitration decision, including the at-fault party and the compensation amount.
+
+17. Execution Based on Arbitration Decision: The compensation shall be executed as follows:
+    - If the Lessor is at fault, the Lessor shall pay the compensation amount to the Lessee.
+    - If the Lessee is at fault, the Lessee shall pay the compensation amount to the Lessor.
+
+Governing Law and Dispute Resolution: This Agreement shall be governed by and construed in accordance with the laws of the jurisdiction where the Inspection Agency, CA, is located. Any disputes arising out of or in connection with this Agreement shall be resolved amicably, or failing that, by arbitration in accordance with the rules of the Arbitration Agency, AA.
+
+IN WITNESS WHEREOF, the parties have executed this Complex Lease Agreement on the date first written above.
+
+Signed by:
+
+- Lessor: A (Ethereum Signature)
+- Lessee: B (Ethereum Signature)
+- Inspection Agency: CA (Authorized Signature)
+- Arbitration Agency: AA (Acknowledged)
+- Regulatory Agency: RA (Acknowledged)
