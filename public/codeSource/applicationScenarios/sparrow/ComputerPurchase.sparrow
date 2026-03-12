@@ -1,0 +1,87 @@
+Contract ComputerPurchase{
+	PA Person
+	CA Ca
+	Token token{
+	  string name,
+	  string ID,	
+	  uint number,
+	  ufixed unit_price,
+	  uint price
+	}
+	Init {
+		Person Buyer = ('Boyue Kindergarten, Jianghan District, Wuhan City', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Seller = ('Wuhan Dizhihou Trading Co., Ltd.', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Ca Arbitration = ('arbitration institution', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',0,0),
+		token Service =('computer','M43Y',1,4950,4950) 
+	}
+	ContractMessage{
+	  string place='',
+	  date giveTime=2023/02/21,00:00,
+	  string faultName='',
+	  ufixed amount=0,
+	  bool checkResult=false,
+	  duration period=30 days,
+	  uint dayNum=0,
+	  ufixed Proportion=0.0001
+	}
+	
+	Conditions[
+		cndition1: isDone(rule2) and within 3 days after rule2 ,
+		condition2: isDone(rule2_2) and within 3 days after rule2_2
+	]
+	
+	Operations[
+		operation1:assign(ContractState,finish),
+		operation2: assign(ContractState,terminate)
+	]
+	
+	Rules{
+		//买家告知交付地点
+		rule1:SetMessage(string place) Buyer;
+		
+		//卖家按照时间交货
+		rule2: If: isDone(rule1) and logic(now,giveTime,==), Seller;
+		
+		//卖家延迟交货但不超过30天
+		rule2_2: SetMessage(uint dayNum) If: isTime(giveTime) and !isTime(giveTime+period) and !isDone(rule2), Seller transfer(Buyer,dayNum*Proportion*o Service.price)
+		
+		//卖家延迟交货超过30天，合约终止
+		rule2_3:
+		If: isTime(giveTime+period) and !isDone(rule2) and !isDone(rule2_2),
+		Buyer assign(ContractState,terminate);
+		
+		//买家确认收货，质量不合格退货且合约终止
+		rule3:
+		SetMessage(bool checkResult)
+		If: cndition1 or condition2 ,
+		Buyer transfer(Seller,o Service.price) and operation1
+		SubRule{
+			If:!isTrue(checkResult),
+			assign(ContractState,terminate)
+		};
+		
+		//买家无理由退货且拒收货物
+		rule4:
+		If: cndition1 or condition2 and !isDone(rule3),
+		Buyer transfer(Seller,o Service.price*Proportion) and assign(ContractState,terminate)
+		
+		
+		//仲裁机构仲裁过错方，过错方交罚金
+		Additional[
+		rule5:
+		SetMessage(string faultName,ufixed amount)
+		Arbitration;
+		
+		rule6:
+		If: isDone(rule5) and logic(faultName,s Buyer.name,==),
+		Buyer transfer(Seller,amount) and operation2;
+		
+		rule7:
+		If: isDone(rule5) and logic(faultName,s Seller.name,==),
+		Seller transfer(Buyer,amount) and operation2
+		]
+		
+	}
+	
+	Require:isDone,isTime,isTrue,transfer,logic;
+}

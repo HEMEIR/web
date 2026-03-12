@@ -1,0 +1,97 @@
+Contract FertilizerPurchase{
+	PA Person
+	CA Ca
+	Token token{
+	  string name,	
+	  uint number,
+	  ufixed unit_price,
+	  uint unit_weight,
+	  ufixed price,
+	  string other
+	}
+	Init {
+		Person Buyer = ('JingMen City DongBao District Agriculture and Rural Affairs Bureau',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Seller = ('HuBei NanGuo Chemical Co., Ltd.',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Ca Arbitration = ('arbitration institution',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',0,0),
+		token Service =('fertilizer',6000,91.25,25,547500,'=30-0-15') 
+	}
+	ContractMessage{
+	  string place='',
+	  uint giveTime=0,
+	  string faultName='',
+	  ufixed amount=0,
+	  bool checkResult=false,
+	  duration period=5 days,
+	  ufixed dayNum=0,
+	  ufixed Proportion=0.005
+	}
+	
+	Operations[
+		end:assign(ContractState,finish),
+		end2: assign(ContractState,terminate)
+	]
+	
+	Rules{
+		//买家告知交付时间，地点
+		rule1:
+		SetMessage(string place,uint giveTime)
+		Buyer;
+		
+		//卖家按照时间交货
+		rule2:
+		If: isDone(rule1) and logic(now,giveTime,==),
+		Seller;
+		
+		//卖家延迟交货但不超过五天
+		rule2_2:
+		SetMessage(ufixed dayNum)
+		If: isTime(giveTime) and !isTime(giveTime+period) and !isDone(rule2),
+		Seller transfer(Buyer,dayNum*Proportion*o Service.price)
+		
+		//卖家延迟交货超过五天，合约终止
+		rule2_3:
+		If: isTime(giveTime+period) and !isDone(rule2) and !isDone(rule2_2),
+		Buyer assign(ContractState,terminate);
+		
+		//买家确认收货，质量不合格退货且合约终止
+		rule3:
+		SetMessage(bool checkResult)
+		If: isDone(rule2) and within 15 days after rule2,
+		Buyer
+		SubRule{
+			If:!isTrue(checkResult),
+			assign(ContractState,terminate)
+		};
+		
+		//质量合格，卖家报账
+		rule4:
+		If: isDone(rule3),
+		Seller;
+		
+		//买家付款，合约结束
+		rule5:
+		If: isDone(rule4),
+		Buyer transfer(Seller,o Service.price) and end
+		
+		//仲裁机构仲裁过错方，过错方交罚金
+		Additional[
+		rule6:
+		SetMessage(string faultName,ufixed amount)
+		Arbitration;
+		
+		rule7:
+		If: isDone(rule6) and logic(faultName,s Buyer.name,==),
+		Buyer transfer(Seller,amount) and end2;
+		
+		rule8:
+		If: isDone(rule6) and logic(faultName,s Seller.name,==),
+		Seller transfer(Buyer,amount) and end2
+		]
+		
+	}
+	
+	Require:isDone,isTime,isTrue,transfer,logic;
+}

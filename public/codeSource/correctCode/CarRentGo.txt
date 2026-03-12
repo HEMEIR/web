@@ -6,7 +6,10 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-ol
+)
+type complexPurchase struct {
+	contractapi.Contract
+	functionStatus map[string]bool
 	functionFinishTime map[string]int64
 	contractState string
 	contractMessage *ContractMessage

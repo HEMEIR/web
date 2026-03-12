@@ -1,0 +1,29 @@
+Contract DaliyPurchase{
+	PA Person
+	Token token{
+	  string name,
+	  string ID,	
+	  uint number,
+	  ufixed unit_price,
+	  uint price
+	}
+	Init {
+		Person Buyer = ('Wuhan Caidian District Justice Bureau', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Seller = ('Shengxing Hardware Store, Caidian District, Wuhan City', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4'),
+		token Service =('Daliy','many',1,4801,4801) 
+	}
+	ContractMessage{
+	  string place='',
+	  date giveTime=0
+	}
+	Rules{
+		//买家告知交付时间，地点
+		rule1: SetMessage(string place,uint giveTime) Buyer;				
+		//卖家按照时间交货
+		rule2: If: logic(now,giveTime,==), Seller;	
+		//买家确认收货，合约终止
+		rule3: If: isDone(rule2), Buyer transfer(Seller,o Service.price) and assign(ContractState,finish)
+	}
+	
+	Require:isDone,transfer,logic;
+}

@@ -2,10 +2,13 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { navItems } from "./nav-items";
+import { navItems } from "./nav-items.jsx";
 import React, { useState } from "react";
 import PrivateRoute from "./components/PrivateRoute";
 import UserCenter from "./pages/UserCenter";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Index from "./pages/Index";
 
 // 1️⃣ 把计算器单独写成一个组件
 function Calculator() {
@@ -86,6 +89,9 @@ const App = () => (
             <Route path="/law-toolchain" element={navItems.find(item => item.to === '/law-toolchain')?.page} />
             <Route path="/user-center" element={<UserCenter />} />
           </Route>
+          {/* 登录和注册路由 */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           {/* 原有的导航路由（排除受保护的路由） */}
           {navItems.map(({ to, page }) => {
             if (to === '/law-toolchain') {
@@ -95,6 +101,8 @@ const App = () => (
           })}
           {/* 新增一个计算器页面 */}
           <Route path="/calculator" element={<Calculator />} />
+          {/* 默认路由重定向到首页 */}
+          <Route path="/" element={<Index />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

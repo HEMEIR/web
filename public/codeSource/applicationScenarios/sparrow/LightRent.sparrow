@@ -1,0 +1,105 @@
+Contract LightRent{
+	PA Person
+	Token token{
+	  string name,	
+	  ufixed price
+	}
+	Init {
+		Person Buyer = ('LuoTian County HuangMei Drama Group', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Seller = ('GuangYing Electronic Products Sales Department, BaoHe District, HeTei City', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4'),
+		token Service =('Performance services',64807) 
+	}
+	ContractMessage{
+	  ufixed extend1=10000,
+	  ufixed extend2=20000,
+	  ufixed extend3=30000,
+	  ufixed default1=7710,
+	  ufixed Proportion=0.4,
+	  ufixed dayNum=0,
+	  date signTime=2021/12/15,00:00,
+	  duration period=2 days,
+	  string signPlace='HuangGang City, HuBei Province, HeFei',
+	  date startTime=2021/12/20,00:00,
+	  date finishTime=2021/12/22,00:00,
+	  bool checkStatus=false,
+	  ufixed deviceAmount=0,
+	  ufixed defaultAmount=10000
+	}
+	
+	Rules{	
+		//支付定金
+		rule1:
+		If: !isTime(signTime+period),
+		Buyer transfer(Seller,Proportion*o Service.price);
+		
+		//未及时支付定金
+		rule2:
+		If: isTime(signTime+period) and !isDone(rule1),
+		Seller assign(ContractState,terminate)
+		
+		//支付尾款
+		rule3:
+		If: isDone(rule1) and logic(now,startTime,==),
+		Buyer transfer(Seller,o Service.price-Proportion*o Service.price)
+		
+		//交货
+		rule4:
+		If:isDone(rule3),
+		Seller;
+		
+		//确认收货
+		rule5:
+		If:isDone(rule4),
+		Buyer;
+		
+		//不可抗原因交货失败
+		rule6:
+		//交付延迟的天数
+		SetMessage(new ufixed lateDay)
+		If: !isDone(rule5) and isTime(startTime),
+		Seller transfer(Buyer,lateDay*default1)
+		
+		//延期表演
+		rule7:
+		SetMessage(ufixed dayNum)
+		If: isDone(rule5),
+		Buyer
+		SubRule{
+			If:logic(dayNum,1,==),
+			transfer(Seller,extend1)
+		}
+		SubRule{
+			If:logic(dayNum,1,!=),
+			transfer(Seller,extend1+extend2*dayNum-extend3)
+		};
+		
+		//检查设备状态
+		rule8:
+		SetMessage(bool checkStatus,ufixed deviceAmount)
+		If: isTime(finishTime+dayNum),
+		Seller;
+		
+		//设备完好，合约终止
+		rule9:
+		If: isDone(rule8) and isTrue(checkStatus),
+		Buyer assign(ContractState,finish);
+		
+		//设备有问题，赔钱，合约终止
+		rule10:
+		If:isDone(rule8) and !isTrue(checkStatus),
+		Buyer transfer(Seller,deviceAmount) and assign(ContractState,finish);
+		
+		//卖家提前终止
+		rule11:
+		If: !isTime(finishTime+dayNum),
+		Seller transfer(Buyer,defaultAmount) and assign(ContractState,terminate);
+		
+		//买家提前终止
+		rule12:
+		If: !isTime(finishTime+dayNum),
+		Buyer transfer(Seller,defaultAmount) and assign(ContractState,terminate)	
+
+	}
+	
+	Require:isDone,isTime,isTrue,transfer,logic;
+}

@@ -1,0 +1,58 @@
+Contract HouseRent{
+	PA Person
+	Token House{
+	  string location,
+	  string usage
+	}
+	Init {
+		Person Landlord = ('Fengshan Town Vegetable Village Joint Stock Economic Cooperative', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Tenant = ('Luotian County Statistics Bureau', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4'),
+		House house = ('Lijiawan','office')
+	}
+	ContractMessage{ 
+	  uint penalty=3000,
+	  uint management_fee=4000,
+	  duration payduration=365 days,
+	  date startTime=2020/10/16,00:00,
+	  date finishTime=2023/10/15,00:00,
+	  date payTime=2020/10/16,00:00,
+	  uint time1=90 days,
+	  uint time2=15 days,
+	  bool isContinue=false,
+	  uint amount=0
+	}
+	
+	Rules{
+		//支付第一年的管理费
+		rule1:If: !isTime(startTime),Tenant transfer(Landlord,management_fee);
+		
+		//支付其他年的管理费
+		Repeat
+		rule2: If: isDone(rule1) and !isTime(payTime+payduration),Tenant transfer(Landlord,management_fee) and assign(payTime,now);
+		
+		//到期是否续租,续租一年
+		rule3: SetMessage(bool isContinue) If: !isTime(finishTime), Tenant
+		SubRule{
+			If: isTrue(isContinue), transfer(Landlord,management_fee) and assign(finishTime,finishTime+payduration)
+		};
+		
+		//到期15天内，房东检查房屋,确定损失金额
+		rule4: SetMessage(uint amount) If: isTime(finishTime) and !isTime(finishTime+time2),Landlord;
+		
+		//租客交房，合约结束
+		rule5: If: isDone(rule4), Tenant transfer(Landlord,amount) and assign(ContractState,finish);
+		
+		//房客拖延管理费三个月,房东终止合约
+		rule6: If: isDone(rule1) and isTime(payTime+payduration+time1),Landlord assign(ContractState,terminate);
+		
+		//单方面解除合同，赔偿3000
+		rule7: If: !isTime(finishTime),
+		Landlord transfer(Tenant,penalty) and assign(ContractState,terminate);
+		
+		rule8:
+		If: !isTime(finishTime),
+		Tenant transfer(Landlord,penalty) and assign(ContractState,terminate)
+		
+	}
+	Require:isDone,isTime,isTrue,transfer,logic;
+}

@@ -1,7 +1,7 @@
 {
-  "name": "vite-project",
+  "name": "Eye-Law",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -47,6 +47,8 @@
     "cmdk": "^1.0.0",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.6",
     "embla-carousel-react": "^8.1.5",
     "express": "^5.1.0",
     "framer-motion": "^11.3.9",
@@ -55,6 +57,7 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.417.0",
     "next-themes": "^0.3.0",
+    "node-fetch": "^2.7.0",
     "nodemailer": "^7.0.12",
     "react": "^18.2.0",
     "react-day-picker": "^8.10.1",

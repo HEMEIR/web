@@ -1,0 +1,108 @@
+Contract CarRent{
+	PA Person
+	CA Ca
+	Token token{
+	  string name,
+	  ufixed number,
+	  ufixed unit_price,
+	  ufixed price
+	}
+	Init {
+		Person Buyer = ('ShanXi Provincial Department of Housing and Urban-Rural Development Agency Supplier',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Seller = ('XiAn YingBin Auto Car Service',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Ca Arbitration = ('arbitration institution',
+			a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',0,0),
+		token Service =('vehicle rental service',3,11600,34800)
+	}
+	ContractMessage{
+	  ufixed default11=0.02,
+	  ufixed default12=0.05,
+	  ufixed default2=0.05,
+	  ufixed dayNum=0,
+	  string faultName='',
+	  ufixed amount=0,
+	  date signTime=2022/11/09,00:00,
+	  string signPlaca='XiAn',
+	  date startTime=2023/07/10,00:00,
+	  date finishTime=2023/07/31,00:00,
+	  bool checkResult=false
+	}
+	Conditions[
+		condition1:within 10 days after rule1,
+		condition2:within 7 days after rule2,
+		condition3:isDone(rule2) and isTrue(checkResult),
+		condition4: condition3 and condition1,
+		condition5:logic(price*dayNum*default11,price*default12,>)
+	]
+	
+	Operations[
+		operation1:assign(ContractState,finish),
+		operation2: assign(ContractState,terminate)
+	]
+	
+	Rules{
+		//送货delivey
+		rule1: If: isTime(startTime) and before finishTime, Seller;
+		
+		//确认收货并检查checkThing
+		rule2: SetMessage(bool checkResult) If: isDone(rule1), Buyer;
+		
+		//检查结果为好，10天内付钱，合约结束check_good
+		rule3: If: condition4 or isDone(rule7),Buyer transfer(Seller,o Service.price) and operation1;
+		
+		//检查结果不好，7天内发起退货check_false
+		rule4: If: isDone(rule2) and !isTrue(checkResult) and condition2, Buyer;
+		
+		//买家退货，卖家可重新发货 return
+		rule5: If: isDone(rule4) and within 3 days after rule4,
+		Buyer assign(rule1,false) and assign(rule3,false);
+		
+		//卖家发货推迟postpone_Seller
+		rule6: SetMessage(ufixed dayNum) If: isTime(finishTime) and !isDone(rule1),Buyer
+		SubRule{
+			If: condition5,
+			assign(price,price-price*dayNum*default12)
+		}
+		SubRule{
+			If: !condition5,  
+			assign(price,price-price*dayNum*default11)
+		};
+		
+		//买家付款推迟postpone_Buyer
+		rule7:
+		SetMessage(ufixed dayNum) If: condition3 and !condition1 and !isDone(rule3), Seller
+		SubRule{
+			If: condition5,  
+			assign(price,price+price*dayNum*default12)
+		}
+		SubRule{
+			If: !condition5,
+			assign(price,price+price*dayNum*default11)
+		};
+		
+		//卖家终止terminate_Seller
+		rule8: Seller transfer(Buyer,default2*price) and operation2;
+		
+		//买家终止terminate_Buyer
+		rule9:If: isDone(rule10), Buyer transfer(Seller,default2*price) and operation2
+		
+		//仲裁机构仲裁过错方，过错方交罚金
+		Additional[
+		rule10:
+		SetMessage(string faultName,ufixed amount)
+		Arbitration;
+		
+		rule11:
+		If: isDone(rule10) and logic(faultName,s Buyer.name,==),
+		Buyer transfer(Seller,amount) and operation1;
+		
+		rule12:
+		If: isDone(rule10) and logic(faultName,s Seller.name,==),
+		Seller transfer(Buyer,amount) and operation1
+		]
+	}
+	
+	Require:isDone,isTime,isTrue,transfer,logic,compareString;
+}

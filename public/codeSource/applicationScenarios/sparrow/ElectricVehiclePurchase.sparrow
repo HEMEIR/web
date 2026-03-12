@@ -1,0 +1,64 @@
+Contract ElectricVehiclePurchase{
+	PA Person
+	CA Ca
+	Token token{
+		string model,
+		string name,
+		string color,
+		string seat,
+		uint Voltage,
+		ufixed power,
+		uint quantity,
+		uint price,
+		uint sumtotal,
+		string Remark
+	}
+	Init {
+		Person Buyer = ('ChongQing Olympic Sports Center', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Person Seller = ('ShenZhen AoHu Electric Vehicle Co., Ltd.', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4')
+		Ca Arbitration = ('arbitration institution', a'0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',0,0),
+		token Service =('AH-Y14B','14ElectricVehicle','white','regular',72,7.5,1,49800,49800,'Shipping fee not included') 
+	}
+	ContractMessage{
+	  string faultName='',
+	  date signTime=2015/09/01,00:00,
+	  string signPlace='ShenZhen',
+	  ufixed shippingFee=0,
+	  ufixed default1=1000,
+	  bool checkResult=false,
+	  duration period=10 days,
+	  duration warranty=365 days,
+	  ufixed Proportion=0.5
+	}
+	
+	Rules{
+		//预付50%
+		rule1: Buyer transfer(Seller,o Service.sumtotal*Proportion);
+		
+		//10天内送货并报告送货费用
+		rule2: SetMessage(ufixed shippingFee) If: isDone(rule1) and !isTime(signTime+period), Seller;
+		
+		//验收并支付费用,可重复检验
+		Repeat
+		rule3: SetMessage(bool checkResult) If: isDone(rule2) and isTime(signTime+period),
+		Buyer 
+		SubRule{
+			If: isTrue(checkResult),
+			transfer(Seller,o Service.sumtotal*Proportion+shippingFee) and assign(ContractState,finish)
+		};
+		
+		//申请保修
+		Repeat
+		rule4:
+		If: isDone(rule3) and !isTime(signTime+warranty), Buyer;
+		
+		//逾期付款
+		rule5: SetMessage(new uint daynum) If: !isDone(rule3) and isTime(signTime+2*period), Seller transfer(Buyer,default1*daynum) and assign(ContractState,terminate);
+		
+		//逾期交货
+		rule6:SetMessage(new uint daynum) If: !isDone(rule2) and isTime(signTime+2*period), Buyer transfer(Seller,default1*daynum) and assign(ContractState,terminate)
+		
+	}
+	
+	Require:isDone,isTime,isTrue,transfer,logic;
+}

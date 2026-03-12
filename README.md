@@ -1,18 +1,25 @@
 # EyeLaw - 智能合约法律条文诠释原型系统与应用平台
 
 ## 项目简介
-EyeLaw是一个基于React+Express+SQLite开发的智能合约法律条文诠释原型系统与应用平台，提供用户注册、登录、法律工具链等功能，帮助用户将法律条文映射为智能合约代码，并支持多语言代码转换。
+EyeLaw是一个基于React+Express+SQLite开发的智能合约法律条文诠释原型系统与应用平台，旨在帮助用户将法律条文映射为智能合约代码，并提供多语言代码转换功能。
+
+## 核心功能
+- **条纹映射代码**：将法律条文映射为智能合约代码
+- **合约映射代码**：将智能合约代码映射为法律条文
+- **多语言转换引擎**：在不同编程语言之间转换代码
+- **用户认证系统**：支持账号密码登录和邮箱验证码登录
+- **用户中心**：管理个人资料、修改密码、更换邮箱、注销账号
 
 ## 技术栈
-- **前端**: React 18, Vite, Tailwind CSS, React Router
-- **后端**: Express.js, SQLite3, JWT
-- **数据库**: SQLite
-- **依赖管理**: npm
+- **前端**：React 18.2.0, Vite 5.4.11, Tailwind CSS 3.4.4, React Router 6.23.1
+- **后端**：Express 5.1.0, SQLite 3, JWT (JSON Web Tokens)
+- **数据库**：SQLite
+- **依赖管理**：npm
 
 ## 环境要求
-- **Node.js**: 16.x 或更高版本
-- **npm**: 8.x 或更高版本
-- **操作系统**: Linux/macOS/Windows
+- **Node.js**：16.x 或更高版本
+- **npm**：8.x 或更高版本
+- **操作系统**：Linux/macOS/Windows
 
 ## 安装步骤
 
@@ -226,7 +233,7 @@ firewall-cmd --reload
   5. 可以点击"下载合约内容"和"下载Sparrow代码"按钮下载内容
 
 #### 3.3 多语言转换引擎
-- **功能**：在不同编程语言之间转换代码
+- **功能**：在不同编程语言之间转换代码，包括Solidity、Go、Vyper等
 - **操作流程**：
   1. 在首页或导航栏选择"多语言转换引擎"
   2. 选择源语言和目标语言
@@ -234,6 +241,10 @@ firewall-cmd --reload
   4. 点击"转换"按钮
   5. 查看转换结果
   6. 可以点击"下载输入内容"和"下载输出内容"按钮下载内容
+- **新增功能**：
+  - 显示代码转换的准确率和一致性
+  - 提供转换准确率比较和转换一致性比较图表
+  - 编译器页面添加了语言判断功能，根据选择的语言检查代码是否符合该语言的特征
 
 ## 数据库说明
 
@@ -252,23 +263,56 @@ cp /path/to/Eye-Law/database.db /path/to/backup/database_$(date +%Y%m%d).db
 Eye-Law/
 ├── public/              # 静态资源
 │   └── codeSource/      # 代码示例
+│       ├── agreementToCode/ # 协议转代码示例
+│       ├── applicationScenarios/ # 应用场景示例
+│       ├── codeToCode/ # 代码转代码示例
+│       ├── correctCode/ # 正确代码示例
+│       └── termsToCode/ # 条款转代码示例
 ├── src/                 # 源代码
 │   ├── components/      # 共用组件
-│   │   └── Navbar.jsx   # 导航栏组件
+│   │   ├── ui/          # UI组件
+│   │   ├── Navbar.jsx   # 导航栏组件
+│   │   └── PrivateRoute.jsx # 私有路由组件
+│   ├── lib/             # 工具库
 │   ├── pages/           # 页面组件
-│   │   ├── Login.jsx     # 登录页面
-│   │   ├── Register.jsx  # 注册页面
+│   │   ├── LawToolchain/ # 法律工具链子页面
+│   │   │   ├── ApplicationScenarios.jsx # 应用场景
+│   │   │   ├── AutoContractTag.jsx # 自动合约标签
+│   │   │   ├── CAM-CEE.jsx # CAM-CEE工具
+│   │   │   ├── DocTransPro.jsx # 文档转换专业版
+│   │   │   ├── ProvBench.jsx # 证明基准
+│   │   │   ├── Sparrow.jsx # Sparrow工具
+│   │   │   └── 可编程语言转换引擎.jsx # 编程语言转换引擎
+│   │   ├── Anquanpage.jsx # 安全页面
+│   │   ├── Benmodel.jsx # 本模型页面
+│   │   ├── Ceshipage.jsx # 测试页面
+│   │   ├── Gongnengpage.jsx # 功能页面
+│   │   ├── Index.jsx # 首页
+│   │   ├── Jiamodel.jsx # 加模型页面
+│   │   ├── Kaifapage.jsx # 开发页面
+│   │   ├── Kaifatoolpage.jsx # 开发工具页面
+│   │   ├── LawToolchain.jsx # 法律工具链页面
+│   │   ├── Login.jsx # 登录页面
+│   │   ├── Mubiaopage.jsx # 目标页面
+│   │   ├── Register.jsx # 注册页面
 │   │   ├── UserCenter.jsx # 用户中心页面
-│   │   └── LawToolchain.jsx # 法律工具链页面
+│   │   ├── Yemodel.jsx # 叶模型页面
+│   │   ├── Yingshepage.jsx # 映射页面
+│   │   └── Zhishipage.jsx # 知识页面
+│   ├── resource/        # 资源文件
+│   ├── utils/           # 工具函数
 │   ├── App.jsx          # 应用根组件
 │   ├── main.jsx         # 应用入口
-│   └── index.css        # 全局样式
+│   ├── index.css        # 全局样式
+│   ├── nav-items.js     # 导航项配置
+│   └── nav-items.jsx    # 导航项组件
 ├── server.js            # 后端服务器
 ├── database.db          # SQLite数据库
 ├── package.json         # 项目配置
 ├── vite.config.js       # Vite配置
 ├── tailwind.config.js   # Tailwind配置
-└── DEVELOPMENT.md       # 开发文档
+├── DEVELOPMENT.md       # 开发文档
+└── README.md            # 项目说明文档
 ```
 
 ## API说明

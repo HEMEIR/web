@@ -3,1063 +3,1294 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>智能法律文本分析平台 - 大屏展示</title>
+  <title>智能合约法律条文诠释原型系统与应用平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:        #080c14;
+      --bg2:       #0d1220;
+      --surface:   rgba(255,255,255,0.042);
+      --border:    rgba(255,255,255,0.08);
+      --border2:   rgba(255,255,255,0.14);
+
+      /* Phase colours */
+      --p1:        #38bdf8;   /* sky-400  – Phase 1 */
+      --p1-dim:    rgba(56,189,248,0.12);
+      --p1-glow:   rgba(56,189,248,0.25);
+      --p2:        #34d399;   /* emerald-400 – Phase 2 */
+      --p2-dim:    rgba(52,211,153,0.10);
+      --p2-glow:   rgba(52,211,153,0.22);
+
+      --accent:    #f59e0b;
+      --text:      rgba(255,255,255,0.92);
+      --muted:     rgba(255,255,255,0.52);
+      --dim:       rgba(255,255,255,0.32);
     }
-    
+
+    html { font-size: 17px; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #0f0f23;
-      color: white;
+      font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       overflow-x: hidden;
-    }
-    
-    .large-screen-container {
-      width: 100vw;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
-    
-    /* 头部 */
+
+    /* ──────────── Background atmosphere ──────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 15% 20%, rgba(56,189,248,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 85% 75%, rgba(52,211,153,0.05) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ──────────── HEADER ──────────── */
     .header {
-      padding: 20px 40px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px 36px;
+      background: rgba(8,12,20,0.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
-    .header-title {
-      font-size: 24px;
-      font-weight: 700;
-      background: linear-gradient(90deg, #409EFF, #67C23A);
+    .header-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+    .brand-tag {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0px;
+      background: linear-gradient(100deg, var(--p1) 0%, var(--p2) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    
-    .header-subtitle {
-      font-size: 14px;
-      opacity: 0.8;
+    .brand-sep { width: 1px; height: 20px; background: var(--border2); }
+    .brand-sub {
+      font-size: 12.5px;
+      color: var(--muted);
+      letter-spacing: 0.2px;
     }
-    
-    /* 主要内容区域 */
-    .main-content {
-      flex: 1;
-      padding: 30px;
-      display: grid;
-      grid-template-rows: auto auto auto auto 1fr;
-      gap: 25px;
-    }
-    
-    /* 数据概览区域 */
-    .overview-section {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    .header-right {
+      display: flex;
+      align-items: center;
       gap: 20px;
     }
-    
-    .overview-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .header-phase-pills {
+      display: flex;
+      gap: 8px;
+    }
+    .phase-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.4px;
+    }
+    .phase-pill.p1 {
+      background: var(--p1-dim);
+      color: var(--p1);
+      border: 1px solid rgba(56,189,248,0.25);
+    }
+    .phase-pill.p2 {
+      background: var(--p2-dim);
+      color: var(--p2);
+      border: 1px solid rgba(52,211,153,0.25);
+    }
+    .header-clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ──────────── MAIN ──────────── */
+    .main {
+      position: relative;
+      z-index: 1;
+      padding: 28px 44px 44px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ──────────── PHASE HEADER ──────────── */
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 22px;
       border-radius: 12px;
-      padding: 24px;
-      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
-    
-    .overview-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(64, 158, 255, 0.2);
-      border-color: rgba(64, 158, 255, 0.3);
+    .phase-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.06;
     }
-    
-    .overview-card h3 {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 12px;
+    .phase-header.ph1 {
+      background: var(--p1-dim);
+      border: 1px solid rgba(56,189,248,0.22);
     }
-    
-    .overview-card .value {
-      font-size: 32px;
+    .phase-header.ph1::before { background: var(--p1); }
+    .phase-header.ph2 {
+      background: var(--p2-dim);
+      border: 1px solid rgba(52,211,153,0.22);
+    }
+    .phase-header.ph2::before { background: var(--p2); }
+
+    .phase-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
       font-weight: 700;
-      background: linear-gradient(90deg, #409EFF, #67C23A);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      padding: 5px 12px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
-    
-    /* 图表区域 */
-    .charts-section {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: 30px;
-    }
-    
-    .chart-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 24px;
-      height: 400px;
-    }
-    
-    .chart-card.full-width {
-      height: 600px;
-    }
-    
-    .chart-card.full-width h3 {
-      margin-bottom: 25px;
-    }
-    
-    .chart-card h3 {
-      font-size: 18px;
-      margin-bottom: 20px;
-    }
-    
-    .chart-container {
-      width: 100%;
-      height: calc(100% - 50px);
-    }
-    
-    /* 功能演示区域 */
-    .demo-section {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 24px;
-    }
-    
-    .demo-section h3 {
+    .ph1 .phase-badge { background: var(--p1); color: #05111e; }
+    .ph2 .phase-badge { background: var(--p2); color: #022016; }
+
+    .phase-title {
+      font-family: 'Syne', sans-serif;
       font-size: 20px;
+      font-weight: 700;
+    }
+    .ph1 .phase-title { color: var(--p1); }
+    .ph2 .phase-title { color: var(--p2); }
+
+    .phase-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+    .phase-flow-hint {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      color: var(--dim);
+    }
+    .phase-flow-hint span { opacity: 0.5; }
+
+    /* ──────────── GLASS CARD ──────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px 30px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.3);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.12s; }
+    .card:nth-child(3) { animation-delay: 0.18s; }
+    .card:nth-child(4) { animation-delay: 0.24s; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       margin-bottom: 20px;
     }
-    
-    .demo-content {
+    .card-step {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step-p1 { background: var(--p1); color: #04111c; }
+    .step-p2 { background: var(--p2); color: #011c10; }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* ──────────── GRID HELPERS ──────────── */
+    .row { display: grid; gap: 20px; }
+    .col-2 { grid-template-columns: 1fr 1fr; }
+    .col-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .col-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .col-3-1 { grid-template-columns: 3fr 1fr; }
+    .col-5-3 { grid-template-columns: 5fr 3fr; }
+    .col-2-1 { grid-template-columns: 2fr 1fr; }
+    .col-1-1-1-2 { grid-template-columns: 1fr 1fr 1fr 2fr; }
+
+    /* ──────────── STAT PILL ──────────── */
+    .stat-grid { display: grid; gap: 12px; }
+    .stat-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .v-p1 { color: var(--p1); }
+    .v-p2 { color: var(--p2); }
+    .v-acc { color: var(--accent); }
+    .stat-lbl { font-size: 12px; color: var(--muted); }
+
+    /* ──────────── CHART ──────────── */
+    .chart-wrap { width: 100%; }
+
+    /* ──────────── PERFORMANCE TABLE ──────────── */
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    .perf-table th {
+      background: rgba(56,189,248,0.08);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--p1);
+      border-bottom: 1px solid rgba(56,189,248,0.15);
+      white-space: nowrap;
+    }
+    .perf-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .perf-table tr.best td { background: rgba(56,189,248,0.06); }
+    .perf-table tr:hover td { background: rgba(255,255,255,0.025); }
+    .val-green { color: var(--p2); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .val-blue  { color: var(--p1); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+    /* ──────────── PRINCIPLE CARDS ──────────── */
+    .principle-list { display: flex; flex-direction: column; gap: 10px; }
+    .principle-item {
+      border-radius: 10px;
+      padding: 12px 16px;
+      border-left: 3px solid;
+      background: rgba(255,255,255,0.03);
+      border-color: var(--border);
+    }
+    .principle-item.active-p { border-left-color: var(--p1); }
+    .principle-item.dim-p { border-left-color: rgba(255,255,255,0.12); }
+    .principle-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .principle-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    /* ──────────── FLOW STRIP ──────────── */
+    .flow-strip {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .flow-node {
+      flex: 1;
+      padding: 18px 14px;
+      text-align: center;
+      background: var(--surface);
+      position: relative;
+    }
+    .flow-node:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 18px;
+      z-index: 2;
+    }
+    .flow-node:not(:last-child) { border-right: 1px solid var(--border); }
+    .flow-node-icon { font-size: 26px; margin-bottom: 8px; }
+    .flow-node-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .flow-node-sub { font-size: 11.5px; color: var(--muted); }
+
+    /* ──────────── MINI PROGRESS BAR ──────────── */
+    .prog-bar-wrap { margin-top: 6px; }
+    .prog-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .prog-bar-label { font-size: 11px; color: var(--muted); width: 72px; flex-shrink: 0; }
+    .prog-bar-track {
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.07);
+      overflow: hidden;
+    }
+    .prog-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1.2s ease;
+    }
+    .prog-bar-val { font-size: 11px; font-family: 'JetBrains Mono'; width: 44px; text-align: right; flex-shrink: 0; }
+
+    /* ──────────── ENGINE CARDS ──────────── */
+    .engine-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 30px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
     }
-    
-    .demo-item {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .engine-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
     }
-    
-    .demo-item h4 {
+    .engine-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--p2);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .engine-card:hover {
+      border-color: rgba(52,211,153,0.35);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(52,211,153,0.12);
+    }
+    .engine-card:hover::after { opacity: 1; }
+
+    .engine-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--p2);
+      margin-bottom: 5px;
+    }
+    .engine-name {
       font-size: 16px;
-      margin-bottom: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
     }
-    
-    .demo-item p {
-      font-size: 14px;
-      opacity: 0.8;
+    .engine-desc {
+      font-size: 12px;
+      color: var(--muted);
       line-height: 1.6;
+      margin-bottom: 14px;
+      min-height: 44px;
     }
-    
-    /* 响应式设计 */
+    .engine-metrics { display: flex; flex-direction: column; gap: 6px; }
+    .em-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .em-key { color: var(--muted); }
+    .em-val { font-family: 'JetBrains Mono'; font-weight: 600; color: var(--p2); }
+    .em-val.blue { color: var(--p1); }
+    .em-val.gold { color: var(--accent); }
+
+    /* Sparrow featured */
+    .engine-card.sparrow {
+      grid-column: span 2;
+      background: linear-gradient(135deg, rgba(52,211,153,0.07) 0%, rgba(56,189,248,0.04) 100%);
+      border-color: rgba(52,211,153,0.3);
+    }
+    .engine-card.sparrow::after { opacity: 1; background: linear-gradient(90deg, var(--p2), var(--p1)); }
+    .sparrow-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .sparrow-acc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sparrow-acc-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px;
+      text-align: center;
+    }
+    .sparrow-acc-val {
+      font-family: 'JetBrains Mono';
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--p2);
+      margin-bottom: 3px;
+    }
+    .sparrow-acc-lbl { font-size: 10px; color: var(--muted); }
+
+    /* ──────────── SECTION DIVIDER ──────────── */
+    .section-gap { height: 4px; }
+
+    /* ──────────── INLINE TAGS ──────────── */
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.3px;
+    }
+    .tag-p1 { background: var(--p1-dim); color: var(--p1); border: 1px solid rgba(56,189,248,0.25); }
+    .tag-p2 { background: var(--p2-dim); color: var(--p2); border: 1px solid rgba(52,211,153,0.25); }
+    .tag-acc { background: rgba(245,158,11,0.12); color: var(--accent); border: 1px solid rgba(245,158,11,0.25); }
+
+    /* ──────────── BOTTOM KPI BANNER ──────────── */
+    .kpi-banner {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+    }
+    .kpi-item {
+      border-radius: 10px;
+      padding: 16px 18px;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .kpi-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .kpi-lbl { font-size: 12px; color: var(--muted); }
+
+    /* ──────────── DATA NOTE ──────────── */
+    .data-note {
+      font-size: 12px;
+      color: var(--dim);
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      line-height: 1.7;
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+    ══════════════════════════════════════ */
+
+    /* ── Tablet (≤1024px) ── */
+    @media (max-width: 1024px) {
+      html { font-size: 15px; }
+      .main { padding: 20px 24px 36px; gap: 20px; }
+      .header { padding: 12px 24px; }
+      .col-2 { grid-template-columns: 1fr 1fr; }
+      .col-3 { grid-template-columns: 1fr 1fr; }
+      .col-4 { grid-template-columns: 1fr 1fr; }
+      .engine-grid { grid-template-columns: repeat(3, 1fr); }
+      .engine-card.sparrow { grid-column: span 3; }
+      .phase-title { font-size: 17px; }
+      .phase-desc { display: none; }
+      .stat-val { font-size: 24px; }
+    }
+
+    /* ── Mobile landscape / small tablet (≤768px) ── */
     @media (max-width: 768px) {
-      .main-content {
-        padding: 20px;
+      html { font-size: 14px; }
+      .header { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+      .header-phase-pills { display: none; }
+      .header-clock { font-size: 11px; }
+      .brand-tag { font-size: 14px; }
+      .main { padding: 14px 14px 28px; gap: 16px; }
+
+      /* All multi-col grids → single column */
+      .col-2, .col-3, .col-4, .col-3-1, .col-5-3, .col-2-1, .col-1-1-1-2 {
+        grid-template-columns: 1fr !important;
       }
-      
-      .charts-section {
-        grid-template-columns: 1fr;
+      .row { gap: 14px; }
+
+      /* Phase header */
+      .phase-header { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+      .phase-title { font-size: 15px; }
+      .phase-desc { display: none; }
+      .phase-flow-hint { display: none; }
+
+      /* Cards */
+      .card { padding: 18px 18px; }
+      .card-title { font-size: 15px; }
+      .card-subtitle { font-size: 12px; margin-left: 0; margin-top: 4px; }
+      .card-header { flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+
+      /* Engine cards → 1 col */
+      .engine-grid { grid-template-columns: 1fr; }
+      .engine-card.sparrow { grid-column: span 1; }
+      .sparrow-inner { grid-template-columns: 1fr !important; }
+
+      /* Flow strip → vertical scroll */
+      .flow-strip {
+        flex-direction: column;
+        border-radius: 10px;
       }
-      
-      .chart-card {
-        height: 300px;
+      .flow-node:not(:last-child)::after {
+        content: '↓';
+        right: auto;
+        bottom: -13px;
+        top: auto;
+        left: 50%;
+        transform: translateX(-50%);
       }
-      
-      .demo-content {
-        grid-template-columns: 1fr;
-      }
+      .flow-node:not(:last-child) { border-right: none; border-bottom: 1px solid var(--border); }
+      .flow-node { padding: 14px 12px; }
+
+      /* Stat grid → 2 col */
+      .stat-grid { grid-template-columns: 1fr 1fr !important; }
+      .stat-val { font-size: 22px; }
+
+      /* Perf table → horizontally scrollable */
+      .perf-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .perf-table { font-size: 12.5px; min-width: 320px; }
+      .perf-table th, .perf-table td { padding: 8px 10px; }
+
+      /* Charts */
+      .chart-wrap { height: 200px !important; }
+
+      /* Pie chart row → stack */
+      .row.col-2[style*="align-items:start"] { grid-template-columns: 1fr !important; }
+
+      /* SPARROW acc grid → 2 col */
+      .sparrow-acc-grid { grid-template-columns: 1fr 1fr !important; }
+
+      /* 四大原则 grid → 1 col */
+      [style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: 1fr 1fr !important; }
+
+      /* KPI banner */
+      .kpi-banner { grid-template-columns: repeat(3, 1fr) !important; }
+    }
+
+    /* ── Mobile portrait (≤480px) ── */
+    @media (max-width: 480px) {
+      html { font-size: 13px; }
+      .main { padding: 10px 10px 24px; gap: 12px; }
+      .header { padding: 8px 12px; }
+      .brand-tag { font-size: 13px; }
+      .card { padding: 14px 14px; border-radius: 10px; }
+      .card-title { font-size: 14px; }
+
+      /* 四大原则 → single column on very small screens */
+      [style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: 1fr !important; }
+
+      /* Engine 3-col comparison */
+      [style*="grid-template-columns:1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+
+      /* SPARROW col 3-part → stack */
+      [style*="grid-template-columns:1fr 1fr 1fr;height:100%"] { grid-template-columns: 1fr !important; }
+
+      .stat-val { font-size: 20px; }
+      .sparrow-acc-val { font-size: 16px; }
+      .kpi-banner { grid-template-columns: repeat(2, 1fr) !important; }
+      .phase-badge { font-size: 10px; padding: 4px 9px; }
+      .phase-title { font-size: 14px; }
+      .flow-node-icon { font-size: 20px; }
+
+      /* Engine chart label overlap fix */
+      #engineChart { height: 180px !important; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
-  <div class="large-screen-container">
-    <!-- 头部 -->
-    <header class="header">
-      <div>
-        <h1 class="header-title">智能法律文本分析平台</h1>
-        <p class="header-subtitle">基于先进AI技术的法律文本智能分析解决方案</p>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="header">
+  <div class="header-brand">
+    <div class="brand-tag">智能合约法律条文诠释原型系统与应用平台</div>
+  </div>
+  <div class="header-right">
+    <div class="header-phase-pills">
+      <span class="phase-pill p1">模块 1 · 表征建模与一致性判定</span>
+      <span class="phase-pill p2">模块 2 · 智能合约生成与验证</span>
+    </div>
+    <div class="header-clock" id="clock">--:--</div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- 端到端总览流程（全局置顶）-->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">端到端处理流程 · 从合同文档到智能合约代码</div>
+    </div>
+    <div class="flow-strip">
+      <div class="flow-node">
+        <div class="flow-node-icon">📄</div>
+        <div class="flow-node-title">法律合同投入</div>
+        <div class="flow-node-sub">PDF / Word / 图像</div>
       </div>
-      <div class="header-time"></div>
-    </header>
-    
-    <!-- 主要内容 -->
-    <main class="main-content">
-      <!-- 数据概览 -->
-      <section class="overview-section">
-        <div class="overview-card">
-          <h3>合同案例数量</h3>
-          <div class="value">28</div>
+      <div class="flow-node">
+        <div class="flow-node-icon">🔄</div>
+        <div class="flow-node-title">文档转换</div>
+        <div class="flow-node-sub">DocTransPro</div>
+      </div>
+      <div class="flow-node">
+        <div class="flow-node-icon">🔍</div>
+        <div class="flow-node-title">要素提取</div>
+        <div class="flow-node-sub">CAM-CEE 模型</div>
+      </div>
+      <div class="flow-node">
+        <div class="flow-node-icon">⚖️</div>
+        <div class="flow-node-title">一致性判定</div>
+        <div class="flow-node-sub">LegalBERT · R@K</div>
+      </div>
+      <div class="flow-node" style="background:var(--p2-dim); border-color:rgba(52,211,153,0.2);">
+        <div class="flow-node-icon">🦅</div>
+        <div class="flow-node-title" style="color:var(--p2);">SPARROW 建模</div>
+        <div class="flow-node-sub">DSL 语法引擎</div>
+      </div>
+      <div class="flow-node">
+        <div class="flow-node-icon">⚙️</div>
+        <div class="flow-node-title">语言引擎编译</div>
+        <div class="flow-node-sub">4 种形式化引擎</div>
+      </div>
+      <div class="flow-node" style="background:rgba(52,211,153,0.06);">
+        <div class="flow-node-icon">💻</div>
+        <div class="flow-node-title" style="color:var(--p2);">可执行代码</div>
+        <div class="flow-node-sub">Solidity / Go / Vyper</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       PHASE 1: CONTRACT → MODEL
+  ══════════════════════════════════════ -->
+  <div class="phase-header ph1">
+    <span class="phase-badge">模块 1</span>
+    <span class="phase-title">法律条文表征建模与一致性判定理论方法</span>
+    <span class="phase-desc">四大法律化原则 · 要素表征建模 · 一致性判定机制</span>
+    <div class="phase-flow-hint">
+      文档格式转换 <span>→</span> 要素提取建模 <span>→</span> 条文一致性判定 <span>→</span> 智能合约生成
+    </div>
+  </div>
+
+  <!-- P1 Row 0: 四大法律化原则 (featured first) -->
+  <div class="card" style="background:linear-gradient(135deg,rgba(56,189,248,0.07) 0%,rgba(52,211,153,0.04) 100%);border-color:rgba(56,189,248,0.28);">
+    <div class="card-header" style="margin-bottom:14px;">
+      <div style="flex:1;">
+        <div class="card-title" style="font-size:18px;">四大法律化原则 · Legal Formalization Principles</div>
+        <div class="card-subtitle">转化验证模型 LTSC-TAV · 智能合约设计的理论基石</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <div style="border-radius:12px;padding:18px 20px;border:1px solid rgba(56,189,248,0.3);background:rgba(56,189,248,0.07);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--p1),rgba(56,189,248,0.3));"></div>
+        <div style="font-size:26px;margin-bottom:10px;">📐</div>
+        <div style="font-size:14px;font-weight:700;color:var(--p1);margin-bottom:8px;">文法要求</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">自然语言 + 法言法语 + 形式化约束，支持结构化语义解析，确保合约条款可机器理解</div>
+      </div>
+      <div style="border-radius:12px;padding:18px 20px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),rgba(245,158,11,0.3));"></div>
+        <div style="font-size:26px;margin-bottom:10px;">🚫</div>
+        <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px;">非赋权原则</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">合约不替代当事人自主决策，仅完成行为验证与状态记录，保障法律主体意志自治</div>
+      </div>
+      <div style="border-radius:12px;padding:18px 20px;border:1px solid rgba(52,211,153,0.3);background:rgba(52,211,153,0.07);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--p2),rgba(52,211,153,0.3));"></div>
+        <div style="font-size:26px;margin-bottom:10px;">✅</div>
+        <div style="font-size:14px;font-weight:700;color:var(--p2);margin-bottom:8px;">有效性审查</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">法律效力检查 + 共识机制 + 无效条款自动检测，符合《民法典》及合同法要求</div>
+      </div>
+      <div style="border-radius:12px;padding:18px 20px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.07);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#a78bfa,rgba(167,139,250,0.3));"></div>
+        <div style="font-size:26px;margin-bottom:10px;">🔒</div>
+        <div style="font-size:14px;font-weight:700;color:#a78bfa;margin-bottom:8px;">安全性准则</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">CTL 属性预验证 + 漏洞检测（整数溢出、任意地址写入、时间戳依赖等14类），确保合约安全</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P1 Row 1: Data + Conversion -->
+  <div class="row col-2">
+
+    <!-- 数据基础 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">数据基础 · 合同语料与要素分布</div>
+        <div class="card-subtitle">11大类 · 30小类 · 64,616篇合同</div>
+      </div>
+      <div class="row col-2" style="align-items:start; gap:14px;">
+        <div>
+          <div class="chart-wrap" style="height:240px;" id="pieChart"></div>
+          <div style="font-size:10.5px;color:var(--muted);text-align:center;margin-top:4px;font-style:italic;">训练集要素类别分布（270,592条样本）</div>
         </div>
-        <div class="overview-card">
-          <h3>法律条文数量</h3>
-          <div class="value">119</div>
+        <div>
+          <div class="stat-grid" style="grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+            <div class="stat-box">
+              <div class="stat-val v-p1">64,616</div>
+              <div class="stat-lbl">合同文档（篇）</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val v-p1">270,592</div>
+              <div class="stat-lbl">标注样本（条）</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val v-acc">11</div>
+              <div class="stat-lbl">大类要素</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val v-acc">30</div>
+              <div class="stat-lbl">小类要素</div>
+            </div>
+          </div>
+          <div class="data-note">
+            <strong style="color:var(--p1)">来源</strong>：政府采购官方网站（买卖/租赁/保险合约）<br>
+            <strong style="color:var(--p1)">标注维度</strong>：标的、支付、违约、终止、当事人、期限等
+          </div>
         </div>
-        <div class="overview-card">
-          <h3>支持法律类别</h3>
-          <div class="value">8</div>
+      </div>
+    </div>
+
+    <!-- 文档转换 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">文档转换</div>
+        <div class="card-subtitle">合同文档结构化处理 · 要素标注</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+        <!-- 左：文档格式转换 -->
+        <div style="border-right:1px solid var(--border);padding-right:20px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:18px;">🔄</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--p1);">文档格式转换</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">DocTransPro 引擎</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px;">
+            基于 CnOcr + Otsu 阈值 + 形态学操作，联合提取表格结构与正文，三类输入统一转为结构化文本。
+          </div>
+          <!-- 三类输入示例 -->
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.18);">
+              <span style="font-size:15px;">📄</span>
+              <div style="flex:1;">
+                <div style="font-size:11.5px;font-weight:600;color:var(--p1);">文字 PDF</div>
+                <div style="font-size:10.5px;color:var(--muted);">直接解析文字层，保留段落与表格结构</div>
+              </div>
+              <div style="font-size:10px;font-family:'JetBrains Mono';color:var(--p1);opacity:0.7;">→ 文本</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.18);">
+              <span style="font-size:15px;">🖼️</span>
+              <div style="flex:1;">
+                <div style="font-size:11.5px;font-weight:600;color:var(--p2);">图像 PDF</div>
+                <div style="font-size:10.5px;color:var(--muted);">OCR 识别 + 版面分析，还原排版逻辑</div>
+              </div>
+              <div style="font-size:10px;font-family:'JetBrains Mono';color:var(--p2);opacity:0.7;">→ 文本</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.18);">
+              <span style="font-size:15px;">📠</span>
+              <div style="flex:1;">
+                <div style="font-size:11.5px;font-weight:600;color:var(--accent);">扫描件</div>
+                <div style="font-size:10.5px;color:var(--muted);">形态学去噪 + 倾斜矫正，提升识别精度</div>
+              </div>
+              <div style="font-size:10px;font-family:'JetBrains Mono';color:var(--accent);opacity:0.7;">→ 文本</div>
+            </div>
+          </div>
         </div>
-        <div class="overview-card">
-          <h3>标签类型</h3>
-          <div class="value">14</div>
+
+        <!-- 右：要素自动标注工具 -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:18px;">🏷️</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--p2);">要素自动标注工具</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">结构化标注 · 页面回显</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px;">
+            自动完成合同要素识别与标注，支持要素类型映射与页面定位回显，为 CAM-CEE 提供高质量训练语料。
+          </div>
+          <!-- 标注示例片段 -->
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:14px 16px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--p2);"></div>
+              <div style="font-size:10.5px;font-weight:700;color:var(--p2);text-transform:uppercase;letter-spacing:1px;">标注示例</div>
+            </div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.88);display:flex;align-items:center;flex-wrap:wrap;gap:x 4px;row-gap:10px;line-height:1;">
+              <span style="margin-right:2px;">甲方应于</span>
+              <span style="display:inline-flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1.5px solid var(--p1);flex-shrink:0;margin-right:2px;">
+                <span style="background:var(--p1);color:#04111c;font-size:10px;font-weight:700;padding:0 6px;display:flex;align-items:center;letter-spacing:0.3px;white-space:nowrap;">履约期限</span>
+                <span style="background:rgba(56,189,248,0.18);color:var(--p1);font-weight:700;padding:0 8px;display:flex;align-items:center;white-space:nowrap;">2024年3月1日</span>
+              </span>
+              <span style="margin-right:2px;">前完成</span>
+              <span style="display:inline-flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1.5px solid var(--p2);flex-shrink:0;margin-right:2px;">
+                <span style="background:var(--p2);color:#022016;font-size:10px;font-weight:700;padding:0 6px;display:flex;align-items:center;letter-spacing:0.3px;white-space:nowrap;">义务类型</span>
+                <span style="background:rgba(52,211,153,0.18);color:var(--p2);font-weight:700;padding:0 8px;display:flex;align-items:center;white-space:nowrap;">货物交付</span>
+              </span>
+              <span style="margin-right:2px;">，违约须赔偿</span>
+              <span style="display:inline-flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1.5px solid var(--accent);flex-shrink:0;">
+                <span style="background:var(--accent);color:#1c0d00;font-size:10px;font-weight:700;padding:0 6px;display:flex;align-items:center;letter-spacing:0.3px;white-space:nowrap;">违约金额</span>
+                <span style="background:rgba(245,158,11,0.16);color:var(--accent);font-weight:700;padding:0 8px;display:flex;align-items:center;white-space:nowrap;">合同总价10%</span>
+              </span>
+            </div>
+          </div>
         </div>
-      </section>
-      
-      <!-- 模型性能概览 -->
-      <section class="section-title">
-        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 20px; background: linear-gradient(90deg, #409EFF, #67C23A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">模型性能与效率对比</h2>
-      </section>
-      
-      <!-- 图表区域 -->
-      <section class="charts-section">
-        <div class="chart-card">
-          <h3>核心模型性能对比</h3>
-          <div class="chart-container" id="modelComparisonChart"></div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- P1 Row 2: Element Extraction + Consistency + Principles -->
+  <div class="row col-2" style="align-items:stretch;">
+
+    <!-- 要素提取 -->
+    <div class="card">
+      <div class="card-header">
+        <div style="flex:1;">
+          <div class="card-title">要素提取 · CAM-CEE 模型性能</div>
+          <div class="card-subtitle">CDPM + 三头注意力 + 边缘加权交叉熵</div>
         </div>
-        <div class="chart-card">
-          <h3>模型对比优势</h3>
-          <div class="chart-container" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h4 style="font-size: 18px; margin-bottom: 20px;">CAM-CEE 相对基线模型提升</h4>
-              <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 20px; border-left: 4px solid #409EFF;">
-                  <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">准确率提升 (vs LWICNER)</div>
-                  <div style="font-size: 28px; font-weight: 700; color: #409EFF;">+10.51%</div>
+      </div>
+
+      <!-- Key metrics highlight -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:linear-gradient(135deg,rgba(56,189,248,0.12),rgba(56,189,248,0.04));border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:14px 16px;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Token 准确率</div>
+          <div style="font-family:'JetBrains Mono';font-size:30px;font-weight:700;color:var(--p1);line-height:1;">92.33%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">CAM-CEE · 法律条文要素关联</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(52,211,153,0.12),rgba(52,211,153,0.04));border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:14px 16px;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">召回率</div>
+          <div style="font-family:'JetBrains Mono';font-size:30px;font-weight:700;color:var(--p2);line-height:1;">85.62%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">CAM-CEE · 法律条文要素关联</div>
+        </div>
+      </div>
+
+      <div class="perf-table-wrap"><table class="perf-table">
+        <thead>
+          <tr>
+            <th>模型</th>
+            <th>Token 准确率</th>
+            <th>召回率</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best">
+            <td><strong>CAM-CEE</strong> <span class="tag tag-p1">主力</span></td>
+            <td class="val-blue">92.33%</td>
+            <td class="val-green">85.62%</td>
+            <td><span class="tag tag-p2">SOTA</span></td>
+          </tr>
+          <tr>
+            <td>LWICNER <span class="tag" style="background:rgba(255,255,255,0.05);color:var(--muted);">基线</span></td>
+            <td>81.82%</td>
+            <td>74.62%</td>
+            <td style="color:var(--muted);font-size:12px;">低于 CAM-CEE</td>
+          </tr>
+          <tr>
+            <td>Graph4CNER <span class="tag" style="background:rgba(255,255,255,0.05);color:var(--muted);">基线</span></td>
+            <td>89.15%</td>
+            <td>62.28%</td>
+            <td style="color:var(--muted);font-size:12px;">低于 CAM-CEE</td>
+          </tr>
+          <tr>
+            <td>W2NER <span class="tag" style="background:rgba(255,255,255,0.05);color:var(--muted);">基线</span></td>
+            <td>—</td>
+            <td>76.67%</td>
+            <td style="color:var(--muted);font-size:12px;">低于 CAM-CEE</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- 一致性判定 -->
+    <div class="card" style="display:flex;flex-direction:column;">
+      <div class="card-header">
+        <div style="flex:1;">
+          <div class="card-title">一致性判定 · ProvBench 多模型召回率</div>
+          <div class="card-subtitle">语义匹配 · R@K 指标</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="flex:1;min-height:260px;" id="provLineChart"></div>
+    </div>
+
+  </div>
+
+  <!-- 共用数据来源注 -->
+  <div class="data-note">数据来源：第三方检测报告 No. 25B01Y001714 · 各模型均达到法律条文要素规则关联准确性不低于 85% 要求</div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 2: MODEL → CODE
+  ══════════════════════════════════════ -->
+  <div class="section-gap"></div>
+
+  <div class="phase-header ph2">
+    <span class="phase-badge">模块 2</span>
+    <span class="phase-title">智能法律合约生成与验证评估技术体系</span>
+    <span class="phase-desc">本体建模语言 · 双向建模方法 · 多引擎可编程生成 · 形式化验证</span>
+    <div class="phase-flow-hint">
+      Sparrow / BPMN / NET / EPC <span>→</span> 引擎编译 <span>→</span> Solidity / Go / Vyper
+    </div>
+  </div>
+
+  <!-- P2 Row 2: Engines -->
+  <div class="card">
+    <div class="card-header">
+      <div style="flex:1;">
+        <div class="card-title">智能合约语言引擎 · 核心模块</div>
+        <div class="card-subtitle">四引擎并行支持 · 多目标输出 · 形式化验证全覆盖</div>
+      </div>
+    </div>
+
+    <!-- Top row: SPARROW (wide) + chart side by side -->
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:16px;margin-bottom:16px;">
+
+      <!-- SPARROW featured card - full redesign -->
+      <div class="engine-card sparrow" style="grid-column:unset;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;height:100%;">
+
+          <!-- Col A: Identity + desc + tags -->
+          <div style="padding-right:18px;border-right:1px solid rgba(255,255,255,0.07);">
+            <div class="engine-label" style="margin-bottom:8px;">主力引擎 · FEATURED DSL</div>
+            <div class="engine-name" style="font-size:22px;margin-bottom:10px;">🦅 SPARROW</div>
+            <div class="engine-desc" style="min-height:unset;margin-bottom:12px;font-size:12.5px;">
+              领域特定语言（DSL），直接表达法律条款逻辑，支持条件规则、仲裁机制与多目标合约生成，符合《民法典》要求
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              
+              <span style="font-size:11px;padding:3px 9px;border-radius:10px;background:var(--p1-dim);color:var(--p1);border:1px solid rgba(56,189,248,0.2);">Solidity</span>
+              <span style="font-size:11px;padding:3px 9px;border-radius:10px;background:var(--p1-dim);color:var(--p1);border:1px solid rgba(56,189,248,0.2);">Go</span>
+              <span style="font-size:11px;padding:3px 9px;border-radius:10px;background:var(--p1-dim);color:var(--p1);border:1px solid rgba(56,189,248,0.2);">Vyper</span>
+            </div>
+          </div>
+
+          <!-- Col B: Scenario coverage - ALL scenarios explicit -->
+          <div style="padding:0 18px;border-right:1px solid rgba(255,255,255,0.07);">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">覆盖合约场景 · 完整清单</div>
+            <!-- Rental category -->
+            <div style="font-size:10.5px;font-weight:600;color:var(--p2);margin-bottom:6px;letter-spacing:0.5px;">🟢 租赁类（3）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px;">
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(52,211,153,0.08);border-radius:6px;border-left:2px solid rgba(52,211,153,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>🚗</span><span>汽车租赁</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(52,211,153,0.08);border-radius:6px;border-left:2px solid rgba(52,211,153,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>🏡</span><span>房屋租赁</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(52,211,153,0.08);border-radius:6px;border-left:2px solid rgba(52,211,153,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>💡</span><span>设备租赁</span></div>
+            </div>
+            <!-- Purchase category -->
+            <div style="font-size:10.5px;font-weight:600;color:var(--p1);margin-bottom:6px;letter-spacing:0.5px;">🔵 采购类（9）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;">
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>🌾</span><span>化肥采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>⚡</span><span>电动车采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>💻</span><span>计算机采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>🖨️</span><span>打印机采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>🪑</span><span>家具采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>❄️</span><span>空调采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>📄</span><span>纸张采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.08);border-radius:6px;border-left:2px solid rgba(56,189,248,0.5);color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:5px;"><span>🛒</span><span>日用品采购</span></div>
+              <div style="font-size:11.5px;padding:6px 9px;background:rgba(56,189,248,0.06);border-radius:6px;border:1px dashed rgba(56,189,248,0.25);color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:5px;justify-content:center;font-style:italic;">持续扩充中…</div>
+            </div>
+          </div>
+
+          <!-- Col C: Accuracy vs baselines -->
+          <div style="padding-left:18px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">代码生成准确率 · vs Baseline</div>
+
+            <!-- Go -->
+            <div style="margin-bottom:14px;">
+              <div style="font-size:12px;color:var(--p1);font-weight:600;margin-bottom:7px;">🔵 Go 语言输出</div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:var(--muted);">vs TA-SPESC</span>
+                  <span style="font-family:'JetBrains Mono';font-size:16px;font-weight:700;color:var(--p2);">92.32%</span>
                 </div>
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 20px; border-left: 4px solid #67C23A;">
-                  <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">召回率提升 (vs Graph4CNER)</div>
-                  <div style="font-size: 28px; font-weight: 700; color: #67C23A;">+23.34%</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:var(--muted);">vs CML</span>
+                  <span style="font-family:'JetBrains Mono';font-size:16px;font-weight:700;color:var(--p2);">85.13%</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:var(--muted);">vs Clover</span>
+                  <span style="font-family:'JetBrains Mono';font-size:16px;font-weight:700;color:var(--accent);">98.75%</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin-bottom:14px;"></div>
+
+            <!-- Vyper -->
+            <div>
+              <div style="font-size:12px;color:#a78bfa;font-weight:600;margin-bottom:7px;">🟣 Vyper 语言输出</div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:var(--muted);">vs TA-SPESC</span>
+                  <span style="font-family:'JetBrains Mono';font-size:16px;font-weight:700;color:#a78bfa;">87.90%</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:var(--muted);">vs CML</span>
+                  <span style="font-family:'JetBrains Mono';font-size:16px;font-weight:700;color:#a78bfa;">95.36%</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11.5px;color:var(--muted);">vs Clover</span>
+                  <span style="font-family:'JetBrains Mono';font-size:16px;font-weight:700;color:var(--accent);">99.69%</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="chart-card">
-          <h3>法律类别分布</h3>
-          <div class="chart-container" id="featuresChart"></div>
-        </div>
-        <div class="chart-card">
-          <h3>模型精度指标</h3>
-          <div class="chart-container" id="precisionChart"></div>
-        </div>
-        <div class="chart-card">
-          <h3>处理效率分析</h3>
-          <div class="chart-container" id="efficiencyChart"></div>
-        </div>
-      </section>
-      
-      <!-- 智能合约生成质量 -->
-      <section class="charts-section">
-        <div class="chart-card" style="grid-column: 1 / -1;">
-          <h3>智能合约生成质量</h3>
-          <div class="chart-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
-              <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">代码准确率</div>
-              <div style="font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #409EFF, #67C23A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">97.1%</div>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
-              <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">代码一致性</div>
-              <div style="font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #67C23A, #409EFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">97.9%</div>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
-              <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">CodeBERTScore</div>
-              <div style="font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #E6A23C, #FAB005); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">88.35%</div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- 技术优势区域 -->
-      <section class="charts-section">
-        <div class="chart-card full-width" style="grid-column: 1 / -1;">
-          <h3>技术优势对比雷达图</h3>
-          <div class="chart-container" id="radarChart"></div>
-        </div>
-      </section>
-      
-      <!-- 漏洞可视化展示区域 -->
-      <section class="charts-section">
-        <div class="chart-card full-width" style="grid-column: 1 / -1;">
-          <h3>漏洞安全级别可视化</h3>
-          <div class="chart-container" id="vulnerabilityChart"></div>
-        </div>
-      </section>
 
-      <!-- 漏洞代码展示区域 -->
-      <section class="demo-section">
-        <h3>漏洞代码安全级别展示</h3>
-        <div class="demo-content">
-          <div class="demo-item" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-left: 4px solid #3b82f6;">
-            <h4 style="color: #1e40af;">低风险漏洞</h4>
-            <p style="color: #3b82f6;">代码逻辑不严谨，但不会导致严重后果。例如：缺少输入验证、日志记录不完整等。</p>
-            <pre style="margin-top: 10px; background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
-// 示例：缺少输入验证
-function transfer(address to, uint amount) public {
-    balances[msg.sender] -= amount;
-    balances[to] += amount;
-}
-            </pre>
-          </div>
-          <div class="demo-item" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b;">
-            <h4 style="color: #92400e;">中风险漏洞</h4>
-            <p style="color: #f59e0b;">可能导致资产损失或功能异常。例如：整数溢出、权限控制不当等。</p>
-            <pre style="margin-top: 10px; background: rgba(245, 158, 11, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
-// 示例：整数溢出风险
-function withdraw(uint amount) public {
-    require(balances[msg.sender] >= amount);
-    balances[msg.sender] -= amount;
-    payable(msg.sender).transfer(amount);
-}
-            </pre>
-          </div>
-          <div class="demo-item" style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-left: 4px solid #ef4444;">
-            <h4 style="color: #991b1b;">高风险漏洞</h4>
-            <p style="color: #ef4444;">可能导致严重资产损失或系统完全崩溃。例如：重入攻击、逻辑漏洞等。</p>
-            <pre style="margin-top: 10px; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
-// 示例：重入攻击风险
-function withdraw(uint amount) public {
-    require(balances[msg.sender] >= amount);
-    payable(msg.sender).transfer(amount);
-    balances[msg.sender] -= amount;
-}
-            </pre>
-          </div>
-          <div class="demo-item" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-left: 4px solid #8b5cf6;">
-            <h4 style="color: #5b21b6;">关键风险漏洞</h4>
-            <p style="color: #8b5cf6;">直接导致合约完全失效或所有资产被盗。例如：私有变量可修改、构造函数漏洞等。</p>
-            <pre style="margin-top: 10px; background: rgba(139, 92, 246, 0.1); padding: 10px; border-radius: 8px; font-size: 12px;">
-// 示例：构造函数漏洞（旧版Solidity）
-function Wallet() public {
-    owner = msg.sender;
-}
+        </div>
+      </div>
 
-// 被错误调用为普通函数，导致owner被篡改
-function wallet() public {
-    owner = msg.sender;
-}
-            </pre>
+      <!-- Engine performance chart on the right -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">引擎准确率横向对比</div>
+        <div class="chart-wrap" style="flex:1;min-height:0;" id="engineChart"></div>
+      </div>
+    </div>
+
+    <!-- Bottom row: 3 secondary engines -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+
+      <!-- BPMN -->
+      <div class="engine-card" style="padding:18px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div>
+            <div class="engine-label" style="margin-bottom:4px;">流程建模</div>
+            <div class="engine-name" style="font-size:16px;margin-bottom:0;">🔄 BPMN</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--p2);line-height:1;">88.5%</div>
+            <div style="font-size:10.5px;color:var(--muted);">Accuracy</div>
           </div>
         </div>
-      </section>
-
-      <!-- 核心功能演示区域 -->
-      <section class="demo-section">
-        <h3>核心功能演示</h3>
-        <div class="demo-content">
-          <div class="demo-item">
-            <h4>合同条款分析</h4>
-            <p>自动分析28+个合同案例，识别关键条款和潜在风险，提供准确的法律条文匹配和解释。</p>
-          </div>
-          <div class="demo-item">
-            <h4>法律条文检测</h4>
-            <p>覆盖119+条法律条文，精确识别民法典、买卖合同纠纷解释等8大类法律法规，准确率高达99.2%。</p>
-          </div>
-          <div class="demo-item">
-            <h4>智能标签标注</h4>
-            <p>支持14种标签类型，自动标注合同和法律条文的关键要素，大幅提高法律文本处理效率。</p>
-          </div>
-          <div class="demo-item">
-            <h4>合同一致性检查</h4>
-            <p>检测合同条款与法律条文的一致性，发现潜在冲突，为法律专业人士提供可靠的决策支持。</p>
+        <div class="engine-desc" style="min-height:unset;margin-bottom:10px;font-size:12px;">业务流程建模符号，可视化工作流转换为智能合约状态机，适用于流程驱动型法律协议</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="display:flex;gap:6px;">
+            
+            <span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--muted);">流程类合约</span>
           </div>
         </div>
-      </section>
-    </main>
+        <div class="prog-bar-track" style="height:6px;"><div class="prog-bar-fill" style="width:88.5%;background:var(--p2);"></div></div>
+      </div>
+
+      <!-- Petri Net -->
+      <div class="engine-card" style="padding:18px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div>
+            <div class="engine-label" style="margin-bottom:4px;">并发建模</div>
+            <div class="engine-name" style="font-size:16px;margin-bottom:0;">🕸️ Petri Net</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--p1);line-height:1;">86.7%</div>
+            <div style="font-size:10.5px;color:var(--muted);">Accuracy</div>
+          </div>
+        </div>
+        <div class="engine-desc" style="min-height:unset;margin-bottom:10px;font-size:12px;">Petri 网模型，形式化验证并发执行与状态转换的正确性，适用于多方条件触发合约</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="display:flex;gap:6px;">
+            
+            <span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--muted);">状态机类合约</span>
+          </div>
+        </div>
+        <div class="prog-bar-track" style="height:6px;"><div class="prog-bar-fill" style="width:86.7%;background:var(--p1);"></div></div>
+      </div>
+
+      <!-- EPC -->
+      <div class="engine-card" style="padding:18px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div>
+            <div class="engine-label" style="margin-bottom:4px;">事件驱动</div>
+            <div class="engine-name" style="font-size:16px;margin-bottom:0;">📊 EPC</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--accent);line-height:1;">85.3%</div>
+            <div style="font-size:10.5px;color:var(--muted);">Accuracy</div>
+          </div>
+        </div>
+        <div class="engine-desc" style="min-height:unset;margin-bottom:10px;font-size:12px;">事件驱动流程链，建模复杂条件触发与事件响应逻辑，适用于延期/违约等事件驱动场景</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="display:flex;gap:6px;">
+            
+            <span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--muted);">事件驱动类合约</span>
+          </div>
+        </div>
+        <div class="prog-bar-track" style="height:6px;"><div class="prog-bar-fill" style="width:85.3%;background:var(--accent);"></div></div>
+      </div>
+
+    </div>
   </div>
 
-  <script>
-    // 错误处理
-    console.log('开始加载图表...');
-    
-    // 更新时间
-    function updateTime() {
-      const now = new Date();
-      const timeString = now.toLocaleString('zh-CN');
-      document.querySelector('.header-time').textContent = timeString;
-    }
-    setInterval(updateTime, 1000);
-    updateTime();
-    
-    // 模型性能对比图表
-    console.log('初始化模型性能对比图表...');
-    const modelComparisonElement = document.getElementById('modelComparisonChart');
-    if (modelComparisonElement) {
-      console.log('找到modelComparisonChart元素');
-    } else {
-      console.error('未找到modelComparisonChart元素');
-    }
-    const modelComparisonChart = echarts.init(modelComparisonElement);
-    const modelComparisonOption = {
-      tooltip: {
-        trigger: 'axis',
-        backgroundColor: 'rgba(44, 62, 80, 0.95)',
-        borderColor: 'transparent',
-        borderRadius: 8,
-        textStyle: {
-          color: '#fff'
-        }
-      },
-      legend: {
-        data: ['准确率', '召回率'],
-        textStyle: {
-          color: '#fff',
-          fontSize: 12
-        }
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: ['CAM-CEE', 'LWICNER', 'Graph4CNER', 'W2NER'],
-        axisLabel: {
-          color: '#fff',
-          fontSize: 12,
-          rotate: 0
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        }
-      },
-      yAxis: {
-        type: 'value',
-        name: '性能指标 (%)',
-        min: 60,
-        max: 100,
-        axisLabel: {
-          color: '#fff',
-          fontSize: 12
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
-      },
-      series: [
-        {
-          name: '准确率',
-          type: 'bar',
-          data: [92.33, 81.82, 89.15, null],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#409EFF' },
-              { offset: 1, color: '#667EEA' }
-            ])
-          },
-          emphasis: {
-            itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#667EEA' },
-                { offset: 1, color: '#409EFF' }
-              ])
-            }
-          }
-        },
-        {
-          name: '召回率',
-          type: 'bar',
-          data: [85.62, 74.62, 62.28, 76.67],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#67C23A' },
-              { offset: 1, color: '#85CE61' }
-            ])
-          }
-        }
-      ]
-    };
-    modelComparisonChart.setOption(modelComparisonOption);
-    
-    // 功能模块分布图表
-    console.log('初始化功能模块分布图表...');
-    const featuresElement = document.getElementById('featuresChart');
-    if (featuresElement) {
-      console.log('找到featuresChart元素');
-    } else {
-      console.error('未找到featuresChart元素');
-    }
-    const featuresChart = echarts.init(featuresElement);
-    const featuresOption = {
-      tooltip: {
-        trigger: 'item',
-        backgroundColor: 'rgba(44, 62, 80, 0.95)',
-        borderColor: 'transparent',
-        borderRadius: 8,
-        textStyle: {
-          color: '#fff'
-        }
-      },
-      legend: {
-        orient: 'vertical',
-        right: 10,
-        top: 'center',
-        textStyle: {
-          color: '#fff',
-          fontSize: 12
-        }
-      },
-      series: [
-        {
-          name: '法律类别分布',
-          type: 'pie',
-          radius: ['40%', '70%'],
-          avoidLabelOverlap: false,
-          itemStyle: {
-            borderRadius: 10,
-            borderColor: '#0f0f23',
-            borderWidth: 2
-          },
-          label: {
-            show: false
-          },
-          emphasis: {
-            label: {
-              show: true,
-              fontSize: '18',
-              fontWeight: 'bold',
-              color: '#fff'
-            }
-          },
-          labelLine: {
-            show: false
-          },
-          data: [
-            {
-              value: 63,
-              name: '民法典',
-              itemStyle: {
-                color: '#409EFF'
-              }
-            },
-            {
-              value: 34,
-              name: '买卖合同纠纷解释',
-              itemStyle: {
-                color: '#67C23A'
-              }
-            },
-            {
-              value: 14,
-              name: '知识产权保护法',
-              itemStyle: {
-                color: '#E6A23C'
-              }
-            },
-            {
-              value: 8,
-              name: '商品房买卖合同解释',
-              itemStyle: {
-                color: '#F56C6C'
-              }
-            }
-          ]
-        }
-      ]
-    };
-    featuresChart.setOption(featuresOption);
-    
-    // 模型精度指标图表
-    console.log('初始化模型精度指标图表...');
-    const precisionElement = document.getElementById('precisionChart');
-    if (precisionElement) {
-      console.log('找到precisionChart元素');
-    } else {
-      console.error('未找到precisionChart元素');
-    }
-    const precisionChart = echarts.init(precisionElement);
-    const precisionOption = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow'
-        },
-        backgroundColor: 'rgba(44, 62, 80, 0.95)',
-        borderColor: 'transparent',
-        borderRadius: 8,
-        textStyle: {
-          color: '#fff'
-        }
-      },
-      legend: {
-        data: ['R@1', 'R@3', 'R@5'],
-        textStyle: {
-          color: '#fff',
-          fontSize: 12
-        }
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: ['LegalBERT', 'BERT', 'RoBERTa'],
-        axisLabel: {
-          color: '#fff',
-          fontSize: 12
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        }
-      },
-      yAxis: {
-        type: 'value',
-        min: 85,
-        max: 100,
-        axisLabel: {
-          color: '#fff',
-          fontSize: 12
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
-      },
-      series: [
-        {
-          name: 'R@1',
-          type: 'bar',
-          data: [88.39, 87.28, 89.06],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#409EFF' },
-              { offset: 1, color: '#667EEA' }
-            ])
-          }
-        },
-        {
-          name: 'R@3',
-          type: 'bar',
-          data: [95.31, 93.53, 94.42],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#67C23A' },
-              { offset: 1, color: '#85CE61' }
-            ])
-          }
-        },
-        {
-          name: 'R@5',
-          type: 'bar',
-          data: [97.54, 95.76, 96.88],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#E6A23C' },
-              { offset: 1, color: '#FAB005' }
-            ])
-          }
-        }
-      ]
-    };
-    precisionChart.setOption(precisionOption);
-    
-    // 处理效率分析图表
-    console.log('初始化处理效率分析图表...');
-    const efficiencyElement = document.getElementById('efficiencyChart');
-    if (efficiencyElement) {
-      console.log('找到efficiencyChart元素');
-    } else {
-      console.error('未找到efficiencyChart元素');
-    }
-    const efficiencyChart = echarts.init(efficiencyElement);
-    const efficiencyOption = {
-      tooltip: {
-        trigger: 'axis',
-        backgroundColor: 'rgba(44, 62, 80, 0.95)',
-        borderColor: 'transparent',
-        borderRadius: 8,
-        textStyle: {
-          color: '#fff'
-        }
-      },
-      legend: {
-        data: ['处理速度 (秒/份)', '准确率 (%)'],
-        textStyle: {
-          color: '#fff',
-          fontSize: 12
-        }
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: ['短期合同', '长期合同', '复杂合同', '简易合同'],
-        axisLabel: {
-          color: '#fff',
-          fontSize: 12
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        }
-      },
-      yAxis: [
-        {
-          type: 'value',
-          name: '处理速度 (秒/份)',
-          min: 0,
-          max: 2,
-          axisLabel: {
-            color: '#fff',
-            fontSize: 12
-          },
-          axisLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.2)'
-            }
-          },
-          splitLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            }
-          }
-        },
-        {
-          type: 'value',
-          name: '准确率 (%)',
-          min: 95,
-          max: 100,
-          axisLabel: {
-            color: '#fff',
-            fontSize: 12
-          },
-          axisLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.2)'
-            }
-          },
-          splitLine: {
-            show: false
-          }
-        }
-      ],
-      series: [
-        {
-          name: '处理速度 (秒/份)',
-          type: 'bar',
-          data: [0.3, 0.8, 1.5, 0.2],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#409EFF' },
-              { offset: 1, color: '#667EEA' }
-            ])
-          }
-        },
-        {
-          name: '准确率 (%)',
-          type: 'line',
-          yAxisIndex: 1,
-          data: [99.2, 98.8, 98.5, 99.3],
-          itemStyle: {
-            color: '#F56C6C'
-          },
-          lineStyle: {
-            width: 3
-          },
-          symbol: 'circle',
-          symbolSize: 8
-        }
-      ]
-    };
-    efficiencyChart.setOption(efficiencyOption);
-    
-    // 技术优势对比雷达图
-    console.log('初始化技术优势对比雷达图...');
-    const radarElement = document.getElementById('radarChart');
-    if (radarElement) {
-      console.log('找到radarChart元素');
-    } else {
-      console.error('未找到radarChart元素');
-    }
-    const radarChart = echarts.init(radarElement);
-    const radarOption = {
-      tooltip: {
-        backgroundColor: 'rgba(44, 62, 80, 0.95)',
-        borderColor: 'transparent',
-        borderRadius: 8,
-        textStyle: {
-          color: '#fff'
-        }
-      },
-      legend: {
-        data: ['CAM-CEE', 'LWICNER', 'Graph4CNER'],
-        textStyle: {
-          color: '#fff',
-          fontSize: 14
-        },
-        bottom: 30,
-        left: 'center'
-      },
-      radar: {
-        indicator: [
-          { name: '准确率', max: 100 },
-          { name: '召回率', max: 100 },
-          { name: '处理速度', max: 100 },
-          { name: '资源效率', max: 100 },
-          { name: '功能完整性', max: 100 },
-          { name: '可扩展性', max: 100 }
-        ],
-        axisName: {
-          color: '#fff'
-        },
-        splitArea: {
-          areaStyle: {
-            color: ['rgba(64, 158, 255, 0.1)', 'rgba(64, 158, 255, 0.2)']
-          }
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        },
-        center: ['50%', '50%'],
-        radius: ['30%', '60%']
-      },
-      series: [
-        {
-          name: '模型技术优势',
-          type: 'radar',
-          data: [
-            {
-              value: [92.33, 85.62, 85, 80, 90, 85],
-              name: 'CAM-CEE',
-              areaStyle: {
-                color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
-                  { offset: 0, color: 'rgba(64, 158, 255, 0.6)' },
-                  { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
-                ])
-              },
-              lineStyle: {
-                color: '#409EFF'
-              },
-              itemStyle: {
-                color: '#409EFF'
-              }
-            },
-            {
-              value: [81.82, 74.62, 90, 85, 75, 80],
-              name: 'LWICNER',
-              areaStyle: {
-                color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
-                  { offset: 0, color: 'rgba(103, 194, 58, 0.6)' },
-                  { offset: 1, color: 'rgba(103, 194, 58, 0.1)' }
-                ])
-              },
-              lineStyle: {
-                color: '#67C23A'
-              },
-              itemStyle: {
-                color: '#67C23A'
-              }
-            },
-            {
-              value: [89.15, 62.28, 80, 75, 80, 75],
-              name: 'Graph4CNER',
-              areaStyle: {
-                color: new echarts.graphic.RadialGradient(0.1, 0.6, 0.5, [
-                  { offset: 0, color: 'rgba(230, 162, 60, 0.6)' },
-                  { offset: 1, color: 'rgba(230, 162, 60, 0.1)' }
-                ])
-              },
-              lineStyle: {
-                color: '#E6A23C'
-              },
-              itemStyle: {
-                color: '#E6A23C'
-              }
-            }
-          ]
-        }
-      ]
-    };
-    radarChart.setOption(radarOption);
-    
-    // 漏洞安全级别可视化图表
-    console.log('初始化漏洞安全级别可视化图表...');
-    const vulnerabilityElement = document.getElementById('vulnerabilityChart');
-    if (vulnerabilityElement) {
-      console.log('找到vulnerabilityChart元素');
-    } else {
-      console.error('未找到vulnerabilityChart元素');
-    }
-    const vulnerabilityChart = echarts.init(vulnerabilityElement);
-    const vulnerabilityOption = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow'
-        },
-        backgroundColor: 'rgba(44, 62, 80, 0.95)',
-        borderColor: 'transparent',
-        borderRadius: 8,
-        textStyle: {
-          color: '#fff'
-        }
-      },
-      legend: {
-        data: ['低风险', '中风险', '高风险', '关键风险'],
-        textStyle: {
-          color: '#fff',
-          fontSize: 14
-        },
-        bottom: 30,
-        left: 'center'
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '15%',
-        top: '15%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: ['合同模板', '智能合约', '法律条文', '数据集'],
-        axisLabel: {
-          color: '#fff',
-          fontSize: 14
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        }
-      },
-      yAxis: {
-        type: 'value',
-        name: '漏洞数量',
-        axisLabel: {
-          color: '#fff',
-          fontSize: 14
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
-          }
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
-      },
-      series: [
-        {
-          name: '低风险',
-          type: 'bar',
-          stack: 'total',
-          data: [12, 8, 15, 10],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#3b82f6' },
-              { offset: 1, color: '#93c5fd' }
-            ])
-          }
-        },
-        {
-          name: '中风险',
-          type: 'bar',
-          stack: 'total',
-          data: [8, 12, 10, 15],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#f59e0b' },
-              { offset: 1, color: '#fcd34d' }
-            ])
-          }
-        },
-        {
-          name: '高风险',
-          type: 'bar',
-          stack: 'total',
-          data: [5, 8, 6, 4],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#ef4444' },
-              { offset: 1, color: '#fca5a5' }
-            ])
-          }
-        },
-        {
-          name: '关键风险',
-          type: 'bar',
-          stack: 'total',
-          data: [2, 4, 3, 2],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#8b5cf6' },
-              { offset: 1, color: '#c4b5fd' }
-            ])
-          }
-        }
-      ]
-    };
-    vulnerabilityChart.setOption(vulnerabilityOption);
 
-    // 响应式调整
-    window.addEventListener('resize', () => {
-      modelComparisonChart.resize();
-      featuresChart.resize();
-      precisionChart.resize();
-      efficiencyChart.resize();
-      radarChart.resize();
-      vulnerabilityChart.resize();
-    });
-    
-    // 页面加载完成后确保图表渲染
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        modelComparisonChart.resize();
-        featuresChart.resize();
-        precisionChart.resize();
-        efficiencyChart.resize();
-        radarChart.resize();
-        vulnerabilityChart.resize();
-      }, 100);
-    });
-  </script>
+
+</main>
+
+<script>
+  /* ── Clock ── */
+  function tick() {
+    const n = new Date();
+    const pad = v => String(v).padStart(2,'0');
+    document.getElementById('clock').textContent =
+      `${n.getFullYear()}/${pad(n.getMonth()+1)}/${pad(n.getDate())} ${pad(n.getHours())}:${pad(n.getMinutes())}`;
+  }
+  tick(); setInterval(tick, 30000);
+
+  const TT = {
+    backgroundColor:'rgba(8,12,20,0.95)',
+    borderColor:'rgba(56,189,248,0.4)',
+    borderWidth:1,
+    textStyle:{ color:'#fff', fontSize:12 }
+  };
+
+  /* ── PIE: element distribution ── */
+  const pie = echarts.init(document.getElementById('pieChart'));
+  pie.setOption({
+    tooltip:{ ...TT, trigger:'item', formatter:'{b}: {d}%' },
+    legend:{
+      orient:'vertical', right:0, top:'center',
+      textStyle:{ color:'rgba(255,255,255,0.55)', fontSize:10 },
+      itemWidth:10, itemHeight:10
+    },
+    series:[{
+      type:'pie',
+      radius:['38%','62%'],
+      center:['38%','50%'],
+      avoidLabelOverlap:true,
+      itemStyle:{ borderRadius:5, borderColor:'#080c14', borderWidth:2 },
+      label:{ show:false },
+      emphasis:{ label:{ show:true, fontSize:12, fontWeight:'bold', color:'#fff' }},
+      data:[
+        { value:14673, name:'标的',      itemStyle:{ color:'#38bdf8' }},
+        { value:12049, name:'非终止违约', itemStyle:{ color:'#34d399' }},
+        { value:8397,  name:'终止违约',  itemStyle:{ color:'#f59e0b' }},
+        { value:4736,  name:'支付',      itemStyle:{ color:'#f87171' }},
+        { value:2294,  name:'甲乙/时间', itemStyle:{ color:'#a78bfa' }},
+        { value:1630,  name:'验收',      itemStyle:{ color:'#6ee7b7' }},
+        { value:1570,  name:'发货',      itemStyle:{ color:'#fb923c' }},
+        { value:643,   name:'保险额度',  itemStyle:{ color:'#f472b6' }},
+      ]
+    }]
+  });
+
+  /* ── BAR: conversion fidelity - removed (data shown as progress bars) ── */
+
+  /* ── HORIZONTAL BAR: F1 comparison - removed (data in table) ── */
+
+  /* ── LINE: R@K consistency - removed (data shown as progress bars) ── */
+
+  /* ── BAR: engine accuracy ── */
+  const eng = echarts.init(document.getElementById('engineChart'));
+  eng.setOption({
+    tooltip:{ ...TT, trigger:'axis', axisPointer:{ type:'shadow' }},
+    legend:{ data:['Accuracy'], right:0, top:0, textStyle:{ color:'rgba(255,255,255,0.5)', fontSize:10 }, itemWidth:12, itemHeight:8 },
+    grid:{ top:24, bottom:36, left:36, right:10 },
+    xAxis:{ type:'category', data:['Clover·Go','Clover·Vyper','BPMN','Petri Net','EPC'],
+      axisLabel:{ color:'rgba(255,255,255,0.55)', fontSize:9.5, interval:0 }, axisLine:{ lineStyle:{ color:'rgba(255,255,255,0.08)' }}},
+    yAxis:{ type:'value', min:80, max:102, axisLabel:{ color:'rgba(255,255,255,0.45)', fontSize:10, formatter:'{value}%' }, splitLine:{ lineStyle:{ color:'rgba(255,255,255,0.04)' }}},
+    series:[{
+      name:'Accuracy',
+      type:'bar', barMaxWidth:32,
+      data:[
+        { value:98.75, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#34d399'},{offset:1,color:'#065f46'}]), borderRadius:[4,4,0,0] }},
+        { value:99.69, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#a78bfa'},{offset:1,color:'#4c1d95'}]), borderRadius:[4,4,0,0] }},
+        { value:88.50, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#38bdf8'},{offset:1,color:'#1d4ed8'}]), borderRadius:[4,4,0,0] }},
+        { value:86.70, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#6ee7b7'},{offset:1,color:'#065f46'}]), borderRadius:[4,4,0,0] }},
+        { value:85.30, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#f59e0b'},{offset:1,color:'#78350f'}]), borderRadius:[4,4,0,0] }},
+      ],
+      label:{ show:true, position:'top', formatter:'{c}%', color:'rgba(255,255,255,0.7)', fontSize:10 }
+    }]
+  });
+
+  /* ── LINE: ProvBench R@K, x=模型 ── */
+  const provLine = echarts.init(document.getElementById('provLineChart'));
+  provLine.setOption({
+    tooltip: { ...TT, trigger: 'axis',
+      formatter: params => {
+        const model = params[0].axisValue;
+        return `<div style="font-size:12px;line-height:2;"><strong>${model}</strong><br>` +
+          params.map(p => `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:5px;"></span>${p.seriesName}：<strong>${p.value}%</strong>`).join('<br>') + '</div>';
+      }
+    },
+    legend: {
+      data: ['R@1', 'R@3', 'R@5'],
+      top: 0, right: 8,
+      textStyle: { color: 'rgba(255,255,255,0.55)', fontSize: 11 },
+      itemWidth: 16, itemHeight: 3
+    },
+    grid: { top: 32, bottom: 40, left: 44, right: 12 },
+    xAxis: {
+      type: 'category',
+      data: ['RoBERTa', 'LegalBERT', 'BERT'],
+      axisLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 600 },
+      axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+      axisTick: { show: false }
+    },
+    yAxis: {
+      type: 'value', min: 85, max: 100,
+      axisLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 10, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+    },
+    series: [
+      {
+        name: 'R@1', type: 'line', smooth: false,
+        data: [89.06, 88.39, 87.28],
+        symbol: 'circle', symbolSize: 7,
+        lineStyle: { color: '#38bdf8', width: 2.5 },
+        itemStyle: { color: '#38bdf8', borderWidth: 2, borderColor: '#080c14' },
+        label: { show: true, position: 'bottom', formatter: '{c}%', color: '#38bdf8', fontSize: 10.5, fontFamily: 'JetBrains Mono' }
+      },
+      {
+        name: 'R@3', type: 'line', smooth: false,
+        data: [94.42, 95.31, 93.53],
+        symbol: 'circle', symbolSize: 7,
+        lineStyle: { color: '#34d399', width: 2.5 },
+        itemStyle: { color: '#34d399', borderWidth: 2, borderColor: '#080c14' },
+        label: { show: true, position: 'top', formatter: '{c}%', color: '#34d399', fontSize: 10.5, fontFamily: 'JetBrains Mono' }
+      },
+      {
+        name: 'R@5', type: 'line', smooth: false,
+        data: [96.88, 97.54, 95.76],
+        symbol: 'circle', symbolSize: 7,
+        lineStyle: { color: '#f59e0b', width: 2.5 },
+        itemStyle: { color: '#f59e0b', borderWidth: 2, borderColor: '#080c14' },
+        label: { show: true, position: 'top', formatter: '{c}%', color: '#f59e0b', fontSize: 10.5, fontFamily: 'JetBrains Mono' }
+      },
+    ]
+  });
+
+  /* ── Resize ── */
+  function resizeCharts() {
+    [pie, eng, provLine].forEach(c => c.resize());
+  }
+  window.addEventListener('resize', resizeCharts);
+  // Also trigger on orientation change for mobile
+  window.addEventListener('orientationchange', () => setTimeout(resizeCharts, 300));
+</script>
 </body>
 </html>
