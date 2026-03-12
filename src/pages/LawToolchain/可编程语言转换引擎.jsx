@@ -655,69 +655,31 @@ const CompilerModule = ({
       return;
     }
 
-    // 语言特征检查
-    const isGoCode = code.includes('package') && (code.includes('import') || code.includes('func'));
-    const isVyperCode = code.includes('@external') || (code.includes('def') && code.includes('->'));
-    
-    if (language === 'go' && !isGoCode) {
-      setError('请输入Go语言代码');
-      return;
-    }
-    
-    if (language === 'vyper' && !isVyperCode) {
-      setError('请输入Vyper语言代码');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
-      let correctedCode = '';
-      let clover = 0;
-      let chartData = [];
-      
-      if (language === 'go') {
-        // Go语言数据
-        clover = 95.75;
-        chartData = [87.9, 92.63, 95.36];
-        // 从本地文件读取正确代码
-        const response = await fetch('/codeSource/correctCode/CarRentGo.txt');
-        if (response.ok) {
-          correctedCode = await response.text();
-        } else {
-          // 如果文件读取失败，使用默认代码
-          correctedCode = `package main
+      // 调用后端语法纠错API
+      const response = await fetch('/api/correct-syntax', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ language, code })
+      });
 
-import "fmt"
-
-func main() {
-    fmt.Println("Hello, World!")
-}`;
-        }
-      } else if (language === 'vyper') {
-        // Vyper语言数据
-        clover = 97.26;
-        chartData = [89.02, 85.13, 92.32];
-        // 从本地文件读取正确代码
-        const response = await fetch('/codeSource/correctCode/CarRentVyper.txt');
-        if (response.ok) {
-          correctedCode = await response.text();
-        } else {
-          // 如果文件读取失败，使用默认代码
-          correctedCode = `@external
-def hello() -> str:
-    return "Hello, World!"`;
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '纠错失败');
       }
 
-      // 添加7秒延迟
-      await new Promise(resolve => setTimeout(resolve, 7000));
+      const data = await response.json();
+      const { correctedCode, clover, barChartData } = data;
 
       // 设置准确率和柱状图数据
       setAccuracy(clover);
       setCloverAccuracy(clover);
-      setBarChartData(chartData);
+      setBarChartData(barChartData);
 
       setCorrectCode(correctedCode);
       setShowCorrectCode(true);
@@ -912,7 +874,7 @@ def hello() -> str:
                       },
                       xAxis: {
                         type: 'category',
-                        data: ['TA-SPESC', 'CML', 'clover'],
+                        data: ['baseline1', 'baseline2', 'clover'],
                         axisLabel: {
                           interval: 0
                         }
@@ -929,7 +891,7 @@ def hello() -> str:
                         {
                           name: '准确率',
                           type: 'bar',
-                          data: barChartData.length > 0 ? barChartData : (language === 'go' ? [87.9, 92.63, 95.36] : [89.02, 85.13, 92.32]),
+                          data: barChartData.length > 0 ? barChartData : [85, 90, 95],
                           itemStyle: {
                             color: function(params) {
                               const colors = ['#1890ff', '#52c41a', '#722ed1'];
@@ -939,7 +901,10 @@ def hello() -> str:
                           label: {
                             show: true,
                             position: 'top',
-                            formatter: '{c}%'
+                            formatter: function(params) {
+                              // 所有数据点都使用两位小数格式
+                              return params.value.toFixed(2) + '%';
+                            }
                           }
                         }
                       ]
