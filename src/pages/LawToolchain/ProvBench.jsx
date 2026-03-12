@@ -792,7 +792,7 @@ const ProvBench = () => {
         
         {/* 实验对比图 */}
         <div className="mt-16">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">📈 模型性能实验对比</h3>
               <p className="text-gray-600">不同文本编码器在法律条文推荐任务上的实验结果对比（数据来源于Table 3）</p>
@@ -817,47 +817,24 @@ const ProvBench = () => {
               
               <div className="relative overflow-x-auto">
                 <div className="flex h-96 min-w-max mx-auto justify-center">
-                  <div className="flex items-end gap-8 px-8 h-full relative">
+                  <div className="flex items-end gap-32 px-8 h-full relative">
                     <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                       {[...Array(5)].map((_, idx) => (
                         <div key={idx} className="border-t border-gray-100"></div>
                       ))}
                     </div>
-                    
-                    {/* T5 */}
-                    <div className="flex flex-col items-center z-10 h-full">
-                      <div className="text-sm font-medium text-gray-700 mb-2 h-6">T5</div>
-                      <div className="flex items-end gap-1 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '86.38%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 86.38%</div>
-                        </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '95.09%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 95.09%</div>
-                        </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '97.10%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 97.10%</div>
-                        </div>
-                        <div className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" style={{ height: '60.94%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">Top-3 EM: 60.94%</div>
-                        </div>
-                      </div>
-                    </div>
-                    
                     {/* BERT */}
                     <div className="flex flex-col items-center z-10 h-full">
                       <div className="text-sm font-medium text-gray-700 mb-2 h-6">BERT</div>
-                      <div className="flex items-end gap-1 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '90.63%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 90.63%</div>
+                      <div className="flex items-end gap-4 flex-1 w-full relative">
+                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '87.28%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 87.28%</div>
                         </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '96.86%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 96.86%</div>
+                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '93.53%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 93.53%</div>
                         </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '98.21%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 98.21%</div>
-                        </div>
-                        <div className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" style={{ height: '76.79%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">Top-3 EM: 76.79%</div>
+                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '95.76%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 95.76%</div>
                         </div>
                       </div>
                     </div>
@@ -865,18 +842,15 @@ const ProvBench = () => {
                     {/* RoBERTa */}
                     <div className="flex flex-col items-center z-10 h-full">
                       <div className="text-sm font-medium text-gray-700 mb-2 h-6">RoBERTa</div>
-                      <div className="flex items-end gap-1 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '89.96%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 89.96%</div>
+                      <div className="flex items-end gap-4 flex-1 w-full relative">
+                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '89.06%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 89.06%</div>
                         </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '95.31%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 95.31%</div>
+                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '94.42%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 94.42%</div>
                         </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '97.54%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 97.54%</div>
-                        </div>
-                        <div className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" style={{ height: '70.31%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">Top-3 EM: 70.31%</div>
+                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '96.88%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 96.88%</div>
                         </div>
                       </div>
                     </div>
@@ -884,37 +858,15 @@ const ProvBench = () => {
                     {/* LegalBERT */}
                     <div className="flex flex-col items-center z-10 h-full">
                       <div className="text-sm font-medium text-gray-700 mb-2 h-6">LegalBERT</div>
-                      <div className="flex items-end gap-1 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '92.19%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 92.19%</div>
+                      <div className="flex items-end gap-4 flex-1 w-full relative">
+                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '88.39%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 88.39%</div>
                         </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '97.77%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 97.77%</div>
+                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '95.31%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 95.31%</div>
                         </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '98.88%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 98.88%</div>
-                        </div>
-                        <div className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" style={{ height: '73.88%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">Top-3 EM: 73.88%</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Mamba */}
-                    <div className="flex flex-col items-center z-10 h-full">
-                      <div className="text-sm font-medium text-gray-700 mb-2 h-6">Mamba</div>
-                      <div className="flex items-end gap-1 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '91.29%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 91.29%</div>
-                        </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '97.99%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 97.99%</div>
-                        </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '99.33%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 99.33%</div>
-                        </div>
-                        <div className="w-6 bg-amber-500 rounded-t-sm hover:bg-amber-600 transition-all relative group" style={{ height: '57.37%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">Top-3 EM: 57.37%</div>
+                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '97.54%' }}>
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 97.54%</div>
                         </div>
                       </div>
                     </div>
@@ -930,44 +882,26 @@ const ProvBench = () => {
                       <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">R@1</th>
                       <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">R@3</th>
                       <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">R@5</th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-700 border-b">Top-3 EM</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="hover:bg-gray-50">
-                      <td className="py-3 px-4 border-b font-medium text-blue-600">T5</td>
-                      <td className="py-3 px-4 border-b">86.38</td>
-                      <td className="py-3 px-4 border-b">95.09</td>
-                      <td className="py-3 px-4 border-b">97.10</td>
-                      <td className="py-3 px-4 border-b">60.94</td>
-                    </tr>
-                    <tr className="hover:bg-gray-50">
                       <td className="py-3 px-4 border-b font-medium text-green-600">BERT</td>
-                      <td className="py-3 px-4 border-b">90.63</td>
-                      <td className="py-3 px-4 border-b">96.86</td>
-                      <td className="py-3 px-4 border-b">98.21</td>
-                      <td className="py-3 px-4 border-b">76.79</td>
+                      <td className="py-3 px-4 border-b">87.28</td>
+                      <td className="py-3 px-4 border-b">93.53</td>
+                      <td className="py-3 px-4 border-b">95.76</td>
                     </tr>
                     <tr className="hover:bg-gray-50">
                       <td className="py-3 px-4 border-b font-medium text-purple-600">RoBERTa</td>
-                      <td className="py-3 px-4 border-b">89.96</td>
-                      <td className="py-3 px-4 border-b">95.31</td>
-                      <td className="py-3 px-4 border-b">97.54</td>
-                      <td className="py-3 px-4 border-b">70.31</td>
+                      <td className="py-3 px-4 border-b">89.06</td>
+                      <td className="py-3 px-4 border-b">94.42</td>
+                      <td className="py-3 px-4 border-b">96.88</td>
                     </tr>
                     <tr className="hover:bg-gray-50">
                       <td className="py-3 px-4 border-b font-medium text-amber-600">LegalBERT</td>
-                      <td className="py-3 px-4 border-b">92.19</td>
-                      <td className="py-3 px-4 border-b">97.77</td>
-                      <td className="py-3 px-4 border-b">98.88</td>
-                      <td className="py-3 px-4 border-b">73.88</td>
-                    </tr>
-                    <tr className="hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium text-red-600">Mamba</td>
-                      <td className="py-3 px-4">91.29</td>
-                      <td className="py-3 px-4">97.99</td>
-                      <td className="py-3 px-4">99.33</td>
-                      <td className="py-3 px-4">57.37</td>
+                      <td className="py-3 px-4 border-b">88.39</td>
+                      <td className="py-3 px-4 border-b">95.31</td>
+                      <td className="py-3 px-4 border-b">97.54</td>
                     </tr>
                   </tbody>
                 </table>

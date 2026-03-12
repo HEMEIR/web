@@ -397,13 +397,10 @@ const CAMCEE = () => {
 
   // 实验对比数据
   const experimentData = [
-    { model: 'MECT', accuracy: 86.25, microF1: 74.95, macroF1: 70.10, minF1: 38.62, trainTime: 52.00, memory: 16.54 },
-    { model: 'W2NER', accuracy: null, microF1: 77.45, macroF1: 74.92, minF1: 0, trainTime: 113.00, memory: 20.77 },
-    { model: 'Graph', accuracy: 85.44, microF1: 70.68, macroF1: 66.87, minF1: 41.90, trainTime: 88.00, memory: 1.04 },
-    { model: 'NFLAT', accuracy: 77.96, microF1: 59.31, macroF1: 51.92, minF1: 4.88, trainTime: 24.00, memory: 5.93 },
-    { model: 'LWICNER', accuracy: 81.20, microF1: 70.08, macroF1: 68.50, minF1: 35.90, trainTime: 376.00, memory: 1.12 },
-    { model: 'CAM-CEE(n)', accuracy: 91.74, microF1: 78.45, macroF1: 73.20, minF1: 49.12, trainTime: 206.00, memory: 8.96 },
-    { model: 'CAM-CEE(w)', accuracy: 91.87, microF1: 80.05, macroF1: 75.77, minF1: 55.63, trainTime: 205.00, memory: 8.96 },
+    { model: 'W2NER', accuracy: null, recall: 76.67 },
+    { model: 'Graph4CNER', accuracy: 89.15, recall: 62.28},
+    { model: 'LWICNER', accuracy: 81.82, recall: 74.62 },
+    { model: 'CAM-CEE', accuracy: 92.33, recall: 85.62 },
   ];
 
   // ECharts 配置
@@ -497,24 +494,8 @@ const CAMCEE = () => {
               <div className="text-center text-sm text-gray-500 mt-2">Accuracy/%</div>
             </div>
             <div>
-              <ReactECharts option={getBarOption('microF1', 'micro F1/%', '#91CC75')} style={{height: 320}} />
-              <div className="text-center text-sm text-gray-500 mt-2">micro F1/%</div>
-            </div>
-            <div>
-              <ReactECharts option={getBarOption('macroF1', 'macro F1/%', '#FAC858')} style={{height: 320}} />
-              <div className="text-center text-sm text-gray-500 mt-2">macro F1/%</div>
-            </div>
-            <div>
-              <ReactECharts option={getBarOption('minF1', 'minimum F1/%', '#EE6666')} style={{height: 320}} />
-              <div className="text-center text-sm text-gray-500 mt-2">minimum F1/%</div>
-            </div>
-            <div>
-              <ReactECharts option={getBarOption('trainTime', '每轮训练时间/s', '#73C0DE')} style={{height: 320}} />
-              <div className="text-center text-sm text-gray-500 mt-2">每轮训练时间/s</div>
-            </div>
-            <div>
-              <ReactECharts option={getBarOption('memory', '显存占用/GB', '#3BA272')} style={{height: 320}} />
-              <div className="text-center text-sm text-gray-500 mt-2">显存占用/GB</div>
+              <ReactECharts option={getBarOption('recall', 'Recall/%', '#91CC75')} style={{height: 320}} />
+              <div className="text-center text-sm text-gray-500 mt-2">Recall/%</div>
             </div>
           </div>
         </div>
