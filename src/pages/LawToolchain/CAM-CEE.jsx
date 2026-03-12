@@ -83,8 +83,8 @@ const CAMCEE = () => {
             success: true,
             message: '模型评估完成',
             data: {
-              precision: 0.91,
-              f1Score: 0.78,
+              precision:92.33,
+              f1Score:85.62,
               confusionMatrix: {
                 truePositive: 895,
                 falsePositive: 55,
@@ -472,17 +472,17 @@ const CAMCEE = () => {
       {result && result.success && (
         <>
         <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">评估结果</h4>
+          <h4 className="text-lg font-semibold text-green-800 mb-4">CAM-CEE 模型评估结果</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                   <p className="text-sm text-gray-600 mb-1">精确率</p>
-                  <p className="text-2xl font-bold text-blue-700">{result.data.precision.toFixed(3)}</p>
+                  <p className="text-2xl font-bold text-blue-700">{result.data.precision.toFixed(2) + '%'}</p>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-gray-600 mb-1">F1分数</p>
-                  <p className="text-2xl font-bold text-purple-700">{result.data.f1Score.toFixed(3)}</p>
+                  <p className="text-sm text-gray-600 mb-1">召回率</p>
+                  <p className="text-2xl font-bold text-purple-700">{result.data.f1Score.toFixed(2) + '%'}</p>
                 </div>
               </div>
             </div>
@@ -553,97 +553,28 @@ const CAMCEE = () => {
             <h2 className="text-lg font-semibold text-blue-800">CAM-CEE 系统简介</h2>
           </div>
           <p className="text-gray-700">
-                CAM-CEE 是一个基于上下文感知的智能合约要素提取方法，专门针对中文买卖合同领域设计。该方法的核心创新在于结合了基于合同上下文的填充机制（CDPM） 与三头注意力机制，以解决合同文本中要素稀疏、依赖上下文以及存在跳跃性关联关系的问题。
+                CAM-CEE 是一个面向智能合约化场景的上下文感知要素提取模型，通过融合上下文语义感知动态填充方法、三重注意力层和要素边缘加权损失函数，有效提升了长文本文档中合约要素的提取性能。该模型在自主构建的中文买卖合约数据集上超越了所有基线模型，并展现出良好的通用性和硬件适应性。
           </p>
         </div>
 
-        {/* 案例对比展示 */}
-        <div className="mt-6 bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-          <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              提取效果对比演示
-            </h3>
+        {/* 模型架构图 */}
+        <div className="mt-4 bg-white border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="text-blue-500 text-xl">🏗️</div>
+            <h2 className="text-lg font-semibold text-blue-800">CAM-CEE 模型架构</h2>
           </div>
-
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border-2 border-green-500 rounded-xl p-4 relative bg-green-50/30 flex flex-col">
-              <div className="absolute -top-3 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">推荐：CAM-CEE (w)</div>
-              
-              <div className="mb-4 mt-2 rounded-lg overflow-hidden border border-green-100 shadow-sm bg-white">
-                <img src=".\src\resource\img\cam_cee.png" alt="CAM-CEE 提取细节" className="w-full h-auto block" />
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-white p-3 rounded border border-green-100 shadow-sm">
-                  <p className="text-xs font-bold text-green-700 mb-1">案例 1：违约条件提取</p>
-                  <p className="text-xs leading-relaxed text-gray-600">
-                    成功识别 <span className="bg-green-100 px-1 text-green-800">非终止违约条件</span> 与 <span className="bg-green-100 px-1 text-green-800">违约结果</span>，逻辑闭环完整。
-                  </p>
-                </div>
-                <div className="bg-white p-3 rounded border border-green-100 shadow-sm">
-                  <p className="text-xs font-bold text-green-700 mb-1">案例 2：标的解析</p>
-                  <p className="text-xs leading-relaxed text-gray-600 font-mono">
-                    线缆\nRVV-3*6mm\n数量: 97 | 单价: 140 | 总价: 13580
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 flex flex-col">
-              <div className="text-gray-500 px-3 py-1 text-xs font-bold mb-2">BERT 基线方法</div>
-
-              <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-white opacity-90">
-                <img src=".\src\resource\img\bert.png" alt="BERT 提取失败示例" className="w-full h-auto block" />
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-white p-3 rounded border border-gray-200 opacity-80">
-                  <p className="text-xs font-bold text-gray-500 mb-1">案例 1 表现</p>
-                  <div className="flex items-start">
-                     <span className="text-red-500 mr-1 text-xs">⚠️</span>
-                     <p className="text-xs text-gray-400 italic">提取失败：误判为终止违约结果。</p>
-                  </div>
-                </div>
-                <div className="bg-white p-3 rounded border border-gray-200 opacity-80 text-xs text-gray-400 italic">
-                  案例 2：提取失败，标的总价识别为空。
-                </div>
-              </div>
-            </div>
-
-            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 flex flex-col">
-              <div className="text-gray-500 px-3 py-1 text-xs font-bold mb-2">DeepSeek-V3 生成式大模型</div>
-
-              <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-white opacity-90">
-                <img src="src\resource\img\deepseek.png" alt="DeepSeek 字段混淆示例" className="w-full h-auto block" />
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-white p-3 rounded border border-gray-200 opacity-80">
-                  <p className="text-xs font-bold text-gray-500 mb-1">案例 1 表现</p>
-                  <div className="flex items-start">
-                     <span className="text-orange-500 mr-1 text-xs">⚠️</span>
-                     <p className="text-xs text-gray-400 italic">提取不完整：仅捕获部分违约条款。</p>
-                  </div>
-                </div>
-                <div className="bg-white p-3 rounded border border-gray-200 opacity-80 text-xs text-gray-400 italic">
-                  案例 3：标的名称与标的规格发生字段混淆。
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 p-3 mx-4 mb-4 rounded-lg flex items-center">
-            <div className="text-blue-600 font-bold text-sm mr-4">结论对比:</div>
-            <div className="flex gap-4 text-xs text-blue-800">
-              <span>● CAM-CEE: 准确率 98.2%</span>
-              <span>● BERT: 容易字段缺失</span>
-              <span>● DeepSeek: 针对长表格易产生幻觉</span>
-            </div>
+          <div className="flex flex-col items-center">
+            <img 
+              src="../src/resource/img/jiagoutu.png" 
+              alt="CAM-CEE模型架构图" 
+              className="max-w-full h-auto rounded-lg shadow-md"
+            />
+            <p className="text-sm text-gray-600 mt-3 text-center">
+              图：CAM-CEE模型架构，包含BERT嵌入层、双向GRU层和三重注意力机制（前注意层、自注意层、后注意层），用于捕获合同文本的上下文语义信息。
+            </p>
           </div>
         </div>
+        
       </div>
 
       {/* 功能模块选择 */}
