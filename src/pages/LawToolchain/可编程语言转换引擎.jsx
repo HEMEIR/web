@@ -219,8 +219,8 @@ const ConvertModule = ({ sourceLanguage, setSourceLanguage, targetCode, setTarge
 
   return (
     <div className="space-y-6">
-      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-        <h3 className="text-lg font-semibold text-purple-800 mb-3">单语言转换</h3>
+      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+        <h3 className="text-lg font-semibold text-orange-800 mb-3">单语言转换</h3>
         <p className="text-gray-700 mb-4">支持将Sparrow、EPC、BPMN、FSM等多种形式化描述语言转换为Solidity智能合约代码，提供源语言编辑、转换逻辑查看和转换结果展示功能，并对BPMN和FSM转换提供准确率和一致性分析。</p>
         
         <div className="grid grid-cols-1 gap-6 mb-6">
@@ -251,7 +251,7 @@ const ConvertModule = ({ sourceLanguage, setSourceLanguage, targetCode, setTarge
                 <li>
                   <a 
                     href="#" 
-                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'source' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'source' ? 'text-orange-600 font-medium bg-orange-100' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleDirectoryClick('source');
@@ -264,7 +264,7 @@ const ConvertModule = ({ sourceLanguage, setSourceLanguage, targetCode, setTarge
                 <li>
                   <a 
                     href="#" 
-                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'logic' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'logic' ? 'text-orange-600 font-medium bg-orange-100' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleDirectoryClick('logic');
@@ -277,7 +277,7 @@ const ConvertModule = ({ sourceLanguage, setSourceLanguage, targetCode, setTarge
                 <li>
                   <a 
                     href="#" 
-                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'solidity' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'solidity' ? 'text-orange-600 font-medium bg-orange-100' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleDirectoryClick('solidity');
@@ -780,8 +780,8 @@ const CompilerModule = ({
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h3 className="text-lg font-semibold text-blue-800 mb-3">编译器</h3>
+      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+        <h3 className="text-lg font-semibold text-orange-800 mb-3">编译器</h3>
         <p className="text-gray-700 mb-4">上传或输入Go语言和Vyper语言的代码，进行编译运行，查看编译结果。</p>
         
         <div className="flex flex-wrap items-end gap-4 mb-6">
@@ -1226,8 +1226,8 @@ const MultiConvertModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-        <h3 className="text-lg font-semibold text-purple-800 mb-3">多语言转换</h3>
+      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+        <h3 className="text-lg font-semibold text-orange-800 mb-3">多语言转换</h3>
         <p className="text-gray-700 mb-4">支持将Sparrow语言同时转换为Go和Vyper两种目标编程语言，提供源语言编辑、双语言转换结果对比展示和转换逻辑查看功能，实现一次转换多语言输出。</p>
         
         <div className="grid grid-cols-1 gap-6 mb-6">
@@ -1258,7 +1258,7 @@ const MultiConvertModule = () => {
                 <li>
                   <a 
                     href="#" 
-                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'source' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'source' ? 'text-orange-600 font-medium bg-orange-100' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleDirectoryClick('source');
@@ -1271,7 +1271,7 @@ const MultiConvertModule = () => {
                 <li>
                   <a 
                     href="#" 
-                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'logic' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'logic' ? 'text-orange-600 font-medium bg-orange-100' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleDirectoryClick('logic');
@@ -1284,7 +1284,7 @@ const MultiConvertModule = () => {
                 <li>
                   <a 
                     href="#" 
-                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'convert' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
+                    className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'convert' ? 'text-orange-600 font-medium bg-orange-100' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleDirectoryClick('convert');
@@ -1596,55 +1596,58 @@ const ProgrammableLanguageConversionEngine = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 py-8" style={{ margin: 0, padding: 0, width: '100%', boxSizing: 'border-box' }}>
-      {/* 页面标题和介绍区域 */}
-      <div className="bg-orange-50 rounded-xl shadow-md p-8 border border-orange-100 mb-10">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            <div className="text-orange-600 text-5xl">⚙️</div>
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">可编程语言转换引擎</h2>
-              <p className="text-lg text-gray-600 font-light italic">Programmable Language Conversion Engine</p>
-            </div>
-          </div>
-          <div className="max-w-3xl mx-auto mt-4">
-            <p className="text-gray-700 text-lg">
-              可编程语言转换引擎是一种强大的工具，专门用于不同编程语言之间的智能转换，特别是在法律条文到形式化语言、形式化语言到智能合约代码的转换过程中发挥关键作用。
-              该引擎支持多种语言格式的转换，包括自然语言、Sparrow、BPMN、FSM等，能够自动分析输入内容并生成符合语法规范的目标语言代码，大大提高了开发效率和代码质量。
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 功能模块选择区域 - 保持之前的宽度限制 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{ width: '100%' }}>
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-orange-100">
-          {/* 标签页导航 */}
-          <div className="bg-gray-50 border-b border-gray-200 rounded-t-xl">
-            <div className="flex overflow-x-auto">
-              {
-                [
-                  { id: 'convert', label: '单语言转换', icon: '🔄' },
-                  { id: 'multi-convert', label: '多语言转换', icon: '🌐' },
-                  { id: 'compiler', label: '编译器', icon: '⚙️' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
-                    className={`px-6 py-4 whitespace-nowrap font-medium text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === tab.id
-                      ? 'bg-orange-600 text-white'
-                      : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'}`}
-                  >
-                    <span className="text-lg">{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                ))
-              }
-            </div>
-          </div>
-
+    <div className="min-h-screen bg-white py-8 px-4">
+      {/* 主要内容区域 */}
+      <div className="max-w-6xl mx-auto">
+        {/* 功能模块选择 */}
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-lg overflow-hidden">
           {/* 标签页内容 */}
           <div className="p-6">
+            {/* 页面标题 */}
+            <div className="text-center mb-10">
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <div className="text-orange-600 text-5xl">⚙️</div>
+                <div>
+                  <h2 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">可编程语言转换引擎</h2>
+                  <p className="text-lg text-gray-600 font-light italic">Programmable Language Conversion Engine</p>
+                </div>
+              </div>
+              <div className="max-w-3xl mx-auto mt-4">
+                <p className="text-gray-700 text-lg text-justify">
+                  可编程语言转换引擎是一种强大的工具，专门用于不同编程语言之间的智能转换，特别是在法律条文到形式化语言、形式化语言到智能合约代码的转换过程中发挥关键作用。
+                  该引擎支持多种语言格式的转换，包括自然语言、Sparrow、BPMN、FSM等，能够自动分析输入内容并生成符合语法规范的目标语言代码，大大提高了开发效率和代码质量。
+                </p>
+              </div>
+            </div>
+
+            {/* 中间控件区域 */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+              {/* 标签页导航 */}
+              <div className="bg-gray-50 border-b border-gray-200 rounded-t-xl mb-6">
+                <div className="flex overflow-x-auto">
+                  {
+                    [
+                      { id: 'convert', label: '单语言转换', icon: '🔄' },
+                      { id: 'multi-convert', label: '多语言转换', icon: '🌐' },
+                      { id: 'compiler', label: '编译器', icon: '⚙️' }
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => handleTabChange(tab.id)}
+                        className={`px-6 py-4 whitespace-nowrap font-medium text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === tab.id
+                          ? 'bg-orange-600 text-white'
+                          : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'}`}
+                      >
+                        <span className="text-lg">{tab.icon}</span>
+                        {tab.label}
+                      </button>
+                    ))
+                  }
+                </div>
+              </div>
+
+              {/* 标签页内容 */}
+              <div>
             {activeTab === 'convert' && (
               <ConvertModule 
                 sourceLanguage={sourceLanguage}
@@ -1666,6 +1669,8 @@ const ProgrammableLanguageConversionEngine = () => {
                 setShowCorrectCode={setShowCorrectCode}
               />
             )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -457,224 +457,198 @@ const Sparrow = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 py-8" style={{ margin: 0, padding: 0, width: '100%', boxSizing: 'border-box' }}>
-      {/* 页面标题和介绍区域 */}
-      <div className="bg-purple-50 rounded-xl shadow-md p-8 border border-purple-100 mb-10">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            <div className="text-purple-600 text-5xl">📝</div>
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Sparrow</h2>
-              <p className="text-lg text-gray-600 font-light italic">Sparrow Design Language</p>
-            </div>
-          </div>
-          <div className="max-w-3xl mx-auto mt-4">
-            <p className="text-gray-700 text-lg">Sparrow是一种专为法律合约设计的领域特定语言（DSL），基于法律的道义逻辑构建本体模型，旨在简化智能法律合约的开发和管理。</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-white py-8 px-4">
       {/* 主要内容区域 */}
-      <div className="px-4 sm:px-6 lg:px-8">
-        {/* Sparrow介绍和优势区域 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Sparrow介绍区域 */}
-          <div className="bg-purple-50 rounded-xl shadow-md p-6 border border-purple-100">
-            <h3 className="text-xl font-semibold text-purple-800 mb-4 text-center">Sparrow介绍</h3>
-            <div className="mb-6 text-gray-700 text-sm space-y-3">
-              <p className="text-justify">Sparrow基于法律的道义逻辑构建本体模型，秉承继承和封装的原则，受到现有基于抽象概念主义的DSLs的启发，提出将功能模块解耦，并将法律条款的合同元素分类到Sparrow的组件中，包括Subject，Object，Conditions，Operations，Rules。</p>
-              <p className="text-justify">其中Subject对应法律合约结构中的功能角色，如合同各方、认证者、监管机构和仲裁员。Object对应法律合约结构的Subject操作对象，如资产、消息和状态。Conditions代表了法律合约结构的逻辑结构，如时间逻辑、分支逻辑和布尔逻辑。Operations代表法律合约结构的行动，包括各方的义务和权利。Rules代表了条款，描述什么情况下谁能对什么对象做什么事。</p>
-              <p className="text-justify">Sparrow的实现过程结合了Xtext项目中的语法定义、Xtend文件中的映射规则以及自动代码生成功能。</p>
-            </div>
-          </div>
-          
-          {/* Sparrow优势区域 */}
-          <div className="bg-purple-50 rounded-xl shadow-md p-6 border border-purple-100">
-            <h3 className="text-xl font-semibold text-purple-800 mb-4 text-center">Sparrow优势</h3>
-            <div className="space-y-6">
-              <div className="flex items-start gap-3">
-                <div className="text-purple-600 text-2xl">📝</div>
+      <div className="max-w-6xl mx-auto">
+        {/* 功能模块选择 */}
+        <div className="bg-indigo-100 rounded-xl shadow-lg overflow-hidden">
+          {/* 标签页内容 */}
+          <div className="p-6">
+            {/* 页面标题 */}
+            <div className="text-center mb-10">
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <div className="text-purple-600 text-5xl">📝</div>
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-1">完善的映射规则</h4>
-                  <p className="text-gray-700 text-sm text-justify">制定了代码层面的映射策略，能够自动化地将模型映射为智能法律合约。显著地降低了手动修正的需求，提高了生产效率，并对大规模合约表现出了较好的适应性。</p>
+                  <h2 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Sparrow</h2>
+                  <p className="text-lg text-gray-600 font-light italic">Sparrow Design Language</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="text-purple-600 text-2xl">⚡</div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">精简的智能合约</h4>
-                  <p className="text-gray-700 text-sm text-justify">重新组织了操作与功能角色的关系，避免因合约功能重叠而带来的代码重复，并对功能模块进行了优化以提升其再利用价值。通过这种方式在为以太坊区块链生成智能法律合约时减少了成本，并且降低了气体消耗。</p>
+              <div className="max-w-3xl mx-auto mt-4">
+                <p className="text-gray-700 text-lg text-justify">Sparrow基于法律的道义逻辑构建本体模型，秉承继承和封装的原则，受到现有基于抽象概念主义的DSLs的启发，提出将功能模块解耦，并将法律条款的合同元素分类到Sparrow的组件中，包括Subject，Object，Conditions，Operations，Rules。其中Subject对应法律合约结构中的功能角色。Object对应法律合约结构的Subject操作对象。Conditions代表了法律合约结构的逻辑结构。Operations代表法律合约结构的行动。Rules代表了条款。Sparrow的实现过程结合了Xtext项目中的语法定义、Xtend文件中的映射规则以及自动代码生成功能。</p>
+              </div>
+            </div>
+            {/* Sparrow优势区域 */}
+            <div className="bg-indigo-50 rounded-xl shadow-md p-6 border border-indigo-100 mb-8">
+              <h3 className="text-xl font-semibold text-indigo-800 mb-4 text-center">Sparrow优势</h3>
+              <div className="space-y-6">
+                <div className="flex items-start gap-3">
+                  <div className="text-indigo-600 text-2xl">📝</div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-1">完善的映射规则</h4>
+                    <p className="text-gray-700 text-sm text-justify">制定了代码层面的映射策略，能够自动化地将模型映射为智能法律合约。显著地降低了手动修正的需求，提高了生产效率，并对大规模合约表现出了较好的适应性。</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="text-indigo-600 text-2xl">⚡</div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-1">精简的智能合约</h4>
+                    <p className="text-gray-700 text-sm text-justify">重新组织了操作与功能角色的关系，避免因合约功能重叠而带来的代码重复，并对功能模块进行了优化以提升其再利用价值。通过这种方式在为以太坊区块链生成智能法律合约时减少了成本，并且降低了气体消耗。</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* 中间控件区域 */}
-        <div className="grid grid-cols-1 md:grid-cols-11 gap-4">
-          {/* 左侧空白区域 */}
-          <div className="md:col-span-2"></div>
-          
-          {/* 中间 可选框和控件区域 */}
-          <div className="md:col-span-7">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                {/* 下拉列表 */}
-                <div className="bg-gray-50 p-4 border-b border-gray-200">
-                  <select 
-                    className="w-full px-4 py-2 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    value={selectedOption}
-                    onChange={handleOptionChange}
-                    style={{
-                      color: selectedOption ? 'inherit' : '#9CA3AF'
-                    }}
-                  >
-                    <option value="" disabled hidden>请选择模板类型</option>
-                    <option value="purchase">Purchase</option>
-                    <option value="auction">Auction</option>
-                    <option value="rent">Rent</option>
-                  </select>
+            
+            {/* 中间控件区域 */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+              {/* 下拉列表 */}
+              <div className="bg-gray-50 p-4 border-b border-gray-200 mb-6">
+                <select 
+                  className="w-full px-4 py-2 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  value={selectedOption}
+                  onChange={handleOptionChange}
+                  style={{
+                    color: selectedOption ? 'inherit' : '#9CA3AF'
+                  }}
+                >
+                  <option value="" disabled hidden>请选择模板类型</option>
+                  <option value="purchase">Purchase</option>
+                  <option value="auction">Auction</option>
+                  <option value="rent">Rent</option>
+                </select>
+              </div>
+              
+              {/* 目录和文本区域 */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {/* 左侧目录 */}
+                <div className="md:col-span-1 space-y-4">
+                  {/* 目录 */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <ul className="space-y-3">
+                      <li>
+                        <a 
+                          href="#" 
+                          className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'text' ? 'text-indigo-600 font-medium bg-indigo-100' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDirectoryClick('text');
+                          }}
+                        >
+                          <span>📄</span>
+                          <span>文本</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a 
+                          href="#" 
+                          className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'model' ? 'text-indigo-600 font-medium bg-indigo-100' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDirectoryClick('model');
+                          }}
+                        >
+                          <span>🤖</span>
+                          <span>Sparrow</span>
+                        </a>
+                      </li>
+
+                      {/* 导出按钮 */}
+                      <li className="pt-4">
+                        <button 
+                          className="w-full px-3 py-2 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 font-medium justify-center mx-auto"
+                          onClick={() => {
+                            const content = contentTab === 'terms' ? termsContent : contractTabContent;
+                            if (!content) return;
+                              
+                            const blob = new Blob([content], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                              
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `export_${Date.now()}.txt`;
+                              
+                            document.body.appendChild(a);
+                            a.click();
+                              
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }}
+                        >
+                          导出
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  {/* 独立的Sparrow条款表达区域 */}
+                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                    <ul className="space-y-3">
+                      <li>
+                        <a 
+                          href="#" 
+                          className="text-lg font-semibold text-indigo-600 transition-colors text-center block"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // 这里可以添加点击事件处理
+                          }}
+                        >
+                          Sparrow服务条款表达
+                        </a>
+                      </li>
+                      <li>
+                        <a 
+                          href="#" 
+                          className="text-lg font-semibold text-indigo-600 transition-colors text-center block"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // 这里可以添加点击事件处理
+                          }}
+                        >
+                          Sparrow违约条款表达
+                        </a>
+                      </li>
+                      <li>
+                        <a 
+                          href="#" 
+                          className="text-lg font-semibold text-indigo-600 transition-colors text-center block"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // 这里可以添加点击事件处理
+                          }}
+                        >
+                          Sparrow终止条款表达
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
                 
-                {/* 目录和文本区域 */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {/* 左侧目录 */}
-                    <div className="md:col-span-1 space-y-4">
-                      {/* 目录 */}
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <ul className="space-y-3">
-                          <li>
-                            <a 
-                              href="#" 
-                              className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'text' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleDirectoryClick('text');
-                              }}
-                            >
-                              <span>📄</span>
-                              <span>文本</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a 
-                              href="#" 
-                              className={`transition-colors flex items-center gap-2 p-2 rounded text-lg ${selectedDirectory === 'model' ? 'text-purple-600 font-medium bg-purple-100' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleDirectoryClick('model');
-                              }}
-                            >
-                              <span>🤖</span>
-                              <span>Sparrow</span>
-                            </a>
-                          </li>
-
-                          
-                          {/* 导出按钮 */}
-                          <li className="pt-4">
-                            <button 
-                              className="w-1/2 px-3 py-2 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 font-medium justify-center mx-auto"
-                              onClick={() => {
-                                const content = contentTab === 'terms' ? termsContent : contractTabContent;
-                                if (!content) return;
-                                  
-                                const blob = new Blob([content], { type: 'text/plain' });
-                                const url = URL.createObjectURL(blob);
-                                  
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `export_${Date.now()}.txt`;
-                                  
-                                document.body.appendChild(a);
-                                a.click();
-                                  
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(url);
-                              }}
-                            >
-                              导出
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                      
-                      {/* 独立的Sparrow条款表达区域 */}
-                      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                        <ul className="space-y-3">
-                          <li>
-                            <a 
-                              href="#" 
-                              className="text-lg font-semibold text-purple-600 transition-colors text-center block"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                // 这里可以添加点击事件处理
-                              }}
-                            >
-                              Sparrow服务条款表达
-                            </a>
-                          </li>
-                          <li>
-                            <a 
-                              href="#" 
-                              className="text-lg font-semibold text-purple-600 transition-colors text-center block"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                // 这里可以添加点击事件处理
-                              }}
-                            >
-                              Sparrow违约条款表达
-                            </a>
-                          </li>
-                          <li>
-                            <a 
-                              href="#" 
-                              className="text-lg font-semibold text-purple-600 transition-colors text-center block"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                // 这里可以添加点击事件处理
-                              }}
-                            >
-                              Sparrow终止条款表达
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
+                {/* 右侧文本区域 */}
+                <div className="md:col-span-3">
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 border-b border-gray-200 flex">
+                      <button 
+                        className={`px-4 py-2 text-base font-medium transition-colors ${contentTab === 'terms' ? 'text-indigo-600 bg-white border-b-2 border-indigo-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                        onClick={() => handleContentTabChange('terms')}
+                      >
+                        条款
+                      </button>
+                      <button 
+                        className={`px-4 py-2 text-base font-medium transition-colors ${contentTab === 'contract' ? 'text-indigo-600 bg-white border-b-2 border-indigo-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                        onClick={() => handleContentTabChange('contract')}
+                      >
+                        合约
+                      </button>
                     </div>
-                    
-                    {/* 右侧文本区域 */}
-                    <div className="md:col-span-3">
-                      <div className="border border-gray-300 rounded-lg overflow-hidden">
-                        <div className="bg-gray-50 border-b border-gray-200 flex">
-                          <button 
-                            className={`px-4 py-2 text-base font-medium transition-colors ${contentTab === 'terms' ? 'text-purple-600 bg-white border-b-2 border-purple-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                            onClick={() => handleContentTabChange('terms')}
-                          >
-                            条款
-                          </button>
-                          <button 
-                            className={`px-4 py-2 text-base font-medium transition-colors ${contentTab === 'contract' ? 'text-purple-600 bg-white border-b-2 border-purple-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                            onClick={() => handleContentTabChange('contract')}
-                          >
-                            合约
-                          </button>
-                        </div>
-                        <textarea 
-                          className="w-full border-none px-4 py-3 text-base h-[600px] resize-none bg-white font-mono"
-                          value={contentTab === 'terms' ? termsContent : contractTabContent}
-                          onChange={(e) => contentTab === 'terms' ? setTermsContent(e.target.value) : setContractTabContent(e.target.value)}
-                        />
-                      </div>
-                    </div>
+                    <textarea 
+                      className="w-full border-none px-4 py-3 text-base h-[600px] resize-none bg-white font-mono"
+                      value={contentTab === 'terms' ? termsContent : contractTabContent}
+                      onChange={(e) => contentTab === 'terms' ? setTermsContent(e.target.value) : setContractTabContent(e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* 右侧空白区域 */}
-          <div className="md:col-span-2"></div>
         </div>
       </div>
     </div>
