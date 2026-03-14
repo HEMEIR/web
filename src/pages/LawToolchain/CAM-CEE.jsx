@@ -1,5 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
+import { camceeApi } from '@/utils/apiBase';
+
+const normalizeExtractionResponse = (raw) => {
+  const payload = raw?.data && typeof raw.data === 'object' ? raw.data : raw;
+  const rawElements =
+    payload?.elements ||
+    payload?.extractionResults ||
+    payload?.extraction_results ||
+    payload?.result ||
+    payload?.results ||
+    [];
+
+  const elements = Array.isArray(rawElements)
+    ? rawElements.map((item, index) => {
+        if (typeof item === 'string') {
+          return { name: `要素${index + 1}`, value: item };
+        }
+
+        if (item && typeof item === 'object') {
+          const name = item.name || item.key || item.label || item.type || `要素${index + 1}`;
+          const value = item.value || item.content || item.text || item.result || JSON.stringify(item);
+          return { name, value };
+        }
+
+        return { name: `要素${index + 1}`, value: String(item ?? '') };
+      })
+    : Object.entries(rawElements || {}).map(([name, value]) => ({
+        name,
+        value: typeof value === 'string' ? value : JSON.stringify(value),
+      }));
+
+  return {
+    contractName: payload?.contractName || payload?.contract_name || payload?.title || '未返回合同名称',
+    extractedElements: Number(payload?.extractedElements || payload?.elementCount || payload?.count || elements.length || 0),
+    elements,
+  };
+};
+
+const extractTrainingStats = (data) => {
+  const logText = (data?.trainingLogs || []).join('\n');
+  const outputLinesMatch = logText.match(/输出行数:\s*([0-9]+)/);
+  const finishedAtMatch = logText.match(/完成时间:\s*([0-9-:\s]+)/);
+
+  return {
+    outputLines: outputLinesMatch?.[1] || '-',
+    finishedAt: finishedAtMatch?.[1]?.trim() || '-',
+    requestedAt: data?.requestedAt || '-',
+  };
+};
 
 const CAMCEE = () => {
   // 设置页面标题
@@ -12,6 +61,7 @@ const CAMCEE = () => {
   const [loading, setLoading] = React.useState(false);
   const [result, setResult] = React.useState(null);
   const [error, setError] = React.useState('');
+  const [selectedFile, setSelectedFile] = React.useState(null);
 
   // 处理标签页切换
   const handleTabChange = (tabName) => {
@@ -20,8 +70,219 @@ const CAMCEE = () => {
     setError('');
   };
 
+  const runExtraction = async () => {
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const requestOptions = { method: 'POST' };
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        requestOptions.body = formData;
+      } else {
+        requestOptions.headers = { 'Content-Type': 'application/json' };
+        requestOptions.body = JSON.stringify({});
+      }
+
+      const response = await fetch(camceeApi('/api/camcee/extraction'), requestOptions);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `请求失败(${response.status})`);
+      }
+
+      const data = await response.json();
+      setResult({
+        success: true,
+        message: '要素提取成功',
+        data: normalizeExtractionResponse(data),
+      });
+    } catch (err) {
+      setError(err.message || '要素提取失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runTrainingByExtractionApi = async () => {
+    setLoading(true);
+    setError('');
+    const apiPath = '/api/camcee/extraction';
+    const startedAt = new Date().toLocaleString();
+
+    setResult({
+      success: true,
+      message: '训练进行中',
+      data: {
+        contractName: '-',
+        extractedElements: 0,
+        elements: [],
+        rawResponse: '',
+        requestedAt: startedAt,
+        requestPath: apiPath,
+        trainingLogs: ['开始请求训练接口...'],
+        finished: false,
+      },
+    });
+
+    const appendTrainingLog = (line) => {
+      if (!line) return;
+      setResult((prev) => {
+        if (!prev?.data) return prev;
+        return {
+          ...prev,
+          data: {
+            ...prev.data,
+            trainingLogs: [...(prev.data.trainingLogs || []), line].slice(-300),
+          },
+        };
+      });
+    };
+
+    const mergeTrainingSnapshot = (payload) => {
+      const normalized = normalizeExtractionResponse(payload);
+      setResult((prev) => {
+        if (!prev?.data) return prev;
+        return {
+          ...prev,
+          data: {
+            ...prev.data,
+            contractName: normalized.contractName || prev.data.contractName,
+            extractedElements: normalized.extractedElements ?? prev.data.extractedElements,
+            elements: normalized.elements?.length ? normalized.elements : prev.data.elements,
+          },
+        };
+      });
+    };
+
+    try {
+      const response = await fetch(camceeApi(apiPath), {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `请求失败(${response.status})`);
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      const isStreamLike = Boolean(response.body) && (
+        contentType.includes('text/event-stream') ||
+        contentType.includes('text/plain') ||
+        contentType.includes('application/x-ndjson')
+      );
+
+      if (isStreamLike && response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let rawResponseText = '';
+
+        const handleLine = (line) => {
+          const trimmed = line.trim();
+          if (!trimmed) return;
+
+          const content = trimmed.startsWith('data:') ? trimmed.replace(/^data:\s?/, '') : trimmed;
+          if (content === '[DONE]') {
+            appendTrainingLog('训练流结束');
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(content);
+            const logLine =
+              parsed.message ||
+              parsed.log ||
+              parsed.status ||
+              parsed.progress ||
+              parsed.text ||
+              parsed.output;
+            appendTrainingLog(logLine || JSON.stringify(parsed));
+            mergeTrainingSnapshot(parsed);
+          } catch {
+            appendTrainingLog(content);
+          }
+        };
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          rawResponseText += chunk;
+          buffer += chunk;
+
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop() || '';
+          lines.forEach(handleLine);
+        }
+
+        if (buffer.trim()) {
+          handleLine(buffer);
+        }
+
+        setResult((prev) => ({
+          ...prev,
+          message: '训练完成',
+          data: {
+            ...prev.data,
+            rawResponse: rawResponseText,
+            finished: true,
+          },
+        }));
+      } else if (contentType.includes('application/json')) {
+        const payload = await response.json();
+        mergeTrainingSnapshot(payload);
+        appendTrainingLog('已收到 JSON 结果');
+        setResult((prev) => ({
+          ...prev,
+          message: '训练完成',
+          data: {
+            ...prev.data,
+            rawResponse: payload,
+            finished: true,
+          },
+        }));
+      } else {
+        const payload = await response.text();
+        appendTrainingLog(payload);
+        try {
+          mergeTrainingSnapshot(JSON.parse(payload));
+        } catch {
+          // 文本模式下不强制要求 JSON
+        }
+        setResult((prev) => ({
+          ...prev,
+          message: '训练完成',
+          data: {
+            ...prev.data,
+            rawResponse: payload,
+            finished: true,
+          },
+        }));
+      }
+    } catch (err) {
+      setError(err.message || '接口请求失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 模拟API请求
   const simulateApiRequest = async (action) => {
+    if (action === 'extract') {
+      await runExtraction();
+      return;
+    }
+
+    if (action === 'train') {
+      await runTrainingByExtractionApi();
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -31,38 +292,6 @@ const CAMCEE = () => {
       // 根据不同操作返回不同结果
       let response;
       switch (action) {
-        case 'extract':
-          response = {
-            success: true,
-            message: '要素提取成功',
-            data: {
-              extractedElements: 8,
-              contractName: '买卖合同',
-              elements: [
-                { name: '甲方：', value: '上海市卫生健康委员会' },
-                { name: '乙方：', value: '上海市教育技术装备服务中心有限公司' },
-                { name: '支付', value: '招标人收到保证金后，支付中标方100%合同款，交付验收通过后返还全额履约保证金给中标方' },
-                { name: '发货', value: '乙方接到甲方通知后3日内完成物资供应。' },
-                { name: '验收', value: '服务根据合同的规定完成后，甲方应及时进行根据合同的规定进行服务验收。' },
-                { name: '非终止违约条款', value: '乙方迟延交付合格货物的，每迟延一日，应向甲方支付合同总价款1%的违约金' },
-                { name: '终止违约条款', value: '货到后如未达到验收标准，甲方有权终止合同。' },
-                { name: '标的', value: '办公套件软件' }
-              ]
-            }
-          };
-          break;
-        case 'train':
-          response = {
-            success: true,
-            message: '模型训练完成',
-            data: {
-              accuracy: 0.915,
-              loss: 0.08,
-              epoch: 50,
-              trainingTime: '2小时30分钟'
-            }
-          };
-          break;
         case 'manage':
           response = {
             success: true,
@@ -117,7 +346,11 @@ const CAMCEE = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">选择数据文件</label>
             <div className="flex gap-3">
-              <input type="file" className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+              <input
+                type="file"
+                onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
+                className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
               <button
                 onClick={() => simulateApiRequest('extract')}
                 disabled={loading}
@@ -136,6 +369,9 @@ const CAMCEE = () => {
                 )}
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              未选择文件时将直接请求接口；已选择文件时会以 `file` 字段上传并执行提取。
+            </p>
           </div>
           
           <div>
@@ -261,24 +497,34 @@ const CAMCEE = () => {
       {result && result.success && (
         <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
           <h4 className="text-lg font-semibold text-green-800 mb-4">训练结果</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">准确率</p>
-                <p className="text-2xl font-bold text-green-700">{result.data.accuracy.toFixed(3)}</p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">损失值</p>
-                <p className="text-2xl font-bold text-blue-700">{result.data.loss.toFixed(3)}</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">迭代次数</p>
-                <p className="text-2xl font-bold text-purple-700">{result.data.epoch}</p>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">训练时间</p>
-                <p className="text-2xl font-bold text-orange-700">{result.data.trainingTime}</p>
-              </div>
+          <div className="mb-2 text-xs text-gray-500">
+            请求接口：{result.data.requestPath || '/api/camcee/extraction'}
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <p className="text-sm font-medium text-green-800 mb-2">训练过程日志（动态）</p>
+            <div className="max-h-56 overflow-auto bg-white border border-green-100 rounded p-3">
+              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all">
+                {(result.data.trainingLogs || []).join('\n')}
+              </pre>
+            </div>
+            {!result.data.finished && (
+              <p className="text-xs text-green-700 mt-2">训练进行中，日志会持续更新...</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-green-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">输出行数</p>
+              <p className="text-base font-semibold text-green-700">{extractTrainingStats(result.data).outputLines}</p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">完成时间</p>
+              <p className="text-base font-semibold text-blue-700">{extractTrainingStats(result.data).finishedAt}</p>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">请求时间</p>
+              <p className="text-base font-semibold text-orange-700">{extractTrainingStats(result.data).requestedAt}</p>
             </div>
           </div>
         </div>

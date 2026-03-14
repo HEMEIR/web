@@ -1138,7 +1138,7 @@ async function compileCode(language, code) {
   try {
     if (language === 'go') {
       // 调用Go编译API
-      const response = await fetch('http://localhost:5000/api/compile/go', {
+      const response = await fetch('http://localhost:5001/api/compile/go', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1167,7 +1167,7 @@ async function compileCode(language, code) {
       }
     } else if (language === 'vyper') {
       // 调用Vyper编译API
-      const response = await fetch('http://localhost:5000/api/compile/vyper', {
+      const response = await fetch('http://localhost:5001/api/compile/vyper', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1210,7 +1210,7 @@ async function compileCode(language, code) {
 
 
 
-const PORT = 5000;
+const PORT = 5001;
 
 // 检查是否存在SSL证书文件
 const hasSSL = fs.existsSync('./cert.pem') && fs.existsSync('./key.pem');

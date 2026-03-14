@@ -50,6 +50,18 @@ const LawToolchain = () => {
   const [activeMenuItem, setActiveMenuItem] = useState('doc-trans-pro');
   const [openDropdown, setOpenDropdown] = useState(null);
 
+  useEffect(() => {
+    const hashId = location.hash.replace('#', '');
+    if (!hashId) {
+      return;
+    }
+
+    const matchedItem = allMenuItems.find((item) => item.id === hashId);
+    if (matchedItem && matchedItem.id !== activeMenuItem) {
+      setActiveMenuItem(matchedItem.id);
+    }
+  }, [location.hash, activeMenuItem]);
+
   // 处理菜单点击
   const handleMenuItemClick = (itemId) => {
     setActiveMenuItem(itemId);

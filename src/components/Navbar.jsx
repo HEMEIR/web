@@ -31,7 +31,7 @@ const Navbar = () => {
   // 退出登录
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5000/api/logout', {
+      await fetch('/api/logout', {
         method: 'POST',
         credentials: 'include' // 包含cookie，用于session管理
       });
