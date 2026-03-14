@@ -1,7 +1,110 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { featureApi } from '@/utils/apiBase';
+
+const MODEL_ORDER = ['bert', 'roberta', 'legalbert'];
+const TRAIN_MODEL_OPTIONS = ['bert', 'roberta', 'legalbert'];
+
+const EMPTY_PERFORMANCE = {
+  bert: { r1: null, r3: null, r5: null },
+  roberta: { r1: null, r3: null, r5: null },
+  legalbert: { r1: null, r3: null, r5: null },
+};
+
+const MODEL_COLORS = {
+  bert: 'text-green-600',
+  roberta: 'text-purple-600',
+  legalbert: 'text-amber-600',
+};
+const MODEL_API_DIRECT_BASE = (import.meta.env.VITE_FEATURE_API_PROXY_TARGET || 'http://10.198.134.159:8010').replace(/\/$/, '');
+const PROVBENCH_CACHE_TTL_MS = Number(import.meta.env.VITE_PROVBENCH_CACHE_TTL_MS || (30 * 60 * 1000));
+const EMPTY_UPDATED_AT = {
+  bert: null,
+  roberta: null,
+  legalbert: null,
+};
+const EMPTY_ERROR_STATE = {
+  legalbert: '',
+  bert: '',
+  roberta: '',
+};
+
+const getProvbenchCacheKey = () => {
+  if (typeof window === 'undefined') {
+    return 'provbench:performance:guest';
+  }
+
+  try {
+    const userRaw = window.localStorage.getItem('user');
+    if (!userRaw) return 'provbench:performance:guest';
+    const user = JSON.parse(userRaw);
+    const userId = user?.id || user?.userId || user?.email || user?.username || 'guest';
+    return `provbench:performance:${userId}`;
+  } catch {
+    return 'provbench:performance:guest';
+  }
+};
+
+const getProvbenchTrainingCacheKey = () => {
+  return getProvbenchCacheKey().replace('provbench:performance:', 'provbench:training:');
+};
+
+const toNum = (value) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value.replace('%', '').trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const parseMetricPayload = (payload) => {
+  const source = payload?.metrics || payload?.performance || payload?.result?.metrics || payload?.data?.metrics || payload?.data || payload;
+  const read = (...keys) => {
+    for (const key of keys) {
+      const value = toNum(source?.[key]);
+      if (value !== null) return value;
+    }
+    return null;
+  };
+
+  return {
+    r1: read('r1', 'R1', 'R@1', 'r_at_1', 'recall_at_1'),
+    r3: read('r3', 'R3', 'R@3', 'r_at_3', 'recall_at_3'),
+    r5: read('r5', 'R5', 'R@5', 'r_at_5', 'recall_at_5'),
+  };
+};
+
+const parseMetricFromOutputText = (text) => {
+  if (typeof text !== 'string' || !text.trim()) {
+    return { r1: null, r3: null, r5: null };
+  }
+
+  const getMetric = (names) => {
+    for (const name of names) {
+      const reg = new RegExp(`${name}\\s*[:=]\\s*([0-9]+(?:\\.[0-9]+)?)`, 'i');
+      const match = text.match(reg);
+      if (match?.[1]) {
+        const parsed = Number.parseFloat(match[1]);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+    }
+    return null;
+  };
+
+  return {
+    r1: getMetric(['r1', 'r@1', 'recall@1', 'recall_at_1']),
+    r3: getMetric(['r3', 'r@3', 'recall@3', 'recall_at_3']),
+    r5: getMetric(['r5', 'r@5', 'recall@5', 'recall_at_5']),
+  };
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /*提取与判定：ProvBench模块*/
 const ProvBench = () => {
+  const [activeModule, setActiveModule] = React.useState('evaluate');
   const [loading, setLoading] = React.useState({
     legalbert: false,
     bert: false,
@@ -16,6 +119,22 @@ const ProvBench = () => {
   const [showInputModal, setShowInputModal] = React.useState(false);
   const [selectedModel, setSelectedModel] = React.useState(null);
   const [inputText, setInputText] = React.useState('');
+  const [performance, setPerformance] = React.useState(EMPTY_PERFORMANCE);
+  const [performanceUpdatedAt, setPerformanceUpdatedAt] = React.useState(EMPTY_UPDATED_AT);
+  const [performanceLoading, setPerformanceLoading] = React.useState({
+    legalbert: false,
+    bert: false,
+    roberta: false,
+  });
+  const [performanceError, setPerformanceError] = React.useState(EMPTY_ERROR_STATE);
+  const [trainingModel, setTrainingModel] = React.useState('legalbert');
+  const [trainingEpoch, setTrainingEpoch] = React.useState('50');
+  const [trainingLoading, setTrainingLoading] = React.useState(false);
+  const [trainingLogs, setTrainingLogs] = React.useState([]);
+  const [trainingError, setTrainingError] = React.useState('');
+  const [trainingStartedAt, setTrainingStartedAt] = React.useState('');
+  const [trainingUpdatedAt, setTrainingUpdatedAt] = React.useState('');
+  const [trainingCacheReady, setTrainingCacheReady] = React.useState(false);
 
   // 计算是否有任何模型正在加载
   const isAnyLoading = Object.values(loading).some(status => status);
@@ -38,6 +157,84 @@ const ProvBench = () => {
       roberta: '⚙️'
     };
     return icons[model] || '📄';
+  };
+
+  const getPerf = (model, metric) => {
+    const value = performance?.[model]?.[metric];
+    return typeof value === 'number' ? value : 0;
+  };
+
+  const formatPerf = (model, metric) => {
+    const value = performance?.[model]?.[metric];
+    return typeof value === 'number' ? value.toFixed(2) : '--';
+  };
+  const hasPerformanceData = MODEL_ORDER.some((model) =>
+    ['r1', 'r3', 'r5'].some((metric) => typeof performance?.[model]?.[metric] === 'number')
+  );
+  const isAnyPerformanceLoading = MODEL_ORDER.some((model) => performanceLoading[model]);
+
+  const fetchModelMetrics = async (modelType, textValue = '') => {
+    const requestBody = { model: modelType };
+    if (typeof textValue === 'string' && textValue.trim()) {
+      requestBody.text = textValue;
+    }
+
+    const requestUrls = [
+      featureApi('/api/run-model'),
+      `${MODEL_API_DIRECT_BASE}/api/run-model`,
+    ];
+
+    const requestOnce = async (url) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000);
+      try {
+        return await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    let response;
+    let lastError;
+    for (const url of requestUrls) {
+      try {
+        response = await requestOnce(url);
+        // 代理返回404时，尝试直连后端
+        if (response.ok || url === requestUrls[requestUrls.length - 1]) {
+          break;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error('请求失败');
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(errText || `请求失败(${response.status})`);
+    }
+
+    const payload = await response.json();
+    const parsedFromJson = parseMetricPayload(payload);
+    const parsedFromOutput = parseMetricFromOutputText(payload?.output);
+    const metrics = {
+      r1: parsedFromJson.r1 ?? parsedFromOutput.r1,
+      r3: parsedFromJson.r3 ?? parsedFromOutput.r3,
+      r5: parsedFromJson.r5 ?? parsedFromOutput.r5,
+    };
+
+    return { payload, metrics };
   };
 
   // 获取模型的默认输入示例
@@ -161,17 +358,27 @@ const ProvBench = () => {
     const interval = simulateProgress();
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      const startedAt = Date.now();
+      const { payload } = await fetchModelMetrics(selectedModel, inputText);
+
+      const backendOutput =
+        payload?.output ||
+        payload?.result ||
+        payload?.message ||
+        payload?.data?.output ||
+        getModelOutput(selectedModel, inputText) ||
+        JSON.stringify(payload, null, 2);
 
       const result = {
         model: selectedModel,
         timestamp: new Date().toLocaleString('zh-CN'),
         success: true,
         input: inputText,
-        output: getModelOutput(selectedModel, inputText),
+        output: typeof backendOutput === 'string' ? backendOutput : JSON.stringify(backendOutput, null, 2),
         error: '',
-        duration: 4200,
-        showConflict: false // 新增：控制矛盾检测报告显示状态
+        duration: Date.now() - startedAt,
+        showConflict: false,
+        dynamic: true,
       };
 
       setResults(prev => [result, ...prev]);
@@ -195,6 +402,280 @@ const ProvBench = () => {
         startTime: null
       });
       clearInterval(interval);
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const autoLoadMetrics = async () => {
+      try {
+        const cacheKey = getProvbenchCacheKey();
+        const cachedRaw = window.localStorage.getItem(cacheKey);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          if (cached?.expiresAt > Date.now() && cached?.performance) {
+            setPerformance(cached.performance);
+            setPerformanceUpdatedAt(cached.performanceUpdatedAt || EMPTY_UPDATED_AT);
+            setPerformanceError(EMPTY_ERROR_STATE);
+            return;
+          }
+          window.localStorage.removeItem(cacheKey);
+        }
+      } catch {
+        // 忽略缓存异常，回退到实时请求
+      }
+
+      // 并行拉取三个模型，显著缩短首屏动态测试等待时间
+      setPerformanceLoading((prev) => ({
+        ...prev,
+        bert: true,
+        roberta: true,
+        legalbert: true,
+      }));
+
+      const tasks = MODEL_ORDER.map(async (model) => {
+        try {
+          const { metrics } = await fetchModelMetrics(model);
+          if (cancelled) return;
+          if (metrics.r1 !== null && metrics.r3 !== null && metrics.r5 !== null) {
+            setPerformance((prev) => ({
+              ...prev,
+              [model]: {
+                r1: metrics.r1,
+                r3: metrics.r3,
+                r5: metrics.r5,
+              },
+            }));
+            setPerformanceUpdatedAt((prev) => ({
+              ...prev,
+              [model]: new Date().toLocaleString('zh-CN'),
+            }));
+            setPerformanceError((prev) => ({ ...prev, [model]: '' }));
+          }
+        } catch (error) {
+          // 自动加载失败不打断页面交互，保留手动运行能力
+          console.error(`自动加载 ${model} 指标失败:`, error);
+          if (!cancelled) {
+            setPerformanceError((prev) => ({
+              ...prev,
+              [model]: error?.name === 'AbortError' ? '请求超时' : (error?.message || '请求失败'),
+            }));
+          }
+        } finally {
+          if (!cancelled) {
+            setPerformanceLoading((prev) => ({ ...prev, [model]: false }));
+          }
+        }
+      });
+
+      await Promise.allSettled(tasks);
+    };
+
+    autoLoadMetrics();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasPerformanceData || typeof window === 'undefined') return;
+
+    try {
+      const cacheKey = getProvbenchCacheKey();
+      window.localStorage.setItem(cacheKey, JSON.stringify({
+        performance,
+        performanceUpdatedAt,
+        expiresAt: Date.now() + PROVBENCH_CACHE_TTL_MS,
+      }));
+    } catch {
+      // 忽略缓存写入异常
+    }
+  }, [performance, performanceUpdatedAt, hasPerformanceData]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const cacheKey = getProvbenchTrainingCacheKey();
+      const cachedRaw = window.localStorage.getItem(cacheKey);
+      if (!cachedRaw) return;
+
+      const cached = JSON.parse(cachedRaw);
+      if (!cached?.expiresAt || cached.expiresAt <= Date.now()) {
+        window.localStorage.removeItem(cacheKey);
+        return;
+      }
+
+      if (typeof cached.trainingModel === 'string') setTrainingModel(cached.trainingModel);
+      if (typeof cached.trainingEpoch === 'string') setTrainingEpoch(cached.trainingEpoch);
+      if (Array.isArray(cached.trainingLogs)) setTrainingLogs(cached.trainingLogs);
+      if (typeof cached.trainingError === 'string') setTrainingError(cached.trainingError);
+      if (typeof cached.trainingStartedAt === 'string') setTrainingStartedAt(cached.trainingStartedAt);
+      if (typeof cached.trainingUpdatedAt === 'string') setTrainingUpdatedAt(cached.trainingUpdatedAt);
+    } catch {
+      // 忽略训练缓存恢复异常
+    } finally {
+      setTrainingCacheReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !trainingCacheReady) return;
+
+    try {
+      const cacheKey = getProvbenchTrainingCacheKey();
+      const hasTrainingCache =
+        trainingLogs.length > 0 ||
+        !!trainingError ||
+        !!trainingStartedAt ||
+        !!trainingUpdatedAt;
+
+      if (!hasTrainingCache) {
+        window.localStorage.removeItem(cacheKey);
+        return;
+      }
+
+      window.localStorage.setItem(cacheKey, JSON.stringify({
+        trainingModel,
+        trainingEpoch,
+        trainingLogs,
+        trainingError,
+        trainingStartedAt,
+        trainingUpdatedAt,
+        expiresAt: Date.now() + PROVBENCH_CACHE_TTL_MS,
+      }));
+    } catch {
+      // 忽略训练缓存写入异常
+    }
+  }, [
+    trainingCacheReady,
+    trainingModel,
+    trainingEpoch,
+    trainingLogs,
+    trainingError,
+    trainingStartedAt,
+    trainingUpdatedAt,
+  ]);
+
+  const runTrainingProcess = async () => {
+    const epochInt = Number.parseInt(trainingEpoch, 10);
+    if (!Number.isInteger(epochInt) || epochInt <= 0) {
+      setTrainingError('epoch 必须是大于 0 的整数');
+      return;
+    }
+
+    const startedAt = new Date().toLocaleString('zh-CN');
+    setTrainingLoading(true);
+    setTrainingError('');
+    setTrainingStartedAt(startedAt);
+    setTrainingLogs([
+      `开始训练：model=${trainingModel}, epoch=${epochInt}`,
+      `训练任务已提交，开始时间：${startedAt}`,
+      '正在等待后端返回训练过程，请稍候...',
+    ]);
+    setTrainingUpdatedAt('');
+
+    const appendLog = (line) => {
+      if (!line || !line.trim()) return;
+      setTrainingLogs((prev) => [...prev, line].slice(-800));
+    };
+
+    try {
+      const query = new URLSearchParams({
+        model: trainingModel,
+        epoch: String(epochInt),
+      }).toString();
+      const requestUrls = [
+        `${featureApi('/api/run-train')}?${query}`,
+        `${MODEL_API_DIRECT_BASE}/api/run-train?${query}`,
+      ];
+
+      const requestOnce = async (url) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000);
+        try {
+          return await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache',
+            },
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      };
+
+      let response;
+      let lastError;
+      for (const url of requestUrls) {
+        try {
+          response = await requestOnce(url);
+          if (response.ok || url === requestUrls[requestUrls.length - 1]) break;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      if (!response) {
+        throw lastError || new Error('请求失败');
+      }
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || `请求失败(${response.status})`);
+      }
+
+      const responseText = await response.text();
+      const contentType = response.headers.get('content-type') || '';
+      let payload = null;
+
+      if (contentType.includes('application/json')) {
+        try {
+          payload = JSON.parse(responseText);
+        } catch {
+          payload = null;
+        }
+      }
+
+      const outputText = payload
+        ? (payload?.output || payload?.result || payload?.message || JSON.stringify(payload, null, 2))
+        : responseText;
+
+      // 模拟训练过程动态输出
+      const lines = String(outputText).split(/\r?\n/).filter(Boolean);
+      for (const line of lines.slice(0, 400)) {
+        appendLog(line);
+        await delay(20);
+      }
+      if (lines.length > 400) {
+        appendLog(`... 已省略 ${lines.length - 400} 行日志`);
+      }
+
+      const parsedFromJson = payload ? parseMetricPayload(payload) : { r1: null, r3: null, r5: null };
+      const parsedFromText = parseMetricFromOutputText(outputText);
+      const metrics = {
+        r1: parsedFromJson.r1 ?? parsedFromText.r1,
+        r3: parsedFromJson.r3 ?? parsedFromText.r3,
+        r5: parsedFromJson.r5 ?? parsedFromText.r5,
+      };
+
+      if (metrics.r1 !== null && metrics.r3 !== null && metrics.r5 !== null) {
+        setPerformance((prev) => ({
+          ...prev,
+          [trainingModel]: metrics,
+        }));
+        setPerformanceUpdatedAt((prev) => ({
+          ...prev,
+          [trainingModel]: new Date().toLocaleString('zh-CN'),
+        }));
+      }
+
+      setTrainingUpdatedAt(new Date().toLocaleString('zh-CN'));
+      appendLog('训练完成');
+    } catch (error) {
+      setTrainingError(error?.name === 'AbortError' ? '训练请求超时' : (error?.message || '训练失败'));
+    } finally {
+      setTrainingLoading(false);
     }
   };
 
@@ -481,6 +962,11 @@ const ProvBench = () => {
                         <span className={`px-3 py-1 text-xs font-medium rounded-full ${result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                           {result.success ? '执行成功' : '执行失败'}
                         </span>
+                        {result.dynamic && (
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            动态测试
+                          </span>
+                        )}
                         <span className="text-sm text-gray-500">{result.timestamp}</span>
                       </div>
                     </div>
@@ -764,116 +1250,118 @@ const ProvBench = () => {
               ))}
             </div>
           </div>
-        ) : (
-          /* 空状态 */
-          <div className="text-center py-20">
-            <div className="text-purple-600 text-6xl mb-6">📄</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">请选择一个模型开始分析</h3>
-            <p className="text-gray-600">每个模型针对不同类型的合同有专门优化，点击模型卡片查看详情</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 max-w-3xl mx-auto">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-blue-500 text-xl mb-2">📚</div>
-                <h4 className="font-semibold text-blue-800 mb-1">LegalBERT</h4>
-                <p className="text-sm text-gray-600">专业分析租赁合同、买卖合同等标准法律文书</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-green-500 text-xl mb-2">💻</div>
-                <h4 className="font-semibold text-green-800 mb-1">BERT</h4>
-                <p className="text-sm text-gray-600">通用分析合作协议、服务合同等商业文书</p>
-              </div>
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <div className="text-amber-500 text-xl mb-2">⚙️</div>
-                <h4 className="font-semibold text-amber-800 mb-1">RoBERTa</h4>
-                <p className="text-sm text-gray-600">深度分析债权转让、劳动合同等复杂法律文书</p>
-              </div>
-            </div>
-          </div>
-        )}
+        ) : null}
         
-        {/* 实验对比图 */}
-        <div className="mt-16">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">📈 模型性能实验对比</h3>
-              <p className="text-gray-600">不同文本编码器在法律条文推荐任务上的实验结果对比（数据来源于Table 3）</p>
+        <div className="mt-16 max-w-6xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-gray-50 border-b border-gray-200">
+              <div className="flex overflow-x-auto">
+                {[
+                  { id: 'evaluate', label: '模型动态测试启动', icon: '📊' },
+                  { id: 'training', label: '模型动态训练启动', icon: '⚙️' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveModule(tab.id)}
+                    className={`px-6 py-4 whitespace-nowrap font-medium transition-all duration-300 flex items-center gap-2 ${
+                      activeModule === tab.id
+                        ? 'bg-purple-600 text-white'
+                        : 'text-gray-600 hover:bg-purple-50 hover:text-purple-700'
+                    }`}
+                  >
+                    <span className="text-lg">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-6">
+
+            <div className={`p-6 ${activeModule !== 'evaluate' ? 'hidden' : ''}`}>
               <div className="flex flex-wrap justify-center gap-4 mb-8">
-                {['R@1', 'R@3', 'R@5', 'Top-3 EM'].map((metric, idx) => (
+                {['R@1', 'R@3', 'R@5'].map((metric, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-sm" 
-                      style={{ 
-                        backgroundColor: idx === 0 ? '#3b82f6' : 
-                                      idx === 1 ? '#10b981' : 
-                                      idx === 2 ? '#8b5cf6' : '#f59e0b' 
+                    <div
+                      className="w-3 h-3 rounded-sm"
+                      style={{
+                        backgroundColor: idx === 0 ? '#3b82f6' :
+                          idx === 1 ? '#10b981' :
+                          '#8b5cf6'
                       }}
                     ></div>
                     <span className="text-sm text-gray-700">{metric}</span>
                   </div>
                 ))}
               </div>
-              
-              <div className="relative overflow-x-auto">
-                <div className="flex h-96 min-w-max mx-auto justify-center">
-                  <div className="flex items-end gap-32 px-8 h-full relative">
-                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                      {[...Array(5)].map((_, idx) => (
-                        <div key={idx} className="border-t border-gray-100"></div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+                {MODEL_ORDER.map((model) => (
+                  <div key={model} className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-800">{getModelDisplayName(model)}</span>
+                      {performanceLoading[model] ? (
+                        <span className="text-xs text-blue-600 animate-pulse">动态测试中...</span>
+                      ) : performanceError[model] ? (
+                        <span className="text-xs text-red-600" title={performanceError[model]}>加载失败</span>
+                      ) : (
+                        <span className="text-xs text-green-600">已完成</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      最近更新：{performanceUpdatedAt[model] || (performanceError[model] ? '失败' : '未测试')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {hasPerformanceData ? (
+                <div className="relative overflow-x-auto">
+                  <div className="flex h-64 min-w-max mx-auto justify-center">
+                    <div className="flex items-end gap-32 px-8 h-full relative">
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                        {[...Array(5)].map((_, idx) => (
+                          <div key={idx} className="border-t border-gray-100"></div>
+                        ))}
+                      </div>
+                      {MODEL_ORDER.map((model) => (
+                        <div key={model} className="flex flex-col items-center z-10 h-full">
+                          <div className="text-sm font-medium text-gray-700 mb-2 h-6">{getModelDisplayName(model)}</div>
+                          <div className="flex items-end gap-4 flex-1 w-full relative">
+                            <div
+                              className={`w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group ${performanceLoading[model] ? 'animate-pulse' : ''}`}
+                              style={{ height: `${Math.max(0, Math.min(100, getPerf(model, 'r1')))}%` }}
+                            >
+                              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                                R@1: {formatPerf(model, 'r1')}%
+                              </div>
+                            </div>
+                            <div
+                              className={`w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group ${performanceLoading[model] ? 'animate-pulse' : ''}`}
+                              style={{ height: `${Math.max(0, Math.min(100, getPerf(model, 'r3')))}%` }}
+                            >
+                              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                                R@3: {formatPerf(model, 'r3')}%
+                              </div>
+                            </div>
+                            <div
+                              className={`w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group ${performanceLoading[model] ? 'animate-pulse' : ''}`}
+                              style={{ height: `${Math.max(0, Math.min(100, getPerf(model, 'r5')))}%` }}
+                            >
+                              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                                R@5: {formatPerf(model, 'r5')}%
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </div>
-                    {/* BERT */}
-                    <div className="flex flex-col items-center z-10 h-full">
-                      <div className="text-sm font-medium text-gray-700 mb-2 h-6">BERT</div>
-                      <div className="flex items-end gap-4 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '87.28%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 87.28%</div>
-                        </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '93.53%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 93.53%</div>
-                        </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '95.76%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 95.76%</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* RoBERTa */}
-                    <div className="flex flex-col items-center z-10 h-full">
-                      <div className="text-sm font-medium text-gray-700 mb-2 h-6">RoBERTa</div>
-                      <div className="flex items-end gap-4 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '89.06%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 89.06%</div>
-                        </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '94.42%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 94.42%</div>
-                        </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '96.88%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 96.88%</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* LegalBERT */}
-                    <div className="flex flex-col items-center z-10 h-full">
-                      <div className="text-sm font-medium text-gray-700 mb-2 h-6">LegalBERT</div>
-                      <div className="flex items-end gap-4 flex-1 w-full relative">
-                        <div className="w-6 bg-blue-500 rounded-t-sm hover:bg-blue-600 transition-all relative group" style={{ height: '88.39%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@1: 88.39%</div>
-                        </div>
-                        <div className="w-6 bg-green-500 rounded-t-sm hover:bg-green-600 transition-all relative group" style={{ height: '95.31%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@3: 95.31%</div>
-                        </div>
-                        <div className="w-6 bg-purple-500 rounded-t-sm hover:bg-purple-600 transition-all relative group" style={{ height: '97.54%' }}>
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">R@5: 97.54%</div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-sm text-gray-600">
+                  {isAnyPerformanceLoading ? '模型性能动态测试中，结果返回后将展示柱状图。' : '暂未获取到性能结果。'}
+                </div>
+              )}
+
               <div className="mt-8 overflow-x-auto">
                 <table className="min-w-full text-sm">
                   <thead className="bg-gray-50">
@@ -885,35 +1373,106 @@ const ProvBench = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="hover:bg-gray-50">
-                      <td className="py-3 px-4 border-b font-medium text-green-600">BERT</td>
-                      <td className="py-3 px-4 border-b">87.28</td>
-                      <td className="py-3 px-4 border-b">93.53</td>
-                      <td className="py-3 px-4 border-b">95.76</td>
-                    </tr>
-                    <tr className="hover:bg-gray-50">
-                      <td className="py-3 px-4 border-b font-medium text-purple-600">RoBERTa</td>
-                      <td className="py-3 px-4 border-b">89.06</td>
-                      <td className="py-3 px-4 border-b">94.42</td>
-                      <td className="py-3 px-4 border-b">96.88</td>
-                    </tr>
-                    <tr className="hover:bg-gray-50">
-                      <td className="py-3 px-4 border-b font-medium text-amber-600">LegalBERT</td>
-                      <td className="py-3 px-4 border-b">88.39</td>
-                      <td className="py-3 px-4 border-b">95.31</td>
-                      <td className="py-3 px-4 border-b">97.54</td>
-                    </tr>
+                    {MODEL_ORDER.map((model) => (
+                      <tr key={model} className="hover:bg-gray-50">
+                        <td className={`py-3 px-4 border-b font-medium ${MODEL_COLORS[model] || 'text-gray-700'}`}>
+                          {getModelDisplayName(model)}
+                        </td>
+                        <td className="py-3 px-4 border-b">{formatPerf(model, 'r1')}</td>
+                        <td className="py-3 px-4 border-b">{formatPerf(model, 'r3')}</td>
+                        <td className="py-3 px-4 border-b">{formatPerf(model, 'r5')}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
-              
+
               <div className="mt-6 text-sm text-gray-500">
-                <p>注：R@1、R@3、R@5表示召回率，Top-3 EM表示前3个结果的精确匹配率。LegalBERT在法律条文推荐任务中综合表现最佳。</p>
+                <p>注：R@1、R@3、R@5表示召回率。LegalBERT在法律条文推荐任务中综合表现最佳。</p>
               </div>
+            </div>
+
+            <div className={`p-6 ${activeModule !== 'training' ? 'hidden' : ''}`}>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-semibold text-green-800 mb-2">模型训练与优化</h3>
+                <p className="text-gray-700 text-sm">选择模型并设置 epoch（整数），点击开始训练后将动态展示返回的训练过程。</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">模型</label>
+                  <select
+                    value={trainingModel}
+                    onChange={(e) => setTrainingModel(e.target.value)}
+                    disabled={trainingLoading}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  >
+                    {TRAIN_MODEL_OPTIONS.map((model) => (
+                      <option key={model} value={model}>
+                        {getModelDisplayName(model)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">epoch（整数）</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={trainingEpoch}
+                    onChange={(e) => setTrainingEpoch(e.target.value)}
+                    disabled={trainingLoading}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={runTrainingProcess}
+                    disabled={trainingLoading}
+                    className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {trainingLoading ? '训练中...' : '开始训练'}
+                  </button>
+                </div>
+              </div>
+
+              {trainingError && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                  {trainingError}
+                </div>
+              )}
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-gray-700">训练过程动态日志</p>
+                  <p className="text-xs text-gray-500">
+                    {trainingLoading
+                      ? `训练进行中 · 启动于 ${trainingStartedAt || '刚刚'}`
+                      : trainingUpdatedAt
+                        ? `最近完成：${trainingUpdatedAt}`
+                        : '尚未执行'}
+                  </p>
+                </div>
+                <div className="max-h-[420px] overflow-auto bg-white border border-gray-200 rounded p-3">
+                  {trainingLoading && (
+                    <div className="mb-3 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2">
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>训练任务已启动，正在持续接收后端结果...</span>
+                    </div>
+                  )}
+                  <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all">
+                    {trainingLogs.length > 0 ? trainingLogs.join('\n') : '点击“开始训练”后，这里会动态显示后端返回的训练过程。'}
+                  </pre>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };
