@@ -641,13 +641,6 @@ const CompilerModule = ({
     // 不清除代码内容，只清除文件信息
   };
 
-  // 代码准确率状态
-  const [accuracy, setAccuracy] = React.useState(0);
-  // 柱状图数据状态
-  const [barChartData, setBarChartData] = React.useState([]);
-  // Clover准确率状态
-  const [cloverAccuracy, setCloverAccuracy] = React.useState(0);
-
   // 纠错语法处理
   const handleCorrectSyntax = async () => {
     if (!code) {
@@ -674,12 +667,7 @@ const CompilerModule = ({
       }
 
       const data = await response.json();
-      const { correctedCode, clover, barChartData } = data;
-
-      // 设置准确率和柱状图数据
-      setAccuracy(clover);
-      setCloverAccuracy(clover);
-      setBarChartData(barChartData);
+      const { correctedCode } = data;
 
       setCorrectCode(correctedCode);
       setShowCorrectCode(true);
@@ -834,8 +822,8 @@ const CompilerModule = ({
         </div>
         
         <div className="mb-6">
-          {/* 原始代码输入和柱状图 */}
-          <div className="flex gap-6">
+          {/* 原始代码输入 */}
+          <div>
             {/* 代码输入 */}
             <div style={{ width: '66.67%' }}>
               <label className="block text-base font-medium text-gray-700 mb-2">代码输入</label>
@@ -851,69 +839,6 @@ const CompilerModule = ({
                 </div>
               </div>
             </div>
-            
-            {/* 柱状图 */}
-            {showCorrectCode && (
-              <div style={{ width: '33.33%' }}>
-                <label className="block text-base font-medium text-gray-700 mb-2">转换准确率</label>
-                <div className="border border-gray-300 rounded-lg overflow-hidden bg-white p-4 h-96">
-                  <ReactECharts
-                    option={{
-                      tooltip: {
-                        trigger: 'axis',
-                        axisPointer: {
-                          type: 'shadow'
-                        },
-                        formatter: '{b}: {c}%'
-                      },
-                      grid: {
-                        left: '3%',
-                        right: '4%',
-                        bottom: '3%',
-                        containLabel: true
-                      },
-                      xAxis: {
-                        type: 'category',
-                        data: ['baseline1', 'baseline2', 'clover'],
-                        axisLabel: {
-                          interval: 0
-                        }
-                      },
-                      yAxis: {
-                        type: 'value',
-                        min: 80,
-                        max: 100,
-                        axisLabel: {
-                          formatter: '{value}%'
-                        }
-                      },
-                      series: [
-                        {
-                          name: '准确率',
-                          type: 'bar',
-                          data: barChartData.length > 0 ? barChartData : [85, 90, 95],
-                          itemStyle: {
-                            color: function(params) {
-                              const colors = ['#1890ff', '#52c41a', '#722ed1'];
-                              return colors[params.dataIndex];
-                            }
-                          },
-                          label: {
-                            show: true,
-                            position: 'top',
-                            formatter: function(params) {
-                              // 所有数据点都使用两位小数格式
-                              return params.value.toFixed(2) + '%';
-                            }
-                          }
-                        }
-                      ]
-                    }}
-                    style={{ height: '100%', width: '100%' }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
         
