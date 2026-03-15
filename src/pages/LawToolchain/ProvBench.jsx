@@ -186,6 +186,7 @@ const ProvBench = () => {
   const [trainingModel, setTrainingModel] = React.useState('legalbert');
   const [trainingEpoch, setTrainingEpoch] = React.useState('50');
   const [trainingLoading, setTrainingLoading] = React.useState(false);
+  const [trainingStopping, setTrainingStopping] = React.useState(false);
   const [trainingLogs, setTrainingLogs] = React.useState([]);
   const [trainingError, setTrainingError] = React.useState('');
   const [trainingStartedAt, setTrainingStartedAt] = React.useState('');
@@ -725,6 +726,32 @@ const ProvBench = () => {
       setTrainingError(error?.name === 'AbortError' ? '训练请求超时' : (error?.message || '训练失败'));
     } finally {
       setTrainingLoading(false);
+    }
+  };
+
+  const stopTrainingProcess = async () => {
+    setTrainingStopping(true);
+    setTrainingError('');
+
+    try {
+      const response = await fetch(featureApi('/api/run-train/stop'), {
+        method: 'POST',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || `请求失败(${response.status})`);
+      }
+
+      setTrainingLogs((prev) => [...prev, '已发送停止训练请求，等待后端释放资源...'].slice(-800));
+      setTrainingUpdatedAt(new Date().toLocaleString('zh-CN'));
+    } catch (error) {
+      setTrainingError(error?.message || '停止训练失败');
+    } finally {
+      setTrainingStopping(false);
     }
   };
 
@@ -1349,13 +1376,22 @@ const ProvBench = () => {
                   />
                 </div>
                 <div className="flex items-end">
-                  <button
-                    onClick={runTrainingProcess}
-                    disabled={trainingLoading}
-                    className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {trainingLoading ? '训练中...' : '开始训练'}
-                  </button>
+                  <div className="w-full grid grid-cols-2 gap-3">
+                    <button
+                      onClick={runTrainingProcess}
+                      disabled={trainingLoading || trainingStopping}
+                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {trainingLoading ? '训练中...' : '开始训练'}
+                    </button>
+                    <button
+                      onClick={stopTrainingProcess}
+                      disabled={trainingStopping}
+                      className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {trainingStopping ? '停止中...' : '停止训练'}
+                    </button>
+                  </div>
                 </div>
               </div>
 

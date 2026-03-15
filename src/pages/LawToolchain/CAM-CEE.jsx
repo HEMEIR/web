@@ -21,6 +21,22 @@ const getCamceeTrainingCacheKey = () => {
   }
 };
 
+const getCamceeModelTrainingCacheKey = () => {
+  if (typeof window === 'undefined') {
+    return 'camcee:model-training:guest';
+  }
+
+  try {
+    const userRaw = window.localStorage.getItem('user');
+    if (!userRaw) return 'camcee:model-training:guest';
+    const user = JSON.parse(userRaw);
+    const userId = user?.id || user?.userId || user?.email || user?.username || 'guest';
+    return `camcee:model-training:${userId}`;
+  } catch {
+    return 'camcee:model-training:guest';
+  }
+};
+
 const normalizeExtractionResponse = (raw) => {
   const payload = raw?.data && typeof raw.data === 'object' ? raw.data : raw;
   const rawElements =
@@ -54,6 +70,34 @@ const normalizeExtractionResponse = (raw) => {
     contractName: payload?.contractName || payload?.contract_name || payload?.title || '未返回合同名称',
     extractedElements: Number(payload?.extractedElements || payload?.elementCount || payload?.count || elements.length || 0),
     elements,
+  };
+};
+
+const normalizePredictResponse = (raw) => {
+  const payload = raw?.data && typeof raw.data === 'object' ? raw.data : raw;
+  const segments = Array.isArray(payload?.segments)
+    ? payload.segments.map((item, index) => ({
+        id: index + 1,
+        text: item?.text || '',
+        label: item?.label || 'NL',
+        isEntity: Boolean(item?.is_entity),
+        color: item?.color || '#6B7280',
+      }))
+    : [];
+
+  const entities = Array.isArray(payload?.entities)
+    ? payload.entities.map((item, index) => ({
+        id: index + 1,
+        text: item?.text || '',
+        label: item?.label || `要素${index + 1}`,
+        color: item?.color || '#10B981',
+      }))
+    : [];
+
+  return {
+    input: payload?.input || '',
+    segments,
+    entities,
   };
 };
 
@@ -120,7 +164,12 @@ const CAMCEE = () => {
   const [trainingResult, setTrainingResult] = React.useState(null);
   const [trainingError, setTrainingError] = React.useState('');
   const [trainingCacheReady, setTrainingCacheReady] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState(null);
+  const [modelTrainingLoading, setModelTrainingLoading] = React.useState(false);
+  const [modelTrainingStopping, setModelTrainingStopping] = React.useState(false);
+  const [modelTrainingResult, setModelTrainingResult] = React.useState(null);
+  const [modelTrainingError, setModelTrainingError] = React.useState('');
+  const [modelTrainingCacheReady, setModelTrainingCacheReady] = React.useState(false);
+  const [extractionText, setExtractionText] = React.useState('甲方与乙方于2024年5月1日签订设备采购合同，总价120万元');
   const [datasets, setDatasets] = React.useState([]);
   const [datasetSummary, setDatasetSummary] = React.useState({ totalDatasets: 0, totalSamples: 0 });
   const [datasetLoading, setDatasetLoading] = React.useState(false);
@@ -129,6 +178,7 @@ const CAMCEE = () => {
   const [datasetError, setDatasetError] = React.useState('');
   const [datasetSuccess, setDatasetSuccess] = React.useState('');
   const [selectedDataset, setSelectedDataset] = React.useState('');
+  const [trainingEpoch, setTrainingEpoch] = React.useState('50');
   const datasetFileInputRef = React.useRef(null);
 
   // 处理标签页切换
@@ -208,6 +258,35 @@ const CAMCEE = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const cachedRaw = window.localStorage.getItem(getCamceeModelTrainingCacheKey());
+      if (!cachedRaw) return;
+
+      const cached = JSON.parse(cachedRaw);
+      if (!cached?.expiresAt || cached.expiresAt <= Date.now()) {
+        window.localStorage.removeItem(getCamceeModelTrainingCacheKey());
+        return;
+      }
+
+      if (cached?.modelTrainingResult) {
+        setModelTrainingResult(cached.modelTrainingResult);
+      }
+      if (typeof cached?.modelTrainingError === 'string') {
+        setModelTrainingError(cached.modelTrainingError);
+      }
+      if (typeof cached?.trainingEpoch === 'string') {
+        setTrainingEpoch(cached.trainingEpoch);
+      }
+    } catch {
+      // 忽略训练缓存恢复异常
+    } finally {
+      setModelTrainingCacheReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
     if (typeof window === 'undefined' || !trainingCacheReady) return;
 
     try {
@@ -228,6 +307,28 @@ const CAMCEE = () => {
       // 忽略训练缓存写入异常
     }
   }, [trainingCacheReady, trainingResult, trainingError, selectedDataset]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !modelTrainingCacheReady) return;
+
+    try {
+      const cacheKey = getCamceeModelTrainingCacheKey();
+      const hasTrainingCache = !!modelTrainingResult || !!modelTrainingError;
+      if (!hasTrainingCache) {
+        window.localStorage.removeItem(cacheKey);
+        return;
+      }
+
+      window.localStorage.setItem(cacheKey, JSON.stringify({
+        modelTrainingResult,
+        modelTrainingError,
+        trainingEpoch,
+        expiresAt: Date.now() + CAMCEE_CACHE_TTL_MS,
+      }));
+    } catch {
+      // 忽略训练缓存写入异常
+    }
+  }, [modelTrainingCacheReady, modelTrainingResult, modelTrainingError, trainingEpoch]);
 
   const validateJsonlFile = async (file) => {
     if (!file || !/\.jsonl$/i.test(file.name)) {
@@ -365,21 +466,25 @@ const CAMCEE = () => {
   };
 
   const runExtraction = async () => {
+    if (!extractionText.trim()) {
+      setExtractionError('请输入要提取的合同文本');
+      return;
+    }
+
     setExtractionLoading(true);
     setExtractionError('');
     setExtractionResult(null);
     try {
-      const requestOptions = { method: 'POST' };
-      if (selectedFile) {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        requestOptions.body = formData;
-      } else {
-        requestOptions.headers = { 'Content-Type': 'application/json' };
-        requestOptions.body = JSON.stringify({});
-      }
-
-      const response = await fetch(camceeApi('/api/camcee/extraction'), requestOptions);
+      const response = await fetch(camceeApi('/api/camcee/predict'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify({
+          text: extractionText.trim(),
+        }),
+      });
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || `请求失败(${response.status})`);
@@ -389,7 +494,7 @@ const CAMCEE = () => {
       setExtractionResult({
         success: true,
         message: '要素提取成功',
-        data: normalizeExtractionResponse(data),
+        data: normalizePredictResponse(data),
       });
     } catch (err) {
       setExtractionError(err.message || '要素提取失败，请重试');
@@ -570,6 +675,160 @@ const CAMCEE = () => {
     }
   };
 
+  const runModelTraining = async () => {
+    const epochInt = Number.parseInt(trainingEpoch, 10);
+    if (!Number.isInteger(epochInt) || epochInt <= 0) {
+      setModelTrainingError('epoch 必须是大于 0 的整数');
+      return;
+    }
+
+    setModelTrainingLoading(true);
+    setModelTrainingError('');
+    const apiPath = `/api/camcee/train?${new URLSearchParams({ epochs: String(epochInt) }).toString()}`;
+    const startedAt = new Date().toLocaleString();
+
+    setModelTrainingResult({
+      success: true,
+      message: '训练进行中',
+      data: {
+        requestedAt: startedAt,
+        requestPath: apiPath,
+        trainingLogs: ['开始请求训练接口...'],
+        finished: false,
+      },
+    });
+
+    const appendTrainingLog = (line) => {
+      if (!line || !String(line).trim()) return;
+      setModelTrainingResult((prev) => {
+        if (!prev?.data) return prev;
+        return {
+          ...prev,
+          data: {
+            ...prev.data,
+            trainingLogs: [...(prev.data.trainingLogs || []), String(line)].slice(-800),
+          },
+        };
+      });
+    };
+
+    try {
+      const response = await fetch(camceeApi(apiPath), {
+        method: 'POST',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `请求失败(${response.status})`);
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      const reader = response.body?.getReader();
+
+      if (reader) {
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let rawResponseText = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          rawResponseText += chunk;
+          buffer += chunk;
+
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop() || '';
+          lines.forEach((line) => appendTrainingLog(line));
+        }
+
+        if (buffer.trim()) {
+          appendTrainingLog(buffer);
+          rawResponseText += buffer;
+        }
+
+        setModelTrainingResult((prev) => ({
+          ...prev,
+          message: '训练完成',
+          data: {
+            ...prev.data,
+            rawResponse: rawResponseText,
+            contentType,
+            finished: true,
+          },
+        }));
+      } else if (contentType.includes('application/json')) {
+        const payload = await response.json();
+        appendTrainingLog(JSON.stringify(payload, null, 2));
+        setModelTrainingResult((prev) => ({
+          ...prev,
+          message: '训练完成',
+          data: {
+            ...prev.data,
+            rawResponse: payload,
+            contentType,
+            finished: true,
+          },
+        }));
+      } else {
+        const text = await response.text();
+        text.split(/\r?\n/).forEach((line) => appendTrainingLog(line));
+        setModelTrainingResult((prev) => ({
+          ...prev,
+          message: '训练完成',
+          data: {
+            ...prev.data,
+            rawResponse: text,
+            contentType,
+            finished: true,
+          },
+        }));
+      }
+    } catch (err) {
+      setModelTrainingError(err.message || '训练失败，请重试');
+    } finally {
+      setModelTrainingLoading(false);
+    }
+  };
+
+  const stopModelTraining = async () => {
+    setModelTrainingStopping(true);
+    setModelTrainingError('');
+
+    try {
+      const response = await fetch(camceeApi('/api/camcee/train/stop'), {
+        method: 'POST',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `请求失败(${response.status})`);
+      }
+
+      setModelTrainingResult((prev) => {
+        if (!prev?.data) return prev;
+        return {
+          ...prev,
+          data: {
+            ...prev.data,
+            trainingLogs: [...(prev.data.trainingLogs || []), '已发送停止训练请求，等待后端释放资源...'].slice(-800),
+          },
+        };
+      });
+    } catch (err) {
+      setModelTrainingError(err.message || '停止训练失败，请重试');
+    } finally {
+      setModelTrainingStopping(false);
+    }
+  };
+
   // 模拟API请求
   const simulateApiRequest = async (action) => {
     if (action === 'extract') {
@@ -594,46 +853,34 @@ const CAMCEE = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择数据文件</label>
-            <div className="flex gap-3">
-              <input
-                type="file"
-                onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-                className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              <button
-                onClick={() => simulateApiRequest('extract')}
-                disabled={extractionLoading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {extractionLoading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    执行中...
-                  </span>
-                ) : (
-                  '执行提取'
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              未选择文件时将直接请求接口；已选择文件时会以 `file` 字段上传并执行提取。
-            </p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">输入合同文本</label>
+            <textarea
+              value={extractionText}
+              onChange={(event) => setExtractionText(event.target.value)}
+              rows={6}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-y"
+              placeholder="请输入需要进行要素提取的合同文本"
+            />
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">提取参数</label>
-            <div className="grid grid-cols-2 gap-3">
-              <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <option>默认配置</option>
-                <option>高精度模式</option>
-                <option>快速模式</option>
-              </select>
-              <input type="number" placeholder="批量大小" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" min="1" max="100" />
-            </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => simulateApiRequest('extract')}
+              disabled={extractionLoading}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {extractionLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  执行中...
+                </span>
+              ) : (
+                '执行提取'
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -642,39 +889,68 @@ const CAMCEE = () => {
       {extractionResult && extractionResult.success && (
         <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
           <h4 className="text-lg font-semibold text-green-800 mb-4">提取结果</h4>
-          
-          {/* 基本信息 */}
-          <div className="flex gap-8 mb-6 pb-6 border-b border-gray-200">
-            <div>
-              <p className="text-sm text-gray-600 mb-2">合同名称</p>
-              <p className="text-lg font-medium">{extractionResult.data.contractName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 mb-2">提取要素数量</p>
-              <p className="text-lg font-medium text-blue-600">{extractionResult.data.extractedElements}个</p>
+
+          <div className="mb-6">
+            <p className="text-sm text-gray-600 mb-3 font-semibold">原文分段高亮</p>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 leading-8">
+              {extractionResult.data.segments.length > 0 ? (
+                extractionResult.data.segments.map((segment) => (
+                  <span
+                    key={segment.id}
+                    className={`inline rounded px-1 py-0.5 mr-1 ${segment.isEntity ? 'font-semibold' : ''}`}
+                    style={{
+                      color: segment.isEntity ? '#111827' : segment.color,
+                      backgroundColor: segment.isEntity ? `${segment.color}22` : 'transparent',
+                      border: segment.isEntity ? `1px solid ${segment.color}` : 'none',
+                    }}
+                    title={segment.label}
+                  >
+                    {segment.text}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500">后端未返回分段结果。</span>
+              )}
             </div>
           </div>
-          
-          {/* 主要提取要素 - 表格形式 */}
+
           <div>
-            <p className="text-sm text-gray-600 mb-4 font-semibold">主要提取要素</p>
+            <p className="text-sm text-gray-600 mb-4 font-semibold">识别出的实体要素</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left text-gray-700">
                 <thead className="bg-blue-50 border-b border-blue-200">
                   <tr>
                     <th className="px-4 py-3 font-semibold text-gray-900 w-24">序号</th>
-                    <th className="px-4 py-3 font-semibold text-gray-900 w-32">要素名称</th>
-                    <th className="px-4 py-3 font-semibold text-gray-900">要素内容</th>
+                    <th className="px-4 py-3 font-semibold text-gray-900 w-40">实体类型</th>
+                    <th className="px-4 py-3 font-semibold text-gray-900">实体内容</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {extractionResult.data.elements.map((element, index) => (
-                    <tr key={index} className="border-b border-gray-200 hover:bg-blue-50 transition-colors">
-                      <td className="px-4 py-3 text-gray-600">{index + 1}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{element.name}</td>
-                      <td className="px-4 py-3 text-gray-600">{element.value}</td>
+                  {extractionResult.data.entities.length > 0 ? (
+                    extractionResult.data.entities.map((entity, index) => (
+                      <tr key={entity.id} className="border-b border-gray-200 hover:bg-blue-50 transition-colors">
+                        <td className="px-4 py-3 text-gray-600">{index + 1}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          <span
+                            className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                            style={{
+                              backgroundColor: `${entity.color}22`,
+                              color: entity.color,
+                            }}
+                          >
+                            {entity.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">{entity.text}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="3" className="px-4 py-6 text-center text-gray-500">
+                        后端未返回实体结果。
+                      </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -899,42 +1175,80 @@ const CAMCEE = () => {
     <div className="space-y-6">
       <div className="bg-green-50 p-4 rounded-lg border border-green-200">
         <h3 className="text-lg font-semibold text-green-800 mb-3">模型训练与优化</h3>
-        <p className="text-gray-700 mb-4">训练页签已保留，等待接入新的训练接口后再启用真实训练流程。</p>
+        <p className="text-gray-700 mb-4">该模块负责触发 CAM-CEE 模型训练，并实时展示后端终端输出。</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">训练数据集</label>
-            <select
-              value={selectedDataset}
-              onChange={(event) => setSelectedDataset(event.target.value)}
+            <label className="block text-sm font-medium text-gray-700 mb-2">训练 epoch</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={trainingEpoch}
+              onChange={(event) => setTrainingEpoch(event.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            >
-              {datasets.length > 0 ? (
-                datasets.map((dataset) => (
-                  <option key={dataset.id} value={String(dataset.id)}>
-                    {dataset.name}
-                  </option>
-                ))
-              ) : (
-                <option value="">暂无可用数据集</option>
-              )}
-            </select>
+              placeholder="请输入训练轮次"
+            />
           </div>
 
           <div className="flex items-end">
-            <button
-              disabled
-              className="w-full px-4 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed"
-            >
-              训练接口待接入
-            </button>
+            <div className="w-full grid grid-cols-2 gap-3">
+              <button
+                onClick={runModelTraining}
+                disabled={modelTrainingLoading || modelTrainingStopping}
+                className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {modelTrainingLoading ? '训练中...' : '开始训练'}
+              </button>
+              <button
+                onClick={stopModelTraining}
+                disabled={modelTrainingStopping}
+                className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {modelTrainingStopping ? '停止中...' : '停止训练'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-sm text-gray-600">
-        当前评估页签使用的是测试执行接口；训练页签会在你补充新的训练接口后单独接入，不与评估流程复用。
-      </div>
+      {modelTrainingResult && modelTrainingResult.success && (
+        <div className="bg-white rounded-lg border border-green-200 p-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <p className="text-sm font-medium text-green-800 mb-2">训练过程动态展示</p>
+            <div className="max-h-64 overflow-auto bg-white border border-green-100 rounded p-3">
+              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all">
+                {(modelTrainingResult.data.trainingLogs || []).join('\n')}
+              </pre>
+            </div>
+            {!modelTrainingResult.data.finished && (
+              <p className="text-xs text-green-700 mt-2">训练进行中，日志会持续更新...</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-green-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">请求时间</p>
+              <p className="text-base font-semibold text-green-700">{modelTrainingResult.data.requestedAt || '-'}</p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">训练状态</p>
+              <p className="text-base font-semibold text-blue-700">
+                {modelTrainingResult.data.finished ? '已完成' : '进行中'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modelTrainingError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="text-red-500 text-xl">❌</div>
+            <h4 className="text-lg font-semibold text-red-800">{modelTrainingError}</h4>
+          </div>
+        </div>
+      )}
     </div>
   );
   return (
