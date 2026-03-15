@@ -1321,10 +1321,10 @@ const CAMCEE = () => {
 
           {/* 标签页内容 */}
           <div className="p-6">
-            {activeTab === 'extraction' && <ExtractionModule />}
-            {activeTab === 'training' && <TrainingModule />}
-            {activeTab === 'dataset' && <DatasetModule />}
-            {activeTab === 'evaluation' && <EvaluationModule />}
+            {activeTab === 'extraction' && ExtractionModule()}
+            {activeTab === 'training' && TrainingModule()}
+            {activeTab === 'dataset' && DatasetModule()}
+            {activeTab === 'evaluation' && EvaluationModule()}
           </div>
         </div>
       </div>
