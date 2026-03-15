@@ -1337,8 +1337,8 @@ const ProvBench = () => {
             </div>
 
             <div className={`p-6 ${activeModule !== 'training' ? 'hidden' : ''}`}>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <h3 className="text-lg font-semibold text-green-800 mb-2">模型训练与优化</h3>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-semibold text-purple-800 mb-2">模型训练与优化</h3>
                 <p className="text-gray-700 text-sm">选择模型并设置 epoch（整数），点击开始训练后将动态展示返回的训练过程。</p>
               </div>
 

@@ -169,7 +169,7 @@ const CAMCEE = () => {
   const [modelTrainingResult, setModelTrainingResult] = React.useState(null);
   const [modelTrainingError, setModelTrainingError] = React.useState('');
   const [modelTrainingCacheReady, setModelTrainingCacheReady] = React.useState(false);
-  const [extractionText, setExtractionText] = React.useState('甲方与乙方于2024年5月1日签订设备采购合同，总价120万元');
+  const [extractionText, setExtractionText] = React.useState('甲方在收到乙方递交的预算绩效管理服务报告 (正式稿) 后，并在取得乙方开具的符合要求的发票后60天内，支付合同金额的70%。');
   const [datasets, setDatasets] = React.useState([]);
   const [datasetSummary, setDatasetSummary] = React.useState({ totalDatasets: 0, totalSamples: 0 });
   const [datasetLoading, setDatasetLoading] = React.useState(false);
@@ -908,11 +908,10 @@ const CAMCEE = () => {
       
       {/* 结果展示 */}
       {extractionResult && extractionResult.success && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">提取结果</h4>
+        <div className="bg-white rounded-lg shadow-md p-6 border border-blue-200">
+          <h4 className="text-lg font-semibold text-blue-800 mb-4">提取结果</h4>
 
           <div>
-            <p className="text-sm text-gray-600 mb-4 font-semibold">识别出的实体要素</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left text-gray-700">
                 <thead className="bg-blue-50 border-b border-blue-200">
@@ -969,8 +968,8 @@ const CAMCEE = () => {
   // 数据集管理模块
   const DatasetModule = () => (
     <div className="space-y-6">
-      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-        <h3 className="text-lg font-semibold text-purple-800 mb-3">数据集管理</h3>
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h3 className="text-lg font-semibold text-blue-800 mb-3">数据集管理</h3>
         <p className="text-gray-700 mb-4">该模块负责管理用于训练和测试的数据集，支持数据集的上传、下载。</p>
         
         <div className="flex flex-wrap gap-3 mb-6">
@@ -1014,10 +1013,10 @@ const CAMCEE = () => {
       
       {/* 数据集结果 */}
       {datasetSuccess && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="text-green-500 text-xl">✅</div>
-            <h4 className="text-lg font-semibold text-green-800">{datasetSuccess}</h4>
+            <div className="text-purple-500 text-xl">✅</div>
+            <h4 className="text-lg font-semibold text-purple-800">{datasetSuccess}</h4>
           </div>
         </div>
       )}
@@ -1032,10 +1031,10 @@ const CAMCEE = () => {
       )}
 
       {datasets.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-blue-200">
           <div className="mb-6">
             <div>
-              <h4 className="text-lg font-semibold text-green-800">数据集列表</h4>
+              <h4 className="text-lg font-semibold text-blue-800">数据集列表</h4>
             </div>
           </div>
           
