@@ -15,7 +15,6 @@ const MODEL_COLORS = {
   roberta: 'text-purple-600',
   legalbert: 'text-amber-600',
 };
-const MODEL_API_DIRECT_BASE = (import.meta.env.VITE_FEATURE_API_PROXY_TARGET || 'http://10.198.134.159:8010').replace(/\/$/, '');
 const PROVBENCH_CACHE_TTL_MS = Number(import.meta.env.VITE_PROVBENCH_CACHE_TTL_MS || (30 * 60 * 1000));
 const EMPTY_UPDATED_AT = {
   bert: null,
@@ -26,6 +25,62 @@ const EMPTY_ERROR_STATE = {
   legalbert: '',
   bert: '',
   roberta: '',
+};
+
+const getConflictMeta = (conflict) => {
+  if (Number(conflict) === 1) {
+    return {
+      label: '有潜在矛盾',
+      risk: '高风险',
+      tone: 'red',
+    };
+  }
+
+  return {
+    label: '无矛盾',
+    risk: '低风险',
+    tone: 'green',
+  };
+};
+
+const getConflictStyles = (conflict) => {
+  const meta = getConflictMeta(conflict);
+  if (meta.tone === 'red') {
+    return {
+      card: 'border-l-4 border-red-500 bg-red-50/30 rounded-r-lg p-4',
+      badge: 'inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium',
+      riskBadge: 'inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium border border-red-200',
+      index: 'text-red-600',
+      summary: 'text-red-700',
+    };
+  }
+
+  return {
+    card: 'border-l-4 border-green-500 bg-green-50/30 rounded-r-lg p-4',
+    badge: 'inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium',
+    riskBadge: 'inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium border border-green-200',
+    index: 'text-green-600',
+    summary: 'text-green-700',
+  };
+};
+
+const buildInferenceSummary = (items = []) => {
+  if (!Array.isArray(items) || items.length === 0) {
+    return '未返回匹配法条。';
+  }
+
+  return items.map((item, idx) => {
+    const meta = getConflictMeta(item?.conflict);
+    return [
+      `${idx + 1}. 《${item?.law_cate || '未知法典'}》第${item?.law_num || '-'}条`,
+      `风险等级：${meta.risk}（${meta.label}）`,
+      `法条内容：${item?.law_text || '暂无内容'}`,
+    ].join('\n');
+  }).join('\n\n');
+};
+
+const hasCompleteMetrics = (metrics) => {
+  return ['r1', 'r3', 'r5'].every((key) => typeof metrics?.[key] === 'number');
 };
 
 const getProvbenchCacheKey = () => {
@@ -111,6 +166,7 @@ const ProvBench = () => {
     roberta: false
   });
   const [results, setResults] = React.useState([]);
+  const [activeResultIndex, setActiveResultIndex] = React.useState(0);
   const [currentExecution, setCurrentExecution] = React.useState({
     model: null,
     startTime: null
@@ -168,6 +224,7 @@ const ProvBench = () => {
     const value = performance?.[model]?.[metric];
     return typeof value === 'number' ? value.toFixed(2) : '--';
   };
+  const isPerformanceReady = (model) => hasCompleteMetrics(performance?.[model]);
   const hasPerformanceData = MODEL_ORDER.some((model) =>
     ['r1', 'r3', 'r5'].some((metric) => typeof performance?.[model]?.[metric] === 'number')
   );
@@ -178,46 +235,21 @@ const ProvBench = () => {
     if (typeof textValue === 'string' && textValue.trim()) {
       requestBody.text = textValue;
     }
-
-    const requestUrls = [
-      featureApi('/api/run-model'),
-      `${MODEL_API_DIRECT_BASE}/api/run-model`,
-    ];
-
-    const requestOnce = async (url) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 300000);
-      try {
-        return await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache',
-          },
-          body: JSON.stringify(requestBody),
-          signal: controller.signal,
-        });
-      } finally {
-        clearTimeout(timeoutId);
-      }
-    };
-
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000);
     let response;
-    let lastError;
-    for (const url of requestUrls) {
-      try {
-        response = await requestOnce(url);
-        // 代理返回404时，尝试直连后端
-        if (response.ok || url === requestUrls[requestUrls.length - 1]) {
-          break;
-        }
-      } catch (error) {
-        lastError = error;
-      }
-    }
-
-    if (!response) {
-      throw lastError || new Error('请求失败');
+    try {
+      response = await fetch(featureApi('/api/run-model'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     if (!response.ok) {
@@ -237,6 +269,42 @@ const ProvBench = () => {
     return { payload, metrics };
   };
 
+  const fetchModelInference = async (modelType, contractText) => {
+    const requestBody = {
+      model: modelType,
+      contract: contractText,
+      conflict_ckpt: null,
+    };
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000);
+    let response;
+    try {
+      response = await fetch(featureApi('/api/provrec/infer'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(errText || `请求失败(${response.status})`);
+    }
+
+    const payload = await response.json();
+    if (payload?.success === false) {
+      throw new Error(payload?.message || '模型推理失败');
+    }
+
+    return payload;
+  };
+
   // 获取模型的默认输入示例
   const getModelExample = (modelType) => {
     const examples = {
@@ -248,72 +316,6 @@ const ProvBench = () => {
     };
     
     return examples[modelType] || '请输入合约内容...';
-  };
-
-  // 获取模型的输出结果 - 三个模型各自独立的法律条款分析
-  const getModelOutput = (modelType, inputText) => {
-    if (!inputText) {
-      const exampleText = getModelExample(modelType);
-      inputText = exampleText;
-    }
-    
-    const modelOutputs = {
-      legalbert: `=== LegalBERT 法律专用模型分析结果 ===
-
-模型：LegalBERT (在法律语料库预训练)
-分析时间：${new Date().toLocaleString('zh-CN')}
-适用场景：租赁合同、买卖合同、物业服务合同
-
-📋 匹配法律条款：
-
-1. "出租人出卖租赁房屋的，应当在出卖之前的合理期限内通知承租人，承租人享有以同等条件优先购买的权利；但是，房屋按份共有人行使优先购买权或者出租人将房屋出卖给近亲属的除外。出租人履行通知义务后，承租人在十五日内未明确表示购买的，视为承租人放弃优先购买权。"
-   ——《中华人民共和国民法典》第七百二十六条
-
-2. "出租人委托拍卖人拍卖租赁房屋的，应当在拍卖五日前通知承租人。承租人未参加拍卖的，视为放弃优先购买权。"
-   ——《中华人民共和国民法典》第七百二十七条
-
-3. "出租人未通知承租人或者有其他妨害承租人行使优先购买权情形的，承租人可以请求出租人承担赔偿责任。但是，出租人与第三人订立的房屋买卖合同的效力不受影响。"
-   ——《中华人民共和国民法典》第七百二十八条
-`,
-      
-      bert: `=== BERT 通用模型分析结果 ===
-
-模型：BERT-Base (通用预训练模型)
-分析时间：${new Date().toLocaleString('zh-CN')}
-适用场景：合作协议、服务合同、一般商业合同
-
-📋 匹配法律条款：
-
-1. "当事人一方不履行合同义务或者履行合同义务不符合约定的，应当承担继续履行、采取补救措施或者赔偿损失等违约责任。"
-   ——《中华人民共和国民法典》第五百七十七条
-
-2. "当事人可以约定一方违约时应当根据违约情况向对方支付一定数额的违约金，也可以约定因违约产生的损失赔偿额的计算方法。"
-   ——《中华人民共和国民法典》第五百八十五条
-
-3. "承揽人将其承揽的主要工作交由第三人完成的，应当就该第三人完成的工作成果向定作人负责；未经定作人同意的，定作人也可以解除合同。"
-   ——《中华人民共和国民法典》第七百七十二条
-`,
-      
-      roberta: `=== RoBERTa 优化模型分析结果 ===
-
-模型：RoBERTa-wwm-ext (全词掩码优化版)
-分析时间：${new Date().toLocaleString('zh-CN')}
-适用场景：债权转让、知识产权、劳动合同
-
-📋 匹配法律条款：
-
-1. "债权人转让债权，未通知债务人的，该转让对债务人不发生效力。债权转让的通知不得撤销，但是经受让人同意的除外。"
-   ——《中华人民共和国民法典》第五百四十六条
-
-2. "债务人接到债权转让通知后，债务人对让与人的抗辩，可以向受让人主张。"
-   ——《中华人民共和国民法典》第五百四十八条
-
-3. "有下列情形之一的，债务人可以向受让人主张抵销：（一）债务人接到债权转让通知时，债务人对让与人享有债权，并且债务人的债权先于转让的债权到期或者同时到期；（二）债务人的债权与转让的债权是基于同一合同产生。"
-   ——《中华人民共和国民法典》第五百四十九条
-`
-    };
-    
-    return modelOutputs[modelType] || '模型分析结果将显示在这里';
   };
 
   // 进度模拟
@@ -359,29 +361,24 @@ const ProvBench = () => {
 
     try {
       const startedAt = Date.now();
-      const { payload } = await fetchModelMetrics(selectedModel, inputText);
-
-      const backendOutput =
-        payload?.output ||
-        payload?.result ||
-        payload?.message ||
-        payload?.data?.output ||
-        getModelOutput(selectedModel, inputText) ||
-        JSON.stringify(payload, null, 2);
+      const payload = await fetchModelInference(selectedModel, inputText.trim());
+      const inferenceResults = Array.isArray(payload?.results) ? payload.results : [];
 
       const result = {
         model: selectedModel,
         timestamp: new Date().toLocaleString('zh-CN'),
         success: true,
         input: inputText,
-        output: typeof backendOutput === 'string' ? backendOutput : JSON.stringify(backendOutput, null, 2),
+        output: buildInferenceSummary(inferenceResults),
+        inferenceResults,
         error: '',
         duration: Date.now() - startedAt,
-        showConflict: false,
+        showConflict: true,
         dynamic: true,
       };
 
       setResults(prev => [result, ...prev]);
+      setActiveResultIndex(0);
     } catch (error) {
       const result = {
         model: selectedModel,
@@ -395,6 +392,7 @@ const ProvBench = () => {
       };
 
       setResults(prev => [result, ...prev]);
+      setActiveResultIndex(0);
     } finally {
       setLoading(prev => ({ ...prev, [selectedModel]: false }));
       setCurrentExecution({
@@ -405,18 +403,23 @@ const ProvBench = () => {
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    const autoLoadMetrics = async () => {
+  const loadPerformanceMetrics = async ({ force = false } = {}) => {
+    if (typeof window !== 'undefined' && !force) {
       try {
         const cacheKey = getProvbenchCacheKey();
         const cachedRaw = window.localStorage.getItem(cacheKey);
         if (cachedRaw) {
           const cached = JSON.parse(cachedRaw);
-          if (cached?.expiresAt > Date.now() && cached?.performance) {
+          const hasUsableCache = MODEL_ORDER.every((model) => hasCompleteMetrics(cached?.performance?.[model]));
+          if (cached?.expiresAt > Date.now() && hasUsableCache) {
             setPerformance(cached.performance);
             setPerformanceUpdatedAt(cached.performanceUpdatedAt || EMPTY_UPDATED_AT);
             setPerformanceError(EMPTY_ERROR_STATE);
+            setPerformanceLoading({
+              legalbert: false,
+              bert: false,
+              roberta: false,
+            });
             return;
           }
           window.localStorage.removeItem(cacheKey);
@@ -424,58 +427,73 @@ const ProvBench = () => {
       } catch {
         // 忽略缓存异常，回退到实时请求
       }
+    }
 
-      // 并行拉取三个模型，显著缩短首屏动态测试等待时间
-      setPerformanceLoading((prev) => ({
-        ...prev,
-        bert: true,
-        roberta: true,
-        legalbert: true,
-      }));
+    setPerformance({
+      bert: { r1: null, r3: null, r5: null },
+      roberta: { r1: null, r3: null, r5: null },
+      legalbert: { r1: null, r3: null, r5: null },
+    });
+    setPerformanceUpdatedAt(EMPTY_UPDATED_AT);
+    setPerformanceError(EMPTY_ERROR_STATE);
+    setPerformanceLoading({
+      bert: true,
+      roberta: true,
+      legalbert: true,
+    });
 
-      const tasks = MODEL_ORDER.map(async (model) => {
-        try {
-          const { metrics } = await fetchModelMetrics(model);
-          if (cancelled) return;
-          if (metrics.r1 !== null && metrics.r3 !== null && metrics.r5 !== null) {
-            setPerformance((prev) => ({
-              ...prev,
-              [model]: {
-                r1: metrics.r1,
-                r3: metrics.r3,
-                r5: metrics.r5,
-              },
-            }));
-            setPerformanceUpdatedAt((prev) => ({
-              ...prev,
-              [model]: new Date().toLocaleString('zh-CN'),
-            }));
-            setPerformanceError((prev) => ({ ...prev, [model]: '' }));
-          }
-        } catch (error) {
-          // 自动加载失败不打断页面交互，保留手动运行能力
-          console.error(`自动加载 ${model} 指标失败:`, error);
-          if (!cancelled) {
-            setPerformanceError((prev) => ({
-              ...prev,
-              [model]: error?.name === 'AbortError' ? '请求超时' : (error?.message || '请求失败'),
-            }));
-          }
-        } finally {
-          if (!cancelled) {
-            setPerformanceLoading((prev) => ({ ...prev, [model]: false }));
-          }
+    const tasks = MODEL_ORDER.map(async (model) => {
+      try {
+        const { metrics } = await fetchModelMetrics(model);
+        if (hasCompleteMetrics(metrics)) {
+          setPerformance((prev) => ({
+            ...prev,
+            [model]: {
+              r1: metrics.r1,
+              r3: metrics.r3,
+              r5: metrics.r5,
+            },
+          }));
+          setPerformanceUpdatedAt((prev) => ({
+            ...prev,
+            [model]: new Date().toLocaleString('zh-CN'),
+          }));
+          setPerformanceError((prev) => ({ ...prev, [model]: '' }));
+        } else {
+          setPerformanceError((prev) => ({
+            ...prev,
+            [model]: '结果不完整，请重新测试',
+          }));
         }
-      });
+      } catch (error) {
+        console.error(`自动加载 ${model} 指标失败:`, error);
+        setPerformanceError((prev) => ({
+          ...prev,
+          [model]: error?.name === 'AbortError' ? '请求超时' : (error?.message || '请求失败'),
+        }));
+      } finally {
+        setPerformanceLoading((prev) => ({ ...prev, [model]: false }));
+      }
+    });
 
-      await Promise.allSettled(tasks);
-    };
+    await Promise.allSettled(tasks);
+  };
 
-    autoLoadMetrics();
-    return () => {
-      cancelled = true;
-    };
+  useEffect(() => {
+    loadPerformanceMetrics();
   }, []);
+
+  const rerunPerformanceMetrics = async () => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem(getProvbenchCacheKey());
+      } catch {
+        // 忽略缓存清理异常
+      }
+    }
+
+    await loadPerformanceMetrics({ force: true });
+  };
 
   useEffect(() => {
     if (!hasPerformanceData || typeof window === 'undefined') return;
@@ -581,97 +599,128 @@ const ProvBench = () => {
     };
 
     try {
-      const query = new URLSearchParams({
-        model: trainingModel,
-        epoch: String(epochInt),
-      }).toString();
-      const requestUrls = [
-        `${featureApi('/api/run-train')}?${query}`,
-        `${MODEL_API_DIRECT_BASE}/api/run-train?${query}`,
-      ];
-
-      const requestOnce = async (url) => {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000);
-        try {
-          return await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Cache-Control': 'no-cache',
-            },
-            signal: controller.signal,
-          });
-        } finally {
-          clearTimeout(timeoutId);
-        }
-      };
-
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000);
       let response;
-      let lastError;
-      for (const url of requestUrls) {
-        try {
-          response = await requestOnce(url);
-          if (response.ok || url === requestUrls[requestUrls.length - 1]) break;
-        } catch (error) {
-          lastError = error;
-        }
+      try {
+        response = await fetch(featureApi('/api/run-train'), {
+          method: 'POST',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: trainingModel,
+            epoch: epochInt,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
       }
 
-      if (!response) {
-        throw lastError || new Error('请求失败');
-      }
       if (!response.ok) {
         const errText = await response.text();
         throw new Error(errText || `请求失败(${response.status})`);
       }
 
-      const responseText = await response.text();
-      const contentType = response.headers.get('content-type') || '';
-      let payload = null;
+      const reader = response.body?.getReader();
+      if (!reader) {
+        // 兜底：不支持流式时退回一次性读取
+        const responseText = await response.text();
+        const contentType = response.headers.get('content-type') || '';
+        let payload = null;
 
-      if (contentType.includes('application/json')) {
-        try {
-          payload = JSON.parse(responseText);
-        } catch {
-          payload = null;
+        if (contentType.includes('application/json')) {
+          try {
+            payload = JSON.parse(responseText);
+          } catch {
+            payload = null;
+          }
         }
+
+        const outputText = payload
+          ? (payload?.output || payload?.result || payload?.message || JSON.stringify(payload, null, 2))
+          : responseText;
+
+        const lines = String(outputText).split(/\r?\n/).filter(Boolean);
+        for (const line of lines.slice(0, 400)) {
+          appendLog(line);
+          await delay(20);
+        }
+        if (lines.length > 400) {
+          appendLog(`... 已省略 ${lines.length - 400} 行日志`);
+        }
+
+        const parsedFromJson = payload ? parseMetricPayload(payload) : { r1: null, r3: null, r5: null };
+        const parsedFromText = parseMetricFromOutputText(outputText);
+        const metrics = {
+          r1: parsedFromJson.r1 ?? parsedFromText.r1,
+          r3: parsedFromJson.r3 ?? parsedFromText.r3,
+          r5: parsedFromJson.r5 ?? parsedFromText.r5,
+        };
+
+        if (metrics.r1 !== null && metrics.r3 !== null && metrics.r5 !== null) {
+          setPerformance((prev) => ({
+            ...prev,
+            [trainingModel]: metrics,
+          }));
+          setPerformanceUpdatedAt((prev) => ({
+            ...prev,
+            [trainingModel]: new Date().toLocaleString('zh-CN'),
+          }));
+        }
+
+        setTrainingUpdatedAt(new Date().toLocaleString('zh-CN'));
+        appendLog('训练完成');
+      } else {
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let allText = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          allText += chunk;
+          buffer += chunk;
+
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop() || '';
+          for (const line of lines) {
+            if (line) appendLog(line);
+          }
+        }
+
+        if (buffer) {
+          appendLog(buffer);
+          allText += buffer;
+        }
+
+        // 训练结束后再从完整文本里解析指标
+        const parsedFromText = parseMetricFromOutputText(allText);
+        const metrics = {
+          r1: parsedFromText.r1,
+          r3: parsedFromText.r3,
+          r5: parsedFromText.r5,
+        };
+
+        if (metrics.r1 !== null && metrics.r3 !== null && metrics.r5 !== null) {
+          setPerformance((prev) => ({
+            ...prev,
+            [trainingModel]: metrics,
+          }));
+          setPerformanceUpdatedAt((prev) => ({
+            ...prev,
+            [trainingModel]: new Date().toLocaleString('zh-CN'),
+          }));
+        }
+
+        setTrainingUpdatedAt(new Date().toLocaleString('zh-CN'));
+        appendLog('训练完成');
       }
 
-      const outputText = payload
-        ? (payload?.output || payload?.result || payload?.message || JSON.stringify(payload, null, 2))
-        : responseText;
-
-      // 模拟训练过程动态输出
-      const lines = String(outputText).split(/\r?\n/).filter(Boolean);
-      for (const line of lines.slice(0, 400)) {
-        appendLog(line);
-        await delay(20);
-      }
-      if (lines.length > 400) {
-        appendLog(`... 已省略 ${lines.length - 400} 行日志`);
-      }
-
-      const parsedFromJson = payload ? parseMetricPayload(payload) : { r1: null, r3: null, r5: null };
-      const parsedFromText = parseMetricFromOutputText(outputText);
-      const metrics = {
-        r1: parsedFromJson.r1 ?? parsedFromText.r1,
-        r3: parsedFromJson.r3 ?? parsedFromText.r3,
-        r5: parsedFromJson.r5 ?? parsedFromText.r5,
-      };
-
-      if (metrics.r1 !== null && metrics.r3 !== null && metrics.r5 !== null) {
-        setPerformance((prev) => ({
-          ...prev,
-          [trainingModel]: metrics,
-        }));
-        setPerformanceUpdatedAt((prev) => ({
-          ...prev,
-          [trainingModel]: new Date().toLocaleString('zh-CN'),
-        }));
-      }
-
-      setTrainingUpdatedAt(new Date().toLocaleString('zh-CN'));
-      appendLog('训练完成');
     } catch (error) {
       setTrainingError(error?.name === 'AbortError' ? '训练请求超时' : (error?.message || '训练失败'));
     } finally {
@@ -682,6 +731,7 @@ const ProvBench = () => {
   // 清空结果
   const clearResults = () => {
     setResults([]);
+    setActiveResultIndex(0);
   };
 
   // 切换矛盾检测报告显示状态
@@ -938,36 +988,62 @@ const ProvBench = () => {
               </button>
             </div>
 
+            <div className="mb-4 overflow-x-auto">
+              <div className="flex gap-3 min-w-max pb-2">
+                {results.map((result, index) => (
+                  <button
+                    key={`${result.model}-${result.timestamp}-${index}`}
+                    onClick={() => setActiveResultIndex(index)}
+                    className={`rounded-xl border px-4 py-3 text-left transition-all duration-200 min-w-[220px] ${
+                      activeResultIndex === index
+                        ? 'border-blue-500 bg-blue-50 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                      <span>{getModelIcon(result.model)}</span>
+                      <span>{getModelDisplayName(result.model)}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">{result.timestamp}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${result.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {result.success ? '成功' : '失败'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {Array.isArray(result.inferenceResults) ? `${result.inferenceResults.length} 条法条` : '无结果'}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-6">
-              {results.map((result, index) => (
+              {results[activeResultIndex] ? (
                 <div 
-                  key={index} 
+                  key={`${results[activeResultIndex].model}-${results[activeResultIndex].timestamp}-${activeResultIndex}`}
                   className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden"
                 >
                   {/* 结果头部 */}
                   <div className="bg-gray-50 border-b border-gray-200 p-4">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="text-2xl">{getModelIcon(result.model)}</div>
+                        <div className="text-2xl">{getModelIcon(results[activeResultIndex].model)}</div>
                         <div>
-                          <span className="text-xl font-bold text-gray-900">{getModelDisplayName(result.model)}</span>
-                          <p className="text-sm text-gray-500">
-                            {result.model === 'legalbert' ? '法律专用模型 · 租赁合同' : 
-                             result.model === 'bert' ? '通用语言模型 · 服务合同' : 
-                             '优化版模型 · 债权转让'}
-                          </p>
+                          <span className="text-xl font-bold text-gray-900">{getModelDisplayName(results[activeResultIndex].model)}</span>
+                          <p className="text-sm text-gray-500">法律条款匹配与矛盾检测</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {result.success ? '执行成功' : '执行失败'}
+                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${results[activeResultIndex].success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {results[activeResultIndex].success ? '执行成功' : '执行失败'}
                         </span>
-                        {result.dynamic && (
+                        {results[activeResultIndex].dynamic && (
                           <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                             动态测试
                           </span>
                         )}
-                        <span className="text-sm text-gray-500">{result.timestamp}</span>
+                        <span className="text-sm text-gray-500">{results[activeResultIndex].timestamp}</span>
                       </div>
                     </div>
                   </div>
@@ -978,276 +1054,110 @@ const ProvBench = () => {
                       <div className="flex items-center gap-2 mb-3">
                         <div className="text-xl">📋</div>
                         <h4 className="font-semibold text-gray-900">输入合约内容</h4>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          {result.model === 'legalbert' ? '租赁合同' : 
-                           result.model === 'bert' ? '服务合作协议' : 
-                           '债权转让协议'}
-                        </span>
                       </div>
                       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-auto max-h-[240px]">
-                        <pre className="text-sm text-gray-700 whitespace-pre-wrap">{result.input}</pre>
+                        <pre className="text-sm text-gray-700 whitespace-pre-wrap">{results[activeResultIndex].input}</pre>
                       </div>
                     </div>
                     
-                    {result.output && (
-                      <div className="mb-6">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="text-xl">📊</div>
-                          <h4 className="font-semibold text-gray-900">模型分析结果</h4>
-                        </div>
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-auto max-h-[360px]">
-                          <pre className="text-sm text-gray-700 whitespace-pre-wrap">{result.output}</pre>
-                        </div>
-                        
-                        {/* 矛盾检测按钮及报告区域 - 三个模型各自独立的矛盾检测结果 */}
-                        <div className="mt-4">
-                          <button
-                            onClick={() => toggleConflictReport(index)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-amber-800 font-medium transition-colors duration-200"
-                          >
-                            <span>⚖️</span>
-                            矛盾检测
-                            <span className="text-xs bg-amber-200 px-2 py-0.5 rounded-full">
-                              {result.model === 'legalbert' && '2处矛盾'}
-                              {result.model === 'bert' && '2处矛盾'}
-                              {result.model === 'roberta' && '2处矛盾'}
-                            </span>
-                          </button>
-                          
-                          {/* 矛盾检测报告内容 - 各模型独立显示 */}
-                          {result.showConflict && (
-                            <div className="mt-4 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-200 px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                  <span className="text-2xl">⚖️</span>
-                                  <h3 className="text-lg font-bold text-gray-900">匹配和矛盾检测结果</h3>
-                                  <span className="ml-auto text-sm text-gray-500">
-                                    {result.model === 'legalbert' ? 'LegalBERT · 法律专用' : 
-                                     result.model === 'bert' ? 'BERT · 通用' : 'RoBERTa · 优化版'}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <div className="p-6 space-y-4">
-                                {/* LegalBERT 矛盾检测结果 - 租赁合同优先购买权 */}
-                                {result.model === 'legalbert' && (
-                                  <>
-                                    {/* 条目1 - 矛盾：通知期限与法定标准不符 */}
-                                    <div className="border-l-4 border-red-500 bg-red-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-red-600 font-bold text-base">1.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>出租人出卖租赁房屋的，应当在出卖之前的合理期限内通知承租人，承租人享有以同等条件优先购买的权利；但是，房屋按份共有人行使优先购买权或者出租人将房屋出卖给近亲属的除外。出租人履行通知义务后，承租人在十五日内未明确表示购买的，视为承租人放弃优先购买权。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                                              <span>❌</span> 存在矛盾
-                                            </span>
-                                            <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                                              高风险
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* 条目2 - 符合：优先购买权约定合规 */}
-                                    <div className="border-l-4 border-green-500 bg-green-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-green-600 font-bold text-base">2.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>出租人委托拍卖人拍卖租赁房屋的，应当在拍卖五日前通知承租人。承租人未参加拍卖的，视为放弃优先购买权。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                              <span>✔</span> 符合相关法律约束
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* 条目3 - 矛盾：赔偿条款未明确标准 */}
-                                    <div className="border-l-4 border-red-500 bg-red-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-red-600 font-bold text-base">3.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">出租人未通知承租人或者有其他妨害承租人行使优先购买权情形的，承租人可以请求出租人承担赔偿责任。但是，出租人与第三人订立的房屋买卖合同的效力不受影响。出租人委托拍卖人拍卖租赁房屋的，应当在拍卖五日前通知承租人。承租人未参加拍卖的，视为放弃优先购买权。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                                              <span>❌</span> 存在矛盾
-                                            </span>
-                                            <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                                              中风险
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </>
-                                )}
-                                
-                                {/* BERT 矛盾检测结果 - 活动策划违约责任 */}
-                                {result.model === 'bert' && (
-                                  <>
-                                    {/* 条目1 - 矛盾：单方扣款权限定不明 */}
-                                    <div className="border-l-4 border-red-500 bg-red-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-red-600 font-bold text-base">1.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>当事人一方不履行合同义务或者履行合同义务不符合约定的，应当承担继续履行、采取补救措施或者赔偿损失等违约责任。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                                              <span>❌</span> 存在矛盾
-                                            </span>
-                                            <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                                              高风险
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* 条目2 - 矛盾：损害赔偿范围不明确 */}
-                                    <div className="border-l-4 border-red-500 bg-red-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-red-600 font-bold text-base">2.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>当事人可以约定一方违约时应当根据违约情况向对方支付一定数额的违约金，也可以约定因违约产生的损失赔偿额的计算方法。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                                              <span>❌</span> 存在矛盾
-                                            </span>
-                                            <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                                              高风险
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* 条目3 - 符合：违约责任承担方式合规 */}
-                                    <div className="border-l-4 border-green-500 bg-green-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-green-600 font-bold text-base">3.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>承揽人将其承揽的主要工作交由第三人完成的，应当就该第三人完成的工作成果向定作人负责；未经定作人同意的，定作人也可以解除合同。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                              <span>✔</span> 符合相关法律约束
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </>
-                                )}
-                                
-                                {/* RoBERTa 矛盾检测结果 - 债权转让通知 */}
-                                {result.model === 'roberta' && (
-                                  <>
-                                    {/* 条目1 - 符合：书面通知义务合规 */}
-                                    <div className="border-l-4 border-green-500 bg-green-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-green-600 font-bold text-base">1.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>债权人转让债权，未通知债务人的，该转让对债务人不发生效力。债权转让的通知不得撤销，但是经受让人同意的除外。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                              <span>✔</span> 符合相关法律约束
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* 条目2 - 矛盾：抗辩权告知义务缺失 */}
-                                    <div className="border-l-4 border-red-500 bg-red-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-red-600 font-bold text-base">2.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>债务人接到债权转让通知后，债务人对让与人的抗辩，可以向受让人主张。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                                              <span>❌</span> 存在矛盾
-                                            </span>
-                                            <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                                              中风险
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* 条目3 - 矛盾：抵销权适用条件不完整 */}
-                                    <div className="border-l-4 border-red-500 bg-red-50/30 rounded-r-lg p-4">
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-red-600 font-bold text-base">3.</span>
-                                        <div className="flex-1">
-                                          <p className="text-gray-800 text-sm leading-relaxed">
-                                            <span className="font-medium">合同条款：</span>有下列情形之一的，债务人可以向受让人主张抵销：（一）债务人接到债权转让通知时，债务人对让与人享有债权，并且债务人的债权先于转让的债权到期或者同时到期；（二）债务人的债权与转让的债权是基于同一合同产生。
-                                          </p>
-                                          <div className="flex items-center gap-3 mt-3">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                                              <span>❌</span> 存在矛盾
-                                            </span>
-                                            <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                                              高风险
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                              
-                              {/* 报告底部 - 各模型独立统计 */}
-                              <div className="bg-gray-50 border-t border-gray-200 px-6 py-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-gray-500">
-                                    检测时间: {new Date().toLocaleString('zh-CN')}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    {result.model === 'legalbert' && '⚠️ 发现 2 处潜在矛盾，1 处合规'}
-                                    {result.model === 'bert' && '⚠️ 发现 2 处潜在矛盾，1 处合规'}
-                                    {result.model === 'roberta' && '⚠️ 发现 2 处潜在矛盾，1 处合规'}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between gap-3">
+                        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <span className="text-xl">⚖️</span>
+                          匹配和矛盾检测结果
+                        </h4>
+                        <button
+                          onClick={() => toggleConflictReport(activeResultIndex)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-amber-800 font-medium transition-colors duration-200"
+                        >
+                          <span>{results[activeResultIndex].showConflict ? '收起' : '展开'}</span>
+                          <span className="text-xs bg-amber-200 px-2 py-0.5 rounded-full">
+                            {Array.isArray(results[activeResultIndex].inferenceResults) ? `${results[activeResultIndex].inferenceResults.length} 条法条` : '0 条法条'}
+                          </span>
+                        </button>
                       </div>
-                    )}
 
-                    {result.error && (
+                      {results[activeResultIndex].showConflict && (
+                        <div className="mt-4 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-200 px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">⚖️</span>
+                              <h3 className="text-lg font-bold text-gray-900">匹配和矛盾检测结果</h3>
+                              <span className="ml-auto text-sm text-gray-500">{getModelDisplayName(results[activeResultIndex].model)}</span>
+                            </div>
+                          </div>
+
+                          <div className="p-6 space-y-4">
+                            {Array.isArray(results[activeResultIndex].inferenceResults) && results[activeResultIndex].inferenceResults.length > 0 ? (
+                              results[activeResultIndex].inferenceResults.map((item, itemIndex) => {
+                                const meta = getConflictMeta(item?.conflict);
+                                const styles = getConflictStyles(item?.conflict);
+                                return (
+                                  <div key={`${results[activeResultIndex].model}-${itemIndex}-${item?.law_num || 'unknown'}`} className={styles.card}>
+                                    <div className="flex items-start gap-3">
+                                      <span className={`${styles.index} font-bold text-base`}>{itemIndex + 1}.</span>
+                                      <div className="flex-1">
+                                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                                          <span className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700">
+                                            《{item?.law_cate || '未知法典'}》
+                                          </span>
+                                          <span className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700">
+                                            第 {item?.law_num || '-'} 条
+                                          </span>
+                                        </div>
+                                        <p className="text-gray-800 text-sm leading-relaxed">
+                                          <span className="font-medium">法条内容：</span>
+                                          {item?.law_text || '暂无法条内容'}
+                                        </p>
+                                        <div className="flex items-center gap-3 mt-3">
+                                          <span className={styles.badge}>
+                                            <span>{Number(item?.conflict) === 1 ? '❌' : '✔'}</span>
+                                            {meta.label}
+                                          </span>
+                                          <span className={styles.riskBadge}>
+                                            {meta.risk}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="border border-dashed border-gray-300 rounded-lg p-6 text-sm text-gray-500 text-center">
+                                后端未返回匹配法条。
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="bg-gray-50 border-t border-gray-200 px-6 py-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">
+                                检测时间: {new Date().toLocaleString('zh-CN')}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {`高风险 ${Array.isArray(results[activeResultIndex].inferenceResults) ? results[activeResultIndex].inferenceResults.filter((item) => Number(item?.conflict) === 1).length : 0} 条，低风险 ${Array.isArray(results[activeResultIndex].inferenceResults) ? results[activeResultIndex].inferenceResults.filter((item) => Number(item?.conflict) !== 1).length : 0} 条`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {results[activeResultIndex].error && (
                       <div>
                         <div className="flex items-center gap-2 mb-3">
                           ⚠️
                           <h4 className="font-semibold text-red-600">错误信息</h4>
                         </div>
                         <div className="bg-red-50 border border-red-200 rounded-lg p-4 overflow-auto max-h-[80px]">
-                          <pre className="text-sm text-red-700 whitespace-pre-wrap">{result.error}</pre>
+                          <pre className="text-sm text-red-700 whitespace-pre-wrap">{results[activeResultIndex].error}</pre>
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
-              ))}
+              ) : null}
             </div>
           </div>
         ) : null}
@@ -1302,13 +1212,18 @@ const ProvBench = () => {
                         <span className="text-xs text-blue-600 animate-pulse">动态测试中...</span>
                       ) : performanceError[model] ? (
                         <span className="text-xs text-red-600" title={performanceError[model]}>加载失败</span>
-                      ) : (
+                      ) : isPerformanceReady(model) ? (
                         <span className="text-xs text-green-600">已完成</span>
+                      ) : (
+                        <span className="text-xs text-amber-600">未完成</span>
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
                       最近更新：{performanceUpdatedAt[model] || (performanceError[model] ? '失败' : '未测试')}
                     </p>
+                    {performanceError[model] && (
+                      <p className="mt-2 text-xs text-red-600">{performanceError[model]}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1387,8 +1302,15 @@ const ProvBench = () => {
                 </table>
               </div>
 
-              <div className="mt-6 text-sm text-gray-500">
+              <div className="mt-6 flex flex-col gap-3 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
                 <p>注：R@1、R@3、R@5表示召回率。LegalBERT在法律条文推荐任务中综合表现最佳。</p>
+                <button
+                  onClick={rerunPerformanceMetrics}
+                  disabled={isAnyPerformanceLoading}
+                  className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAnyPerformanceLoading ? '重新测试中...' : '重新测试'}
+                </button>
               </div>
             </div>
 

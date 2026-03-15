@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import ReactECharts from 'echarts-for-react';
 import { camceeApi } from '@/utils/apiBase';
+
+const DATASET_UPLOAD_API_PATH = '/api/camcee/datasets/upload';
+const DATASET_DOWNLOAD_API_PATH = '/api/camcee/datasets/download';
+const CAMCEE_CACHE_TTL_MS = Number(import.meta.env.VITE_CAMCEE_CACHE_TTL_MS || (30 * 60 * 1000));
+
+const getCamceeTrainingCacheKey = () => {
+  if (typeof window === 'undefined') {
+    return 'camcee:training:guest';
+  }
+
+  try {
+    const userRaw = window.localStorage.getItem('user');
+    if (!userRaw) return 'camcee:training:guest';
+    const user = JSON.parse(userRaw);
+    const userId = user?.id || user?.userId || user?.email || user?.username || 'guest';
+    return `camcee:training:${userId}`;
+  } catch {
+    return 'camcee:training:guest';
+  }
+};
 
 const normalizeExtractionResponse = (raw) => {
   const payload = raw?.data && typeof raw.data === 'object' ? raw.data : raw;
@@ -40,13 +59,49 @@ const normalizeExtractionResponse = (raw) => {
 
 const extractTrainingStats = (data) => {
   const logText = (data?.trainingLogs || []).join('\n');
-  const outputLinesMatch = logText.match(/输出行数:\s*([0-9]+)/);
-  const finishedAtMatch = logText.match(/完成时间:\s*([0-9-:\s]+)/);
+  const accuracyMatch = logText.match(/accuracy:\s*([0-9]+(?:\.[0-9]+)?)/i);
+  const recallMatch = logText.match(/recall:\s*([0-9]+(?:\.[0-9]+)?)/i);
+  const toPercent = (value) => {
+    const parsed = Number.parseFloat(value);
+    if (!Number.isFinite(parsed)) return '-';
+    return `${(parsed * 100).toFixed(2)}%`;
+  };
 
   return {
-    outputLines: outputLinesMatch?.[1] || '-',
-    finishedAt: finishedAtMatch?.[1]?.trim() || '-',
     requestedAt: data?.requestedAt || '-',
+    accuracy: accuracyMatch?.[1] ? toPercent(accuracyMatch[1]) : '-',
+    recall: recallMatch?.[1] ? toPercent(recallMatch[1]) : '-',
+  };
+};
+
+const normalizeDatasetResponse = (raw) => {
+  const payload = raw?.data && typeof raw.data === 'object' ? raw.data : raw;
+  const rawDatasets =
+    payload?.datasets ||
+    payload?.results ||
+    payload?.items ||
+    payload?.list ||
+    payload?.files ||
+    payload;
+
+  const datasets = Array.isArray(rawDatasets)
+    ? rawDatasets.map((item, index) => ({
+        id: typeof item === 'string' ? index + 1 : (item?.id ?? item?.dataset_id ?? index + 1),
+        name: typeof item === 'string' ? item : (item?.name || item?.dataset_name || item?.title || item?.filename || `数据集${index + 1}`),
+        samples: typeof item === 'string' ? '-' : (item?.samples ?? item?.sample_count ?? item?.count ?? '-'),
+        status: typeof item === 'string' ? '可用' : (item?.status || item?.state || '可用'),
+      }))
+    : [];
+
+  const totalSamples = datasets.reduce((sum, item) => {
+    const value = Number(item?.samples);
+    return Number.isFinite(value) ? sum + value : sum;
+  }, 0);
+
+  return {
+    totalDatasets: payload?.totalDatasets ?? payload?.total ?? payload?.count ?? datasets.length,
+    totalSamples: payload?.totalSamples ?? payload?.sampleTotal ?? totalSamples,
+    datasets,
   };
 };
 
@@ -58,22 +113,261 @@ const CAMCEE = () => {
   
   // 响应式数据
   const [activeTab, setActiveTab] = React.useState('extraction');
-  const [loading, setLoading] = React.useState(false);
-  const [result, setResult] = React.useState(null);
-  const [error, setError] = React.useState('');
+  const [extractionLoading, setExtractionLoading] = React.useState(false);
+  const [extractionResult, setExtractionResult] = React.useState(null);
+  const [extractionError, setExtractionError] = React.useState('');
+  const [trainingLoading, setTrainingLoading] = React.useState(false);
+  const [trainingResult, setTrainingResult] = React.useState(null);
+  const [trainingError, setTrainingError] = React.useState('');
+  const [trainingCacheReady, setTrainingCacheReady] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState(null);
+  const [datasets, setDatasets] = React.useState([]);
+  const [datasetSummary, setDatasetSummary] = React.useState({ totalDatasets: 0, totalSamples: 0 });
+  const [datasetLoading, setDatasetLoading] = React.useState(false);
+  const [datasetUploading, setDatasetUploading] = React.useState(false);
+  const [datasetDownloading, setDatasetDownloading] = React.useState('');
+  const [datasetError, setDatasetError] = React.useState('');
+  const [datasetSuccess, setDatasetSuccess] = React.useState('');
+  const [selectedDataset, setSelectedDataset] = React.useState('');
+  const datasetFileInputRef = React.useRef(null);
 
   // 处理标签页切换
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
-    setResult(null);
-    setError('');
+  };
+
+  const loadDatasets = async () => {
+    setDatasetLoading(true);
+    setDatasetError('');
+    try {
+      const response = await fetch(camceeApi('/api/camcee/datasets'), {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `请求失败(${response.status})`);
+      }
+
+      const payload = await response.json();
+      const normalized = normalizeDatasetResponse(payload);
+      setDatasets(normalized.datasets);
+      setDatasetSummary({
+        totalDatasets: normalized.totalDatasets,
+        totalSamples: normalized.totalSamples,
+      });
+      setSelectedDataset((prev) => {
+        if (prev && normalized.datasets.some((item) => String(item.id) === String(prev))) {
+          return prev;
+        }
+        return normalized.datasets[0] ? String(normalized.datasets[0].id) : '';
+      });
+      return normalized;
+    } catch (err) {
+      setDatasetError(err.message || '数据集加载失败，请重试');
+      throw err;
+    } finally {
+      setDatasetLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDatasets().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const cachedRaw = window.localStorage.getItem(getCamceeTrainingCacheKey());
+      if (!cachedRaw) return;
+
+      const cached = JSON.parse(cachedRaw);
+      if (!cached?.expiresAt || cached.expiresAt <= Date.now()) {
+        window.localStorage.removeItem(getCamceeTrainingCacheKey());
+        return;
+      }
+
+      if (cached?.trainingResult) {
+        setTrainingResult(cached.trainingResult);
+      }
+      if (typeof cached?.trainingError === 'string') {
+        setTrainingError(cached.trainingError);
+      }
+      if (typeof cached?.selectedDataset === 'string') {
+        setSelectedDataset((prev) => prev || cached.selectedDataset);
+      }
+    } catch {
+      // 忽略训练缓存恢复异常
+    } finally {
+      setTrainingCacheReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !trainingCacheReady) return;
+
+    try {
+      const cacheKey = getCamceeTrainingCacheKey();
+      const hasTrainingCache = !!trainingResult || !!trainingError;
+      if (!hasTrainingCache) {
+        window.localStorage.removeItem(cacheKey);
+        return;
+      }
+
+      window.localStorage.setItem(cacheKey, JSON.stringify({
+        trainingResult,
+        trainingError,
+        selectedDataset,
+        expiresAt: Date.now() + CAMCEE_CACHE_TTL_MS,
+      }));
+    } catch {
+      // 忽略训练缓存写入异常
+    }
+  }, [trainingCacheReady, trainingResult, trainingError, selectedDataset]);
+
+  const validateJsonlFile = async (file) => {
+    if (!file || !/\.jsonl$/i.test(file.name)) {
+      throw new Error('仅支持上传 .jsonl 格式的数据集文件');
+    }
+
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      throw new Error('JSONL 文件内容不能为空');
+    }
+
+    for (let index = 0; index < lines.length; index += 1) {
+      try {
+        JSON.parse(lines[index]);
+      } catch {
+        throw new Error(`JSONL 格式校验失败：第 ${index + 1} 行不是合法 JSON`);
+      }
+    }
+  };
+
+  const resolveUploadFileName = (file) => {
+    const existingNames = new Set(datasets.map((dataset) => String(dataset.name).trim().toLowerCase()));
+    if (!existingNames.has(file.name.trim().toLowerCase())) {
+      return file.name;
+    }
+
+    const renamed = window.prompt('检测到同名数据集，请输入新的文件名（必须以 .jsonl 结尾）', file.name);
+    if (!renamed) {
+      throw new Error('已取消上传');
+    }
+
+    const trimmed = renamed.trim();
+    if (!/\.jsonl$/i.test(trimmed)) {
+      throw new Error('重命名后的文件必须是 .jsonl 格式');
+    }
+
+    if (existingNames.has(trimmed.toLowerCase())) {
+      throw new Error('重命名后仍与现有数据集重名，请更换名称后重试');
+    }
+
+    return trimmed;
+  };
+
+  const uploadDataset = async (file) => {
+    setDatasetUploading(true);
+    setDatasetError('');
+    setDatasetSuccess('');
+
+    try {
+      await validateJsonlFile(file);
+      const finalName = resolveUploadFileName(file);
+      const uploadFile = finalName === file.name
+        ? file
+        : new File([file], finalName, { type: file.type || 'application/json' });
+
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('filename', finalName);
+
+      const response = await fetch(camceeApi(DATASET_UPLOAD_API_PATH), {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `请求失败(${response.status})`);
+      }
+
+      const payload = await response.json();
+      if (payload?.status !== 'success') {
+        throw new Error(payload?.message || '上传失败');
+      }
+
+      setDatasetSuccess(`上传成功：${payload.filename || finalName}`);
+      await loadDatasets();
+    } catch (err) {
+      setDatasetError(err.message || '上传数据集失败，请重试');
+    } finally {
+      setDatasetUploading(false);
+      if (datasetFileInputRef.current) {
+        datasetFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDatasetFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await uploadDataset(file);
+  };
+
+  const downloadDataset = async (datasetName) => {
+    if (!datasetName) return;
+
+    setDatasetDownloading(datasetName);
+    setDatasetError('');
+    setDatasetSuccess('');
+
+    try {
+      const query = new URLSearchParams({ dataset: datasetName }).toString();
+      const response = await fetch(camceeApi(`${DATASET_DOWNLOAD_API_PATH}?${query}`), {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `请求失败(${response.status})`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = datasetName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setDatasetSuccess(`下载成功：${datasetName}`);
+    } catch (err) {
+      setDatasetError(err.message || '下载数据集失败，请重试');
+    } finally {
+      setDatasetDownloading('');
+    }
+  };
+
+  const getSelectedDatasetName = () => {
+    const currentDataset = datasets.find((dataset) => String(dataset.id) === String(selectedDataset));
+    return currentDataset?.name || '';
   };
 
   const runExtraction = async () => {
-    setLoading(true);
-    setError('');
-    setResult(null);
+    setExtractionLoading(true);
+    setExtractionError('');
+    setExtractionResult(null);
     try {
       const requestOptions = { method: 'POST' };
       if (selectedFile) {
@@ -92,25 +386,29 @@ const CAMCEE = () => {
       }
 
       const data = await response.json();
-      setResult({
+      setExtractionResult({
         success: true,
         message: '要素提取成功',
         data: normalizeExtractionResponse(data),
       });
     } catch (err) {
-      setError(err.message || '要素提取失败，请重试');
+      setExtractionError(err.message || '要素提取失败，请重试');
     } finally {
-      setLoading(false);
+      setExtractionLoading(false);
     }
   };
 
   const runTrainingByExtractionApi = async () => {
-    setLoading(true);
-    setError('');
-    const apiPath = '/api/camcee/extraction';
+    setTrainingLoading(true);
+    setTrainingError('');
+    const datasetName = getSelectedDatasetName();
+    const apiQuery = datasetName
+      ? `?${new URLSearchParams({ dataset: datasetName }).toString()}`
+      : '';
+    const apiPath = `/api/camcee/extraction${apiQuery}`;
     const startedAt = new Date().toLocaleString();
 
-    setResult({
+    setTrainingResult({
       success: true,
       message: '训练进行中',
       data: {
@@ -119,6 +417,7 @@ const CAMCEE = () => {
         elements: [],
         rawResponse: '',
         requestedAt: startedAt,
+        datasetName,
         requestPath: apiPath,
         trainingLogs: ['开始请求训练接口...'],
         finished: false,
@@ -127,7 +426,7 @@ const CAMCEE = () => {
 
     const appendTrainingLog = (line) => {
       if (!line) return;
-      setResult((prev) => {
+      setTrainingResult((prev) => {
         if (!prev?.data) return prev;
         return {
           ...prev,
@@ -141,7 +440,7 @@ const CAMCEE = () => {
 
     const mergeTrainingSnapshot = (payload) => {
       const normalized = normalizeExtractionResponse(payload);
-      setResult((prev) => {
+      setTrainingResult((prev) => {
         if (!prev?.data) return prev;
         return {
           ...prev,
@@ -224,7 +523,7 @@ const CAMCEE = () => {
           handleLine(buffer);
         }
 
-        setResult((prev) => ({
+        setTrainingResult((prev) => ({
           ...prev,
           message: '训练完成',
           data: {
@@ -237,7 +536,7 @@ const CAMCEE = () => {
         const payload = await response.json();
         mergeTrainingSnapshot(payload);
         appendTrainingLog('已收到 JSON 结果');
-        setResult((prev) => ({
+        setTrainingResult((prev) => ({
           ...prev,
           message: '训练完成',
           data: {
@@ -254,7 +553,7 @@ const CAMCEE = () => {
         } catch {
           // 文本模式下不强制要求 JSON
         }
-        setResult((prev) => ({
+        setTrainingResult((prev) => ({
           ...prev,
           message: '训练完成',
           data: {
@@ -265,9 +564,9 @@ const CAMCEE = () => {
         }));
       }
     } catch (err) {
-      setError(err.message || '接口请求失败，请重试');
+      setTrainingError(err.message || '接口请求失败，请重试');
     } finally {
-      setLoading(false);
+      setTrainingLoading(false);
     }
   };
 
@@ -283,56 +582,7 @@ const CAMCEE = () => {
       return;
     }
 
-    setLoading(true);
-    setError('');
-    try {
-      // 模拟网络延迟
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // 根据不同操作返回不同结果
-      let response;
-      switch (action) {
-        case 'manage':
-          response = {
-            success: true,
-            message: '数据集加载成功',
-            data: {
-              totalDatasets: 20,
-              totalSamples: 5000,
-              datasets: [
-                { id: 1, name: '买卖合同数据集', samples: 1000, status: '可用' },
-                { id: 2, name: '租赁合同数据集', samples: 303, status: '可用' },
-                { id: 3, name: '保险合同数据集', samples: 302, status: '可用' }
-              ]
-            }
-          };
-          break;
-        case 'evaluate':
-          response = {
-            success: true,
-            message: '模型评估完成',
-            data: {
-              precision:92.33,
-              f1Score:85.62,
-              confusionMatrix: {
-                truePositive: 895,
-                falsePositive: 55,
-                trueNegative: 905,
-                falseNegative: 45
-              }
-            }
-          };
-          break;
-        default:
-          throw new Error('无效操作');
-      }
-      
-      setResult(response);
-    } catch (err) {
-      setError(err.message || '操作失败，请重试');
-    } finally {
-      setLoading(false);
-    }
+    throw new Error('无效操作');
   };
 
   // 要素提取模块
@@ -353,10 +603,10 @@ const CAMCEE = () => {
               />
               <button
                 onClick={() => simulateApiRequest('extract')}
-                disabled={loading}
+                disabled={extractionLoading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
+                {extractionLoading ? (
                   <span className="flex items-center gap-2">
                     <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -389,7 +639,7 @@ const CAMCEE = () => {
       </div>
       
       {/* 结果展示 */}
-      {result && result.success && (
+      {extractionResult && extractionResult.success && (
         <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
           <h4 className="text-lg font-semibold text-green-800 mb-4">提取结果</h4>
           
@@ -397,11 +647,11 @@ const CAMCEE = () => {
           <div className="flex gap-8 mb-6 pb-6 border-b border-gray-200">
             <div>
               <p className="text-sm text-gray-600 mb-2">合同名称</p>
-              <p className="text-lg font-medium">{result.data.contractName}</p>
+              <p className="text-lg font-medium">{extractionResult.data.contractName}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600 mb-2">提取要素数量</p>
-              <p className="text-lg font-medium text-blue-600">{result.data.extractedElements}个</p>
+              <p className="text-lg font-medium text-blue-600">{extractionResult.data.extractedElements}个</p>
             </div>
           </div>
           
@@ -418,7 +668,7 @@ const CAMCEE = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {result.data.elements.map((element, index) => (
+                  {extractionResult.data.elements.map((element, index) => (
                     <tr key={index} className="border-b border-gray-200 hover:bg-blue-50 transition-colors">
                       <td className="px-4 py-3 text-gray-600">{index + 1}</td>
                       <td className="px-4 py-3 font-medium text-gray-900">{element.name}</td>
@@ -432,109 +682,11 @@ const CAMCEE = () => {
         </div>
       )}
       
-      {error && (
+      {extractionError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="text-red-500 text-xl">❌</div>
-            <h4 className="text-lg font-semibold text-red-800">{error}</h4>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  // 模型训练模块
-  const TrainingModule = () => (
-    <div className="space-y-6">
-      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-        <h3 className="text-lg font-semibold text-green-800 mb-3">模型训练与优化</h3>
-        <p className="text-gray-700 mb-4">该模块负责CAM-CEE模型的训练与优化，支持多种训练策略和超参数调整。</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择训练数据集</label>
-            <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4">
-              <option>买卖合同数据集</option>
-              <option>租赁合同数据集</option>
-              <option>保险合同数据集</option>
-            </select>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">学习率</label>
-                <input type="number" placeholder="0.001" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" step="0.0001" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">迭代次数</label>
-                <input type="number" placeholder="50" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" min="1" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex flex-col justify-end">
-            <button
-              onClick={() => simulateApiRequest('train')}
-              disabled={loading}
-              className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  训练中...
-                </span>
-              ) : (
-                '开始训练'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* 训练结果 */}
-      {result && result.success && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">训练结果</h4>
-          <div className="mb-2 text-xs text-gray-500">
-            请求接口：{result.data.requestPath || '/api/camcee/extraction'}
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-            <p className="text-sm font-medium text-green-800 mb-2">训练过程日志（动态）</p>
-            <div className="max-h-56 overflow-auto bg-white border border-green-100 rounded p-3">
-              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all">
-                {(result.data.trainingLogs || []).join('\n')}
-              </pre>
-            </div>
-            {!result.data.finished && (
-              <p className="text-xs text-green-700 mt-2">训练进行中，日志会持续更新...</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">输出行数</p>
-              <p className="text-base font-semibold text-green-700">{extractTrainingStats(result.data).outputLines}</p>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">完成时间</p>
-              <p className="text-base font-semibold text-blue-700">{extractTrainingStats(result.data).finishedAt}</p>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">请求时间</p>
-              <p className="text-base font-semibold text-orange-700">{extractTrainingStats(result.data).requestedAt}</p>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="text-red-500 text-xl">❌</div>
-            <h4 className="text-lg font-semibold text-red-800">{error}</h4>
+            <h4 className="text-lg font-semibold text-red-800">{extractionError}</h4>
           </div>
         </div>
       )}
@@ -546,21 +698,36 @@ const CAMCEE = () => {
     <div className="space-y-6">
       <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
         <h3 className="text-lg font-semibold text-purple-800 mb-3">数据集管理</h3>
-        <p className="text-gray-700 mb-4">该模块负责管理用于训练和测试的数据集，支持数据集的上传、下载、标注和预处理。</p>
+        <p className="text-gray-700 mb-4">该模块负责管理用于训练和测试的数据集，支持数据集的上传、下载。</p>
         
         <div className="flex flex-wrap gap-3 mb-6">
-          <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
-            📁 上传数据集
+          <input
+            ref={datasetFileInputRef}
+            type="file"
+            accept=".jsonl"
+            onChange={handleDatasetFileChange}
+            className="hidden"
+          />
+          <button
+            onClick={() => datasetFileInputRef.current?.click()}
+            disabled={datasetUploading || datasetLoading}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {datasetUploading ? '⏫ 上传中...' : '📁 上传数据集'}
           </button>
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2">
+          <button
+            onClick={() => loadDatasets().catch(() => {})}
+            disabled={datasetLoading || datasetUploading}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             🔄 刷新列表
           </button>
           <button
-            onClick={() => simulateApiRequest('manage')}
-            disabled={loading}
+            onClick={() => loadDatasets().catch(() => {})}
+            disabled={datasetLoading || datasetUploading}
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (
+            {datasetLoading ? (
               <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -573,23 +740,29 @@ const CAMCEE = () => {
       </div>
       
       {/* 数据集结果 */}
-      {result && result.success && (
+      {datasetSuccess && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="text-green-500 text-xl">✅</div>
+            <h4 className="text-lg font-semibold text-green-800">{datasetSuccess}</h4>
+          </div>
+        </div>
+      )}
+
+      {datasetError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="text-red-500 text-xl">❌</div>
+            <h4 className="text-lg font-semibold text-red-800">{datasetError}</h4>
+          </div>
+        </div>
+      )}
+
+      {datasets.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <div className="flex justify-between items-center mb-6">
+          <div className="mb-6">
             <div>
               <h4 className="text-lg font-semibold text-green-800">数据集列表</h4>
-              <p className="text-sm text-gray-600 mt-1">共{result.data.totalDatasets}个数据集，{result.data.totalSamples}个样本</p>
-            </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm hover:bg-blue-100 transition-colors">
-                全部
-              </button>
-              <button className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100 transition-colors">
-                可用
-              </button>
-              <button className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm hover:bg-yellow-100 transition-colors">
-                处理中
-              </button>
             </div>
           </div>
           
@@ -599,28 +772,28 @@ const CAMCEE = () => {
                 <tr>
                   <th scope="col" className="px-6 py-3">ID</th>
                   <th scope="col" className="px-6 py-3">数据集名称</th>
-                  <th scope="col" className="px-6 py-3">样本数量</th>
                   <th scope="col" className="px-6 py-3">状态</th>
-                  <th scope="col" className="px-6 py-3">操作</th>
+                  <th scope="col" className="px-6 py-3">下载</th>
                 </tr>
               </thead>
               <tbody>
-                {result.data.datasets.map((dataset) => (
+                {datasets.map((dataset) => (
                   <tr key={dataset.id} className="bg-white border-b hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-900">{dataset.id}</td>
                     <td className="px-6 py-4">{dataset.name}</td>
-                    <td className="px-6 py-4">{dataset.samples}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs ${dataset.status === '可用' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                         {dataset.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button className="text-blue-600 hover:text-blue-800">查看</button>
-                        <button className="text-green-600 hover:text-green-800">使用</button>
-                        <button className="text-red-600 hover:text-red-800">删除</button>
-                      </div>
+                      <button
+                        onClick={() => downloadDataset(dataset.name)}
+                        disabled={datasetDownloading === dataset.name}
+                        className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {datasetDownloading === dataset.name ? '下载中...' : '下载'}
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -629,136 +802,141 @@ const CAMCEE = () => {
           </div>
         </div>
       )}
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="text-red-500 text-xl">❌</div>
-            <h4 className="text-lg font-semibold text-red-800">{error}</h4>
-          </div>
-        </div>
-      )}
     </div>
   );
-
-  // 实验对比数据
-  const experimentData = [
-    { model: 'W2NER', accuracy: null, recall: 76.67 },
-    { model: 'Graph4CNER', accuracy: 89.15, recall: 62.28},
-    { model: 'LWICNER', accuracy: 81.82, recall: 74.62 },
-    { model: 'CAM-CEE', accuracy: 92.33, recall: 85.62 },
-  ];
-
-  // ECharts 配置
-  const getBarOption = (metric, name, color) => ({
-    tooltip: { trigger: 'axis' },
-    grid: { left: 40, right: 20, bottom: 40, top: 40 },
-    xAxis: {
-      type: 'category',
-      data: experimentData.map(d => d.model),
-      axisLabel: { rotate: 30 }
-    },
-    yAxis: {
-      type: 'value',
-      name,
-      min: 0
-    },
-    series: [
-      {
-        data: experimentData.map(d => d[metric] !== null ? d[metric] : '-'),
-        type: 'bar',
-        itemStyle: { color },
-        barWidth: 32,
-      }
-    ]
-  });
 
   // 模型评估模块
   const EvaluationModule = () => (
     <div className="space-y-6">
-      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+      <div className="bg-orange-50 rounded-lg shadow-md p-6 border border-orange-200">
         <h3 className="text-lg font-semibold text-orange-800 mb-3">模型评估</h3>
-        <p className="text-gray-700 mb-4">该模块负责评估CAM-CEE模型的性能，支持多种评估指标和可视化展示。</p>
-        
-        <div className="flex flex-wrap gap-3 mb-6">
+        <p className="text-gray-700 mb-4">该模块负责执行 CAM-CEE 模型测试并返回动态日志与评估指标。</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择模型版本</label>
-            <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              <option>v1.0.0 (当前版本)</option>
-              <option>v0.9.5</option>
-              <option>v0.9.0</option>
+            <label className="block text-sm font-medium text-gray-700 mb-2">选择测试数据集</label>
+            <select
+              value={selectedDataset}
+              onChange={(event) => setSelectedDataset(event.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            >
+              {datasets.length > 0 ? (
+                datasets.map((dataset) => (
+                  <option key={dataset.id} value={String(dataset.id)}>
+                    {dataset.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">暂无可用数据集</option>
+              )}
             </select>
           </div>
           <div className="flex items-end">
             <button
-              onClick={() => simulateApiRequest('evaluate')}
-              disabled={loading}
+              onClick={() => runTrainingByExtractionApi()}
+              disabled={trainingLoading}
               className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
+              {trainingLoading ? (
                 <span className="flex items-center gap-2">
                   <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  评估中...
+                  测试中...
                 </span>
               ) : (
-                '开始评估'
+                '开始测试'
               )}
             </button>
           </div>
         </div>
+
+        {trainingResult && trainingResult.success && (
+          <>
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+            <p className="text-sm font-medium text-orange-800 mb-2">测试过程动态展示</p>
+            <div className="max-h-56 overflow-auto bg-gray-50 border border-gray-200 rounded p-3">
+              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all">
+                {(trainingResult.data.trainingLogs || []).join('\n')}
+              </pre>
+            </div>
+            {!trainingResult.data.finished && (
+              <p className="text-xs text-orange-700 mt-2">测试进行中，日志会持续更新...</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-lg bg-orange-50 border border-orange-200 p-4">
+            <div className="bg-white p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">请求时间</p>
+              <p className="text-base font-semibold text-orange-700">{extractTrainingStats(trainingResult.data).requestedAt}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">准确率</p>
+              <p className="text-base font-semibold text-blue-700">{extractTrainingStats(trainingResult.data).accuracy}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">召回率</p>
+              <p className="text-base font-semibold text-purple-700">{extractTrainingStats(trainingResult.data).recall}</p>
+            </div>
+          </div>
+          </>
+        )}
       </div>
       
-      {/* 评估结果 */}
-      {result && result.success && (
-        <>
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">CAM-CEE 模型评估结果</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-gray-600 mb-1">精确率</p>
-                  <p className="text-2xl font-bold text-blue-700">{result.data.precision.toFixed(2) + '%'}</p>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-gray-600 mb-1">召回率</p>
-                  <p className="text-2xl font-bold text-purple-700">{result.data.f1Score.toFixed(2) + '%'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* 实验对比方案图 */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-orange-200 mt-6">
-          <h4 className="text-lg font-semibold text-orange-800 mb-4">实验对比方案图</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <ReactECharts option={getBarOption('accuracy', 'Accuracy/%', '#5470C6')} style={{height: 320}} />
-              <div className="text-center text-sm text-gray-500 mt-2">Accuracy/%</div>
-            </div>
-            <div>
-              <ReactECharts option={getBarOption('recall', 'Recall/%', '#91CC75')} style={{height: 320}} />
-              <div className="text-center text-sm text-gray-500 mt-2">Recall/%</div>
-            </div>
-          </div>
-        </div>
-        </>
-      )}
-      
-      {error && (
+      {trainingError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="text-red-500 text-xl">❌</div>
-            <h4 className="text-lg font-semibold text-red-800">{error}</h4>
+            <h4 className="text-lg font-semibold text-red-800">{trainingError}</h4>
           </div>
         </div>
       )}
     </div>
   );
-  const EChartsComponent = ReactECharts;
+
+  const TrainingModule = () => (
+    <div className="space-y-6">
+      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+        <h3 className="text-lg font-semibold text-green-800 mb-3">模型训练与优化</h3>
+        <p className="text-gray-700 mb-4">训练页签已保留，等待接入新的训练接口后再启用真实训练流程。</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">训练数据集</label>
+            <select
+              value={selectedDataset}
+              onChange={(event) => setSelectedDataset(event.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            >
+              {datasets.length > 0 ? (
+                datasets.map((dataset) => (
+                  <option key={dataset.id} value={String(dataset.id)}>
+                    {dataset.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">暂无可用数据集</option>
+              )}
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <button
+              disabled
+              className="w-full px-4 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed"
+            >
+              训练接口待接入
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-200 p-6 text-sm text-gray-600">
+        当前评估页签使用的是测试执行接口；训练页签会在你补充新的训练接口后单独接入，不与评估流程复用。
+      </div>
+    </div>
+  );
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-8 px-4">
       {/* 页面标题 */}
