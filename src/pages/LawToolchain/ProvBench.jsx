@@ -782,11 +782,6 @@ const ProvBench = () => {
                   <div>
                     <h3 className="text-2xl font-bold text-white">输入合约内容</h3>
                     <p className="text-purple-100">请为 {getModelDisplayName(selectedModel)} 模型提供输入</p>
-                    <p className="text-purple-200 text-sm mt-1">
-                      {selectedModel === 'legalbert' ? '适合分析：租赁合同、买卖合同' : 
-                       selectedModel === 'bert' ? '适合分析：合作协议、服务合同' : 
-                       '适合分析：债权转让、劳动合同'}
-                    </p>
                   </div>
                 </div>
                 <button
@@ -819,7 +814,7 @@ const ProvBench = () => {
                 />
                 <div className="flex justify-between mt-2">
                   <span className="text-sm text-gray-500">
-                    {selectedModel === 'legalbert' ? '示例：租赁合同' : 
+                    {selectedModel === 'legalbert' ? '示例：法律合同文本' : 
                      selectedModel === 'bert' ? '示例：合作协议' : 
                      '示例：债权转让协议'}
                   </span>
@@ -857,7 +852,7 @@ const ProvBench = () => {
                 <div>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">提示：</span>
-                    {selectedModel === 'legalbert' ? 'LegalBERT专门针对法律文本优化，擅长识别租赁合同中的优先购买权、通知义务等条款。' : 
+                    {selectedModel === 'legalbert' ? 'LegalBERT专门针对法律文本优化，擅长识别法律合同中的关键权利义务与程序性条款。' : 
                      selectedModel === 'bert' ? 'BERT是通用语言模型，适合分析服务合同中的违约责任、扣款条款等商业约定。' : 
                      'RoBERTa在处理债权转让、抵销权等复杂法律条文方面表现更佳。'}
                   </p>
@@ -901,15 +896,15 @@ const ProvBench = () => {
             { 
               id: 'legalbert', 
               title: 'LegalBERT', 
-              description: '专门针对法律文本优化的BERT模型，在法律领域数据上进行预训练，擅长分析租赁合同、买卖合同等标准法律文书', 
-              tags: ['法律专用', '高精度', '租赁合同'], 
+              description: '专门针对法律文本优化的BERT模型，在法律领域数据上进行预训练，擅长分析各类合同与法律文本。', 
+              tags: ['法律专用', '高精度', '法律文本'], 
               icon: '📚', 
               color: 'primary' 
             },
             { 
               id: 'bert', 
               title: 'BERT', 
-              description: '经典的双向编码器表示模型，在多种NLP任务中表现优异，适合分析合作协议、服务合同等商业文书', 
+              description: '经典的双向编码器表示模型，在多种NLP任务中表现优异，适用于分析各类文本。', 
               tags: ['经典模型', '通用性强', '合作协议'], 
               icon: '💻', 
               color: 'success' 
@@ -917,8 +912,8 @@ const ProvBench = () => {
             { 
               id: 'roberta', 
               title: 'RoBERTa', 
-              description: '优化的BERT模型，采用改进的预训练策略和更大的训练数据，在处理债权转让、劳动合同等复杂法律条文方面表现更佳', 
-              tags: ['优化版本', '性能提升', '债权转让'], 
+              description: '优化的BERT模型，采用改进的预训练策略和更大的训练数据，在处理复杂法律条款时表现优异。', 
+              tags: ['优化版本', '性能提升'], 
               icon: '⚙️', 
               color: 'warning' 
             }
@@ -978,7 +973,7 @@ const ProvBench = () => {
                   <h4 className="text-xl font-bold text-gray-900 mb-2">模型执行中</h4>
                   <p className="text-gray-600">正在运行 {getModelDisplayName(currentExecution.model)} 模型，请耐心等待...</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {currentExecution.model === 'legalbert' ? '分析租赁合同优先购买权条款...' : 
+                    {currentExecution.model === 'legalbert' ? '分析法律文本中的关键权利义务条款...' : 
                      currentExecution.model === 'bert' ? '分析合作协议违约责任条款...' : 
                      '分析债权转让通知义务条款...'}
                   </p>

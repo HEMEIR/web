@@ -851,23 +851,20 @@ const CAMCEE = () => {
         <h3 className="text-lg font-semibold text-blue-800 mb-3">要素提取数据读取与执行</h3>
         <p className="text-gray-700 mb-4">该模块负责读取法律条文数据并执行要素提取，支持多种格式的数据输入和批量处理。</p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-stretch">
+          <div className="flex flex-col h-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">输入合同文本</label>
             <textarea
               value={extractionText}
               onChange={(event) => setExtractionText(event.target.value)}
               rows={6}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-y"
+              className="w-full flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none"
               placeholder="请输入需要进行要素提取的合同文本"
             />
-          </div>
-          
-          <div className="flex items-end">
             <button
               onClick={() => simulateApiRequest('extract')}
               disabled={extractionLoading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {extractionLoading ? (
                 <span className="flex items-center gap-2">
@@ -882,18 +879,11 @@ const CAMCEE = () => {
               )}
             </button>
           </div>
-        </div>
-      </div>
-      
-      {/* 结果展示 */}
-      {extractionResult && extractionResult.success && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
-          <h4 className="text-lg font-semibold text-green-800 mb-4">提取结果</h4>
 
-          <div className="mb-6">
+          <div className="flex flex-col h-full">
             <p className="text-sm text-gray-600 mb-3 font-semibold">原文分段高亮</p>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 leading-8">
-              {extractionResult.data.segments.length > 0 ? (
+            <div className="flex-1 min-h-[176px] bg-blue-50/60 border border-blue-200 rounded-lg p-4 leading-8">
+              {extractionResult?.data?.segments?.length > 0 ? (
                 extractionResult.data.segments.map((segment) => (
                   <span
                     key={segment.id}
@@ -909,10 +899,17 @@ const CAMCEE = () => {
                   </span>
                 ))
               ) : (
-                <span className="text-gray-500">后端未返回分段结果。</span>
+                <span className="text-gray-500">执行提取后，这里会根据后端返回结果动态高亮原文片段。</span>
               )}
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* 结果展示 */}
+      {extractionResult && extractionResult.success && (
+        <div className="bg-white rounded-lg shadow-md p-6 border border-green-200">
+          <h4 className="text-lg font-semibold text-green-800 mb-4">提取结果</h4>
 
           <div>
             <p className="text-sm text-gray-600 mb-4 font-semibold">识别出的实体要素</p>
