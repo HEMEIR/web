@@ -545,9 +545,9 @@ return (
       </div>
         <div className="bg-blue-50 p-6 rounded-xl mb-6 border border-blue-200">
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             {/* 左侧：原合同输入 - 简洁格式 */}
-            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 flex flex-col h-full">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
                   <div className="text-green-600 text-xl">📋</div>
@@ -558,9 +558,9 @@ return (
                 </div>
               </div>
               
-              <div className="mb-4">
+              <div className="mb-4 flex-1">
                 <textarea
-                  className="w-full h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                  className="w-full h-full min-h-[24rem] p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
                   value={originalContract}
                   onChange={(e) => setOriginalContract(e.target.value)}
                   placeholder="请上传或输入原合同内容..."
@@ -593,7 +593,7 @@ return (
             </div>
             
             {/* 右侧：两个框体竖着排列 */}
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 h-full">
               {/* 生成的标注结果框体 */}
               <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
                 <div className="flex justify-between items-center mb-4">
