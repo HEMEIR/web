@@ -489,101 +489,11 @@ const AutoContractTag = () => {
   };
 
 // 响应式数据
-const [originalContract, setOriginalContract] = useState(`省级红色文化遗址保护标志树立项目
-
-合同草案条款
-甲方（釆购人）：晋中市文化和旅游局
-统一社会信用代码：11140800558745220K
-乙方（成交人）：山西晋韵古建筑有限公司 统一社会信用代码：91140106713678575D
-鉴于2022年10月17日在山西汇鑫源工程招标代理有限公司组织进行的省 级红色文化遗址保护标志树立釆购项目（项目编号：sxhxy竞字［20221008）中， 经谈判小组评定，确定乙方为成交供应商。根据《中华人民共和国政府采购法》、 《中华人民共和国民法典》等相关法律法规及本项目谈判文件的规定，经双方协 商一致，签订本合同，并共同遵守。
-一、设备条款
-乙方向甲方提供供货明细表（附件一）中所列产品及相关服务，详细 参数见乙方响应文件。
-　　二、合同总金额
-　　人民币（大写）：壹拾玖万元整
-　　　　　（小写）：￥ 190000.00 	
-本合同总金额除双方另有约定外，包括与交货有关的费用（包括但不仅 限于运输费、包装费、保险费、税费等）等标准伴随服务的费用。此价格为合同 执行不变价，不因国家政策及市场价格变化而变化。
-三、支付方式
-1、本合同项下所有款项均以人民币支付。
-2、付款方式：付款方式是合同签订后支付百分之68,验收合格后支付剩余部分。
-3、付款时，乙方须出具符合税务部门要求的发票。
-四、交货
-1、 交货地点：晋中市文化和旅游局
-2 、交货时间：2022年12月10日 	
-3、在合同标的物之外，乙方不得提供、甲方不得接受赠品。
-　　4、乙方应在产品送至交货地点时提交如下资料：
-　　(1)有乙方、送货单位盖章确认的送货单原件。
-　　(2)有乙方与第三方签订的釆购订单原件。
-　　(3)合同约定的交货文件；
-　　(4)其他相关文件。
-如乙方未按约定完全提供上述资料，甲方有权要求乙方在五日内予以 补齐，并在补齐前不予支付货款(或要求退回已付款项)，对此不视为甲方违约。
-5、乙方提供的产品包装应能适应各种运输装卸，如甲方对产品包装 有要求的，还应按甲方要求包装，包装物处理按甲方要求。
-五、质量及验收
-1、质量标准：参照山西省红色文化遗址保护规格
-2、验收程序：安装完毕按技术参数标准验收
-3、质量异议：甲方对产品的质量提出异议时，甲方可要求乙方把产 品送有相应资质的部门检验鉴定。乙方应在收到质量异议七日内送检，送 检费用由乙方承担。若乙方不同意将产品送检或因乙方原因未送检的，视 为乙方认可甲方对产品质量提出的异议。
-六、售后服务
-1、质量保证期(2)年自甲方最终在《验收结算报告》上签字之日算 起。
-2、其它服务承诺详见乙方投标文件。
-七、甲方责任
-1、组织验收并及时办理付款手续。
-2、项目验收合格后。
-八、乙方责任
-1、权利保证
-1.乙方应保证甲方在使用该货物或其任何一部分时不受第三方提出侵犯其专 利权、版权、商标权或其他权利的起诉。一旦出现侵权，乙方应承担全部责任。
-　　2,保证所供货物均为响应文件承诺货物，符合相关质量检测标准， 具有该产品的出厂标准或国家鉴定证书。
-　　3、保证货物的售后服务，严格依据响应文件及相关承诺，对货物及 系统进行保修、维护等服务。
-　　九、违约责任
-　　1,如果甲方逾期付款，超过10日后，每日应向乙方偿付应付款项的 0.5%作为违约金；
-　　2,如果乙方没有按合同规定提供货物或维修服务的，每延迟一天扣 除合同总金额的0.5%的违约金，直至按合同交货或提供服务为止。违约金 最高限额为合同总金额的5%. 一旦达到该最高限额，甲方有权终止合同。 因此造成甲方损失的，乙方还应承担赔偿责任。
-　　3,乙方产品经经验收不合格的，乙方应负责免费更换-若无法更换 的，甲方有权拒收，若给甲方造成损失，乙方还应承担赔偿责任。
-　　十、补充条款
-　　　　无
-　　十—、不可抗力
-　　甲乙双方的任何一方由于不可抗力的原因不能履行合同时，应及时向对方通报不能履行或不能完全履行理由；在取得有关主管机关证明以后， 允许延期履行、部分履行或者不履行合同，并根据情况可部分或全部免予 承担违约责任。
-　　十二、争议解决
-　　1、因履行本合同发生的争议，由甲乙双方协商解决-协商不成的， 依法向甲方所在地人民法院起诉。
-　　2、当产生任何争议及争议正在诉讼程序时，除争议事项，双方应继 续行使其剩余的相关权利，履行本合同的其他义务。
-　　十三、合同生效及其他
-　　1、合同由甲乙双方法人或委托代理人签章确认并加盖骑缝章后，即行生效。
-　　2、本合同一式四份，甲乙双方各一份，山西汇鑫源工程招标代理有限公司两份。
-　　4、合同执行过程中出现的未尽事宜，双方在不违背合同和招标文件的前提下协商解决。协商结果以"补充合同"形式作为合同附件，与合同具有同等效力。
-　　5、本合同第十四、十五条款所列文件均为本合同不可分割的一部分，与本合同具有同等法律效力。
-　　十四、下列文件为本合同不可分割部分
-　　1、谈判文件
-　　2、响应文件
-　　3、乙方所做的其他承诺
-　　十五、附件明细
-　　1、供货明细表
-　　2、采购需求
-　　
-
-甲方（盖章)
-
-单位名称:晋中市文化和旅游局
-
-单位地址:晋中市榆次区顺城街80号
-
-法人或委托代理人:程红解
-
-
-日期:2022年10月20日
-
-乙方（盖章)
-
-单位名称:山西晋韵古建筑有限公司
-
-单位地址:太原市迎泽区老军营南区11号楼
-
-法人或委托代理人:能四升
-
-开户行:交通银行太啤新建南路支行
-账号:141000614018170030782
-行号:301161000203
-日期:2022年10月20日
-`);
-
+const [originalContract, setOriginalContract] = useState('');
 const [generatedContract, setGeneratedContract] = useState('');
+const [generatedAnnotation, setGeneratedAnnotation] = useState('');
 const [isGenerating, setIsGenerating] = useState(false);
+const [isGeneratingAnnotation, setIsGeneratingAnnotation] = useState(false);
 const [downloadUrl, setDownloadUrl] = useState('');
 const [fileInputRef] = useState(React.createRef());
 const [isAnnotationModalOpen, setIsAnnotationModalOpen] = useState(false);
@@ -738,6 +648,68 @@ const handleGenerateContract = () => {
   }, 2000);
 };
 
+// 模拟标注生成
+const handleGenerateAnnotation = () => {
+  if (!originalContract.trim()) {
+    alert('请输入原合同内容');
+    return;
+  }
+
+  setIsGeneratingAnnotation(true);
+  
+  // 模拟生成延迟
+  setTimeout(() => {
+    // 基于原合同生成标注结果
+    const annotationContent = `合同要素标注结果
+生成时间：${new Date().toLocaleString()}
+合同编号：CONTRACT-${new Date().getFullYear()}${(new Date().getMonth()+1).toString().padStart(2,'0')}${new Date().getDate().toString().padStart(2,'0')}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}
+
+【当事人信息】
+甲方：晋中市文化和旅游局（采购人）
+乙方：山西晋韵古建筑有限公司（成交人）
+
+【合同金额】
+总金额：190000.00元
+大写：壹拾玖万元整
+
+【支付条款】
+支付方式：合同签订后支付68%，验收合格后支付剩余部分
+
+【履行期限】
+签订日期：2022年10月20日
+交货日期：2022年12月10日
+
+【争议解决】
+管辖法院：甲方所在地人民法院
+
+【合同类型】
+合同性质：政府采购合同
+合同标的：省级红色文化遗址保护标志树立项目
+
+【关键条款】
+1. 违约金标准：逾期付款每日0.5%，逾期交货每日0.5%
+2. 质量保证期：2年
+3. 争议解决方式：协商→诉讼
+
+【标注统计】
+总字符数：${originalContract.length}
+提取要素数量：23个
+标注准确率：98.5%
+
+标注结果说明：
+- 红色标注：当事人信息（4处）
+- 蓝色标注：金额信息（2处）
+- 绿色标注：日期信息（3处）
+- 紫色标注：关键条款（8处）
+- 橙色标注：争议解决（2处）
+- 灰色标注：其他要素（4处）
+`;
+
+    setGeneratedAnnotation(annotationContent);
+    setIsGeneratingAnnotation(false);
+  }, 2500);
+};
+
 // 生成合同编号
 const generateContractNumber = () => {
   const date = new Date();
@@ -774,6 +746,11 @@ const clearGeneratedContract = () => {
     URL.revokeObjectURL(downloadUrl);
     setDownloadUrl('');
   }
+};
+
+// 清除生成的标注
+const clearGeneratedAnnotation = () => {
+  setGeneratedAnnotation('');
 };
 
 // 隐藏的文件输入
@@ -820,13 +797,13 @@ return (
           <div className="flex items-center gap-3 mb-4">
             <div className="text-blue-600 text-3xl">📄</div>
             <div>
-              <h2 className="text-2xl font-bold text-blue-800">合同生成系统</h2>
-              <p className="text-blue-600">基于AI的智能合同生成与标准化处理</p>
+              <h2 className="text-2xl font-bold text-blue-800">合同生成与标注系统</h2>
+              <p className="text-blue-600">基于AI的智能合同生成、标准化处理与自动标注</p>
             </div>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 左侧：原合同输入 */}
+            {/* 左侧：原合同输入 - 简洁格式 */}
             <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
@@ -839,17 +816,12 @@ return (
               </div>
               
               <div className="mb-4">
-                <div className="relative">
-                  <textarea
-                    className="w-full h-72 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
-                    value={originalContract}
-                    onChange={(e) => setOriginalContract(e.target.value)}
-                    placeholder="请输入或粘贴原合同内容..."
-                  />
-                  <div className="absolute bottom-2 right-2 text-xs text-gray-500">
-                    {originalContract.length} 字符
-                  </div>
-                </div>
+                <textarea
+                  className="w-full h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                  value={originalContract}
+                  onChange={(e) => setOriginalContract(e.target.value)}
+                  placeholder="请上传或输入原合同内容..."
+                />
               </div>
               
               <div className="flex flex-wrap gap-2 mb-4">
@@ -877,162 +849,233 @@ return (
               </div>
             </div>
             
-            {/* 右侧：生成的合同文档 */}
-            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="text-red-600 text-xl">📊</div>
-                  <h3 className="text-lg font-semibold text-gray-900">生成的合同文档</h3>
+            {/* 右侧：两个框体竖着排列 */}
+            <div className="flex flex-col gap-6">
+              {/* 生成的标注结果框体 */}
+              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="text-purple-600 text-xl">🔍</div>
+                    <h3 className="text-lg font-semibold text-gray-900">生成的标注结果</h3>
+                  </div>
+                  {generatedAnnotation && (
+                    <div className="text-sm">
+                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full">已标注</span>
+                    </div>
+                  )}
                 </div>
+                
+                <div className="mb-4">
+                  <div className="border border-gray-300 rounded-lg h-32 overflow-y-auto bg-gray-50 p-4 text-sm">
+                    {generatedAnnotation ? (
+                      <pre className="whitespace-pre-wrap font-mono text-gray-700">{generatedAnnotation}</pre>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <div className="text-4xl mb-2">🏷️</div>
+                        <p className="text-lg">生成的标注将显示在这里</p>
+                        <p className="text-sm mt-2">点击"生成标注"按钮进行合同要素标注</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* 生成统计信息 - 标注 */}
+                {generatedAnnotation && (
+                  <div className="grid grid-cols-3 gap-2 mt-4">
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500">标注时间</div>
+                      <div className="text-sm font-medium">2.5秒</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500">要素数量</div>
+                      <div className="text-sm font-medium">23个</div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* 标注结果清除按钮 */}
+                {generatedAnnotation && (
+                  <div className="flex justify-end mt-2">
+                    <button
+                      onClick={clearGeneratedAnnotation}
+                      className="text-xs text-gray-500 hover:text-red-600 transition-colors"
+                    >
+                      清空标注结果
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 生成的合同文档框体 */}
+              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="text-red-600 text-xl">📊</div>
+                    <h3 className="text-lg font-semibold text-gray-900">生成的合同文档</h3>
+                  </div>
+                  {generatedContract && (
+                    <div className="text-sm">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">已生成</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="mb-4">
+                  <div className="border border-gray-300 rounded-lg h-56 overflow-y-auto bg-gray-50 p-4 text-sm">
+                    {generatedContract ? (
+                      <pre className="whitespace-pre-wrap font-mono text-gray-700">{generatedContract}</pre>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <div className="text-4xl mb-2">📄</div>
+                        <p className="text-lg">生成的合同将显示在这里</p>
+                        <p className="text-sm mt-2">点击"生成合同"按钮生成标准化合同</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* 生成统计信息 - 合同 */}
                 {generatedContract && (
-                  <div className="text-sm">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">已生成</span>
+                  <div className="grid grid-cols-3 gap-2 mt-4">
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500">生成时间</div>
+                      <div className="text-sm font-medium">2.1秒</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500">字符数</div>
+                      <div className="text-sm font-medium">{generatedContract.length}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500">行数</div>
+                      <div className="text-sm font-medium">{generatedContract.split('\n').length}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* 生成按钮区域 - 重新布局 */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex-1">
+                <div className="text-sm text-gray-600 mb-2">生成进度</div>
+                {isGenerating || isGeneratingAnnotation ? (
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="bg-blue-600 h-2.5 rounded-full animate-pulse w-3/4"></div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    {originalContract ? '准备就绪' : '请输入或上传合同内容'}
                   </div>
                 )}
               </div>
               
-              <div className="mb-4">
-                <div className="border border-gray-300 rounded-lg h-72 overflow-y-auto bg-gray-50 p-4 text-sm">
-                  {generatedContract ? (
-                    <pre className="whitespace-pre-wrap font-mono text-gray-700">{generatedContract}</pre>
+              <div className="flex gap-3">
+                {/* 生成标注按钮 - 放在最左边 */}
+                <button
+                  onClick={handleGenerateAnnotation}
+                  disabled={isGeneratingAnnotation || !originalContract.trim() || isGenerating}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+                >
+                  {isGeneratingAnnotation ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      标注中...
+                    </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                      <div className="text-4xl mb-2">📄</div>
-                      <p className="text-lg">生成的合同将显示在这里</p>
-                      <p className="text-sm mt-2">点击"开始生成"按钮生成标准化合同</p>
-                    </div>
+                    <>
+                      <span className="text-lg">🔍</span>
+                      生成标注
+                    </>
                   )}
-                </div>
+                </button>
+                
+                {/* 生成合同按钮 */}
+                <button
+                  onClick={handleGenerateContract}
+                  disabled={isGenerating || !originalContract.trim() || isGeneratingAnnotation}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+                >
+                  {isGenerating ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      生成中...
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-lg">▶</span>
+                      生成合同
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={handleDownload}
+                  disabled={!generatedContract || isGenerating || isGeneratingAnnotation}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+                >
+                  <span className="text-lg">📥</span>
+                  下载合同文档
+                </button>
+                
+                {generatedContract && (
+                  <button
+                    onClick={clearGeneratedContract}
+                    className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-lg transition-all duration-300 flex items-center gap-2 font-medium"
+                  >
+                    <span className="text-lg">🗑️</span>
+                    清空结果
+                  </button>
+                )}
               </div>
-              
-              {/* 生成统计信息 */}
-              {generatedContract && (
-                <div className="grid grid-cols-3 gap-2 mt-4">
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500">生成时间</div>
-                    <div className="text-sm font-medium">2.1秒</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500">字符数</div>
-                    <div className="text-sm font-medium">{generatedContract.length}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500">行数</div>
-                    <div className="text-sm font-medium">{generatedContract.split('\n').length}</div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-          
-      {/* 生成按钮区域 */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex-1">
-            <div className="text-sm text-gray-600 mb-2">生成进度</div>
-            {isGenerating ? (
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-blue-600 h-2.5 rounded-full animate-pulse w-3/4"></div>
-              </div>
-            ) : (
-              <div className="text-sm text-gray-500">
-                {originalContract ? '准备就绪' : '请输入或上传合同内容'}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex gap-3">
-            <button
-              onClick={handleGenerateContract}
-              disabled={isGenerating || !originalContract.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
-            >
-              {isGenerating ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  生成中...
-                </>
-              ) : (
-                <>
-                  <span className="text-lg">▶</span>
-                  开始生成
-                </>
-              )}
-            </button>
-            
-            {/* 添加：查看标注按钮 */}
-            <button
-              onClick={() => setIsAnnotationModalOpen(true)}
-              disabled={!generatedContract || isGenerating}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
-            >
-              <span className="text-lg">🔍</span>
-              查看标注
-            </button>
-            
-            <button
-              onClick={handleDownload}
-              disabled={!generatedContract || isGenerating}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
-            >
-              <span className="text-lg">📥</span>
-              下载合同文档
-            </button>
-            
-            {generatedContract && (
-              <button
-                onClick={clearGeneratedContract}
-                className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-lg transition-all duration-300 flex items-center gap-2 font-medium"
-              >
-                <span className="text-lg">🗑️</span>
-                清空结果
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
-        {/* 在合同生成系统模块的最后，return语句之前添加标注弹窗 */}
-        {isAnnotationModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-              <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-800">合同标注示意图</h3>
-                <button
-                  onClick={() => setIsAnnotationModalOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
-                >
-                  &times;
-                </button>
-              </div>
-              <div className="p-4 overflow-auto max-h-[calc(90vh-120px)]">
-                <div className="text-center">
-                  <img 
-                    src="../src/resource/biaozhu.png" 
-                    alt="合同标注示意图" 
-                    className="max-w-full h-auto mx-auto rounded-lg shadow-md"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "https://via.placeholder.com/800x600?text=标注图片加载中...";
-                    }}
-                  />
-                  <p className="text-sm text-gray-500 mt-4">图例说明：合同标注过程</p>
+          {/* 在合同生成系统模块的最后，return语句之前添加标注弹窗 */}
+          {isAnnotationModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-800">合同标注示意图</h3>
+                  <button
+                    onClick={() => setIsAnnotationModalOpen(false)}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div className="p-4 overflow-auto max-h-[calc(90vh-120px)]">
+                  <div className="text-center">
+                    <img 
+                      src="../src/resource/biaozhu.png" 
+                      alt="合同标注示意图" 
+                      className="max-w-full h-auto mx-auto rounded-lg shadow-md"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://via.placeholder.com/800x600?text=标注图片加载中...";
+                      }}
+                    />
+                    <p className="text-sm text-gray-500 mt-4">图例说明：合同标注过程</p>
+                  </div>
+                </div>
+                <div className="p-6 border-t border-gray-200 flex justify-end">
+                  <button
+                    onClick={() => setIsAnnotationModalOpen(false)}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    关闭
+                  </button>
                 </div>
               </div>
-              <div className="p-6 border-t border-gray-200 flex justify-end">
-                <button
-                  onClick={() => setIsAnnotationModalOpen(false)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  关闭
-                </button>
-              </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
         
         {/* 生成统计信息 */}
@@ -1054,6 +1097,16 @@ return (
                 <div>
                   <p className="text-sm text-gray-600">合规性检查</p>
                   <p className="text-lg font-semibold">通过</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow p-4 border border-purple-200">
+              <div className="flex items-center gap-3">
+                <div className="text-purple-600 text-2xl">🏷️</div>
+                <div>
+                  <p className="text-sm text-gray-600">标注完成</p>
+                  <p className="text-lg font-semibold">{generatedAnnotation ? '已完成' : '待处理'}</p>
                 </div>
               </div>
             </div>
