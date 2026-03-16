@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { featureApi } from '@/utils/apiBase';
 
 /*转化与标注：AutoContractTag*/
 const AutoContractTag = () => {
@@ -586,53 +587,81 @@ const [isGenerating, setIsGenerating] = useState(false);
 const [downloadUrl, setDownloadUrl] = useState('');
 const [fileInputRef] = useState(React.createRef());
 const [isAnnotationModalOpen, setIsAnnotationModalOpen] = useState(false);
+const [isUploadingFile, setIsUploadingFile] = useState(false);
 
 // 处理文件上传
 const handleFileUpload = () => {
-  fileInputRef.current.click();
+  if (isUploadingFile) return;
+  fileInputRef.current?.click();
 };
 
 // 处理文件选择
-const handleFileSelect = (event) => {
-  const file = event.target.files[0];
+const handleFileSelect = async (event) => {
+  const file = event.target.files?.[0];
   if (!file) return;
 
   // 检查文件类型
   const allowedTypes = ['.txt', '.doc', '.docx', '.pdf', '.md'];
-  const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+  const fileExtension = `.${file.name.split('.').pop().toLowerCase()}`;
   
   if (!allowedTypes.includes(fileExtension)) {
     alert('请选择文本文件 (.txt, .doc, .docx, .pdf, .md)');
+    event.target.value = '';
     return;
   }
 
   // 检查文件大小（限制为5MB）
   if (file.size > 5 * 1024 * 1024) {
     alert('文件太大，请选择小于5MB的文件');
+    event.target.value = '';
     return;
   }
 
-  // 读取文件内容
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const content = e.target.result;
-      setOriginalContract(content);
-      alert(`文件 "${file.name}" 上传成功！`);
-    } catch (error) {
-      console.error('读取文件失败:', error);
-      alert('读取文件失败，请检查文件格式');
+  setIsUploadingFile(true);
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(featureApi('/api/autocontracttag/upload'), {
+      method: 'POST',
+      body: formData,
+    });
+
+    const contentType = response.headers.get('content-type') || '';
+    const payload = contentType.includes('application/json')
+      ? await response.json()
+      : await response.text();
+
+    if (!response.ok) {
+      const errorMessage = typeof payload === 'string'
+        ? payload
+        : payload?.message || payload?.detail || payload?.error;
+      throw new Error(errorMessage || `上传失败（${response.status}）`);
     }
-  };
-  
-  reader.onerror = () => {
-    alert('读取文件时发生错误');
-  };
-  
-  reader.readAsText(file);
-  
-  // 重置文件输入，以便可以再次选择同一个文件
-  event.target.value = '';
+
+    const uploadedText = typeof payload === 'string'
+      ? payload
+      : payload?.content
+        || payload?.text
+        || payload?.data?.content
+        || payload?.data?.text
+        || payload?.result?.content
+        || payload?.result?.text
+        || '';
+
+    if (uploadedText) {
+      setOriginalContract(uploadedText);
+    }
+
+    alert(`文件 "${file.name}" 上传成功！`);
+  } catch (error) {
+    console.error('上传文件失败:', error);
+    alert(error.message || '上传文件失败，请稍后重试');
+  } finally {
+    setIsUploadingFile(false);
+    event.target.value = '';
+  }
 };
 
 // 清空合同内容
@@ -826,10 +855,11 @@ return (
               <div className="flex flex-wrap gap-2 mb-4">
                 <button 
                   onClick={handleFileUpload}
+                  disabled={isUploadingFile}
                   className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full hover:bg-blue-200 transition-colors flex items-center gap-1"
                 >
                   <span className="text-xs">📁</span>
-                  上传合同文件
+                  {isUploadingFile ? '上传中...' : '上传合同文件'}
                 </button>
                 <button 
                   onClick={clearContractContent}
@@ -843,8 +873,7 @@ return (
               
               {/* 文件信息提示 */}
               <div className="text-xs text-gray-500 mt-2">
-                <p>支持格式：.txt, .doc, .docx, .pdf, .md</p>
-                <p>文件大小限制：小于5MB</p>
+                <p>支持格式：.txt</p>
               </div>
             </div>
             
