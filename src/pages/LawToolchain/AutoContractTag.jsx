@@ -11,7 +11,7 @@ const [structuredAnnotation, setStructuredAnnotation] = useState(null);
 const [annotationMeta, setAnnotationMeta] = useState(null);
 const [isGenerating, setIsGenerating] = useState(false);
 const [isGeneratingAnnotation, setIsGeneratingAnnotation] = useState(false);
-const [downloadUrl, setDownloadUrl] = useState('');
+const [isDownloadingContract, setIsDownloadingContract] = useState(false);
 const [fileInputRef] = useState(React.createRef());
 const [isUploadingFile, setIsUploadingFile] = useState(false);
 
@@ -101,18 +101,21 @@ const getGeneratedContractText = (payload) => {
   }
 
   return (
+    payload.filled_contract ||
     payload.generated_contract ||
     payload.contract_text ||
     payload.contract ||
     payload.content_text ||
     payload.text ||
     payload.content ||
+    payload.result?.filled_contract ||
     payload.result?.generated_contract ||
     payload.result?.contract_text ||
     payload.result?.contract ||
     payload.result?.content_text ||
     payload.result?.text ||
     payload.result?.content ||
+    payload.data?.filled_contract ||
     payload.data?.generated_contract ||
     payload.data?.contract_text ||
     payload.data?.contract ||
@@ -166,7 +169,6 @@ const handleGenerateContract = async () => {
     }
 
     setGeneratedContract(generatedContent);
-    createDownloadFile(generatedContent);
   } catch (error) {
     console.error('生成合同失败:', error);
     alert(error.message || '生成合同失败，请稍后重试');
@@ -442,32 +444,56 @@ const generateContractNumber = () => {
   return `CONTRACT-${year}${month}${day}-${random}`;
 };
 
-// 创建可下载文件
-const createDownloadFile = (content) => {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  setDownloadUrl(url);
-};
-
 // 处理下载
-const handleDownload = () => {
-  if (!downloadUrl) return;
-  
-  const link = document.createElement('a');
-  link.href = downloadUrl;
-  link.download = `合同文档_${new Date().getTime()}.txt`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+const handleDownload = async () => {
+  if (!generatedContract) return;
+
+  setIsDownloadingContract(true);
+
+  try {
+    const filename = 'AutoTag.txt';
+    const response = await fetch(featureApi('/api/autocontracttag/download'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        content: generatedContract,
+        filename
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `下载失败（${response.status}）`);
+    }
+
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get('content-disposition') || '';
+    const matchedFilename = contentDisposition.match(/filename\*?=(?:UTF-8'')?"?([^\";]+)"?/i);
+    const downloadFilename = matchedFilename?.[1]
+      ? 'AutoTag.txt'
+      : filename;
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = downloadFilename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('下载合同失败:', error);
+    alert(error.message || '下载合同失败，请稍后重试');
+  } finally {
+    setIsDownloadingContract(false);
+  }
 };
 
 // 清除生成的合同
 const clearGeneratedContract = () => {
   setGeneratedContract('');
-  if (downloadUrl) {
-    URL.revokeObjectURL(downloadUrl);
-    setDownloadUrl('');
-  }
 };
 
 // 清除生成的标注
@@ -663,23 +689,20 @@ return (
                           </div>
 
                           {structuredAnnotation.rawItems?.length > 0 && (
-                            <div className="bg-white rounded-lg border border-dashed border-gray-200 p-3">
-                              <div className="text-xs font-semibold text-gray-500 mb-3">抽取明细</div>
-                              <div className="space-y-2">
-                                {structuredAnnotation.rawItems.map((item, index) => (
-                                  <div
-                                    key={`${item.type || 'item'}-${index}`}
-                                    className="rounded-md bg-gray-50 border border-gray-100 px-3 py-2"
-                                  >
-                                    <div className="text-xs font-semibold text-purple-700 mb-1">
-                                      {getAnnotationDisplayLabel(item)}
-                                    </div>
-                                    <div className="text-sm text-gray-700 break-words">
-                                      {getAnnotationExtractText(item)}
-                                    </div>
+                            <div className="space-y-2">
+                              {structuredAnnotation.rawItems.map((item, index) => (
+                                <div
+                                  key={`${item.type || 'item'}-${index}`}
+                                  className="rounded-md bg-gray-50 border border-gray-100 px-3 py-2"
+                                >
+                                  <div className="text-xs font-semibold text-purple-700 mb-1">
+                                    {getAnnotationDisplayLabel(item)}
                                   </div>
-                                ))}
-                              </div>
+                                  <div className="text-sm text-gray-700 break-words">
+                                    {getAnnotationExtractText(item)}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -695,26 +718,6 @@ return (
                     )}
                   </div>
                 </div>
-                
-                {/* 生成统计信息 - 标注 */}
-                {generatedAnnotation && (
-                  <div className="grid grid-cols-3 gap-2 mt-4">
-                    <div className="text-center">
-                      <div className="text-xs text-gray-500">标注耗时</div>
-                      <div className="text-sm font-medium">{annotationMeta?.duration ? `${annotationMeta.duration}秒` : '--'}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs text-gray-500">要素数量</div>
-                      <div className="text-sm font-medium">
-                        {typeof annotationMeta?.annotationCount === 'number' ? `${annotationMeta.annotationCount}个` : '--'}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs text-gray-500">返回字符数</div>
-                      <div className="text-sm font-medium">{generatedAnnotation.length}</div>
-                    </div>
-                  </div>
-                )}
                 
                 {/* 标注结果清除按钮 */}
                 {generatedAnnotation && (
@@ -841,11 +844,11 @@ return (
                 
                 <button
                   onClick={handleDownload}
-                  disabled={!generatedContract || isGenerating || isGeneratingAnnotation}
+                  disabled={!generatedContract || isGenerating || isGeneratingAnnotation || isDownloadingContract}
                   className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
                 >
                   <span className="text-lg">📥</span>
-                  下载合同文档
+                  {isDownloadingContract ? '下载中...' : '下载合同文档'}
                 </button>
                 
                 {generatedContract && (
@@ -864,14 +867,14 @@ return (
         </div>
         
         {/* 生成统计信息 */}
-        {generatedContract && (
+        {generatedAnnotation && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <div className="bg-white rounded-lg shadow p-4 border border-green-200">
               <div className="flex items-center gap-3">
                 <div className="text-green-600 text-2xl">📊</div>
                 <div>
-                  <p className="text-sm text-gray-600">合同要素提取</p>
-                  <p className="text-lg font-semibold">23 个要素</p>
+                  <p className="text-sm text-gray-600">标注耗时</p>
+                  <p className="text-lg font-semibold">{annotationMeta?.duration ? `${annotationMeta.duration}秒` : '--'}</p>
                 </div>
               </div>
             </div>
@@ -880,8 +883,10 @@ return (
               <div className="flex items-center gap-3">
                 <div className="text-orange-600 text-2xl">⚖️</div>
                 <div>
-                  <p className="text-sm text-gray-600">合规性检查</p>
-                  <p className="text-lg font-semibold">已完成</p>
+                  <p className="text-sm text-gray-600">要素数量</p>
+                  <p className="text-lg font-semibold">
+                    {typeof annotationMeta?.annotationCount === 'number' ? `${annotationMeta.annotationCount} 个` : '--'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -890,8 +895,8 @@ return (
               <div className="flex items-center gap-3">
                 <div className="text-purple-600 text-2xl">🏷️</div>
                 <div>
-                  <p className="text-sm text-gray-600">标注完成</p>
-                  <p className="text-lg font-semibold">{generatedAnnotation ? '已完成' : '待处理'}</p>
+                  <p className="text-sm text-gray-600">返回字符数</p>
+                  <p className="text-lg font-semibold">{generatedAnnotation.length}</p>
                 </div>
               </div>
             </div>
