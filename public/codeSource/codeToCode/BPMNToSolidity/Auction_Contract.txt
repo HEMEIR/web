@@ -1,225 +1,22 @@
-You are an expert in generating legal smart contracts. I will provide you with structured prompts and their corresponding smart contracts, and your task is to learn the relationship between them. After that, when I give you a new structured prompt, you need to generate the corresponding smart contract.
-The first group：
-Voting Contract Description
-initialization parameters:
-#These are constructor parameters that initialize the state variables.
-map_voters; candidateList;
-events:
-#Events are significant moments triggered by conditions or tasks, influencing the flow of execution within a process.
-VoterRegistered; VoteCasted; VotingStarted; VotingEnded;
-functions:
-onlyOwner do {
-    #Check if the newly added voter has already registered.
-    if !map_voters[_voter] then:
-       #Register a new voter.
-        registerVoter(_voter) { map_voters[_voter] = true; emit VoterRegistered;};
-    #Check if the voting has already begun.
-    if !votingLive:
-       #Start the voting process.
-        startVoting() {votingLive = true; emit VotingStarted;};
-    #Check if the vote is currently in progress.
-    if votingLive:
-       #End the voting process, ensuring it's currently live.
-        endVoting() {votingLive = false; emit VotingEnded;};
-    #Check if the voting has concluded.
-    if !votingLive:
-       #Show the final votes for each candidate.
-        totalVotesFor(){for candidate_num in candidateList: return candidateList[candidate_num ];}
-}
-onlyRegistered voters do {
-#Determine if the voter is registered and the voting is still ongoing.
-if map_voters[_voter] and votingLive then:
-       #Cast a vote for a valid candidate during the voting period.
-        vote(candidate_num ) { candidateList[candidate_num ]++ ; emit VoteCasted;};
-}
+Key Elements and Terms of the Auction Contract
+Seller: The seller is <seller>, registered at <Address1>, contactable via <Num1>.
+Auction Start Time: <auctionStartTime>.
+Bidding Duration: <biddingTime>.
+Auction End Time: <auctionStartTime> + <biddingTime>.
+Minimum Bid Price: <lowprice>.
+Highest Bid Price: Initially set as <lowprice>.
+Highest Bidder: <highestBidder>.
 
-The corresponding smart contract in Solidity based on the provided information about the legal contract.
+Seller' s Rights and Obligations
+Obligation to endAuction: If the auction end time (<auctionEndTime>) has passed and the auction has not ended, the seller must conclude the auction.
+Right to receivePayment: If bids were placed, the seller receives the highest bid amount.
+Bidder' s Rights and Obligations
+Right to placeBid: If the auction is active (now <= auctionEndTime) and the bid amount exceeds the current highest price, the bidder may place a bid.
+Obligation to payBid: The bidder must pay the bid amount upon placing a bid.
+Right to refundPreviousBid: If a higher bid is placed, the previous highest bidder is refunded their bid amount.
+Right to highestBid: If the bidder wins the auction, they are entitled to claim the item after the auction ends.
 
-SLC in solidity:
-// SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
-
-contract VotingContract {
-    address public immutable owner;
-    mapping(address => bool) public voters;
-    uint256[] public candidateList;
-    bool public votingLive;
-
-    event VoterRegistered(address voter);
-    event VoteCasted(address voter, uint256 candidate);
-    event VotingStarted();
-    event VotingEnded();
-
-    constructor(uint256[] memory candidateList_) {
-        owner = msg.sender;
-        candidateList = candidateList_;
-        votingLive = false;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function.");
-        _;
-    }
-
-    modifier onlyRegisteredVoter() {
-        require(voters[msg.sender], "Only registered voters can call this function.");
-        _;
-    }
-
-    function registerVoter(address voter) public onlyOwner {
-        require(!voters[voter], "Voter is already registered.");
-        voters[voter] = true;
-        emit VoterRegistered(voter);
-    }
-
-    function startVoting() public onlyOwner {
-        require(!votingLive, "Voting has already started.");
-        votingLive = true;
-        emit VotingStarted();
-    }
-
-    function endVoting() public onlyOwner {
-        require(votingLive, "Voting is not live.");
-        votingLive = false;
-        emit VotingEnded();
-    }
-
-    function vote(uint256 candidateNum) public onlyRegisteredVoter {
-        require(votingLive, "Voting is not live.");
-        require(candidateNum < candidateList.length, "Invalid candidate number.");
-        candidateList[candidateNum]++;
-        emit VoteCasted(msg.sender, candidateNum);
-    }
-
-    function totalVotesFor(uint256 candidateNum) public view returns (uint256) {
-        require(candidateNum < candidateList.length, "Invalid candidate number.");
-        return candidateList[candidateNum];
-    }
-}
-
-
-The second group：
-Meat sales Contract Description
-initialization parameters:
-#These are constructor parameters that initialize the state variables.
-buyer; seller; effDate; qnt; qlt; delDueDateDays; amt; payDueDate; intRate;
-events:
-#Events are significant moments triggered by conditions or tasks, influencing the flow of execution within a process.
-OrderDelivered; PaymentMade; LatePayment; ContractTerminated;
-functions:
-onlySeller do {
-   #Check if the current time is past the payment due date, payment has not been made, and the buyer paid the rate overdue.
-   if now > payDueDate and !payment and latePay then:
-        #Terminate the contract, retrieve the rate, and emit the ContractTerminated event.
-	endContract(){get rate;emit ContractTerminated;};
-   #Check if the current time is before the delivery due date, delivery has not been made, and payment has been made.
-   if now < delDueDateDays and !delivery and payment then:
-        #Mark the delivery as completed, retrieve the amount, and emit the OrderDelivered event.
-	DeliveryGood(){delivery= true;get amt;emit OrderDelivered;};
-}
-onlyBuyer do {
-   #Check if the payment was made before the payment due date.
-   if now < payDueDate and !payment then:
-	#pay price, marks payment as made and emits the PaymentMade event.
-	payPrice()payable {pay amt;payment=true;emit PaymentMade;};
-   #Check if the current time is past the payment due date, payment has not been made, and failure to pay overdue.
-   if now > payDueDate and !payment and !latePay then:
-	#Buyer shall pay interest equal to <intRate>% of the amt
-	payInitRate()payable{pay rate=amt*intRate% ;latePay =true;emit LatePayment;}
-}
-The corresponding smart contract in Solidity based on the provided information about the legal contract.
-SLC in solidity:
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;  // 更新到一个稳定且无严重已知问题的版本
-
-contract MeatSalesContract {
-    address payable public immutable buyer;
-    address payable public immutable seller;
-    uint256 public immutable effDate;
-    uint256 public immutable qnt;
-    uint256 public immutable qlt;
-    uint256 public immutable delDueDateDays;
-    uint256 public immutable amt;
-    uint256 public immutable payDueDate;
-    uint256 public immutable intRate;
-
-    bool public payment = false;
-    bool public latePay = false;
-    bool public delivery = false;
-    bool public contractEnded = false;
-
-    event OrderDelivered(uint256 amount);
-    event PaymentMade(uint256 amount);
-    event LatePayment(uint256 interestAmount);
-    event ContractTerminated(uint256 interestAmount);
-
-    modifier onlySeller() {
-        require(msg.sender == seller, "Only seller can call this function");
-        _;
-    }
-
-    modifier onlyBuyer() {
-        require(msg.sender == buyer, "Only buyer can call this function");
-        _;
-    }
-
-    constructor(
-        address payable _buyer,
-        address payable _seller,
-        uint256 _effDate,
-        uint256 _qnt,
-        uint256 _qlt,
-        uint256 _delDueDateDays,
-        uint256 _amt,
-        uint256 _payDueDate,
-        uint256 _intRate
-    ) {
-        require(_buyer != address(0), "Buyer address cannot be zero");
-        require(_seller != address(0), "Seller address cannot be zero");
-        buyer = _buyer;
-        seller = _seller;
-        effDate = _effDate;
-        qnt = _qnt;
-        qlt = _qlt;
-        delDueDateDays = _delDueDateDays;
-        amt = _amt;
-        payDueDate = _payDueDate;
-        intRate = _intRate;
-    }
-
-    function endContract() external onlySeller {
-        require(block.timestamp > payDueDate && !payment && latePay, "Invalid conditions for contract termination");
-        require(!contractEnded, "Contract already ended");
-        contractEnded = true; // 更新状态，防止重入
-
-        uint256 interestAmount = (amt * intRate) / 100;
-        emit ContractTerminated(interestAmount); // 先触发事件
-        seller.transfer(interestAmount); // 后进行外部调用
-    }
-
-    function deliverGoods() external onlySeller {
-        require(block.timestamp < delDueDateDays && !delivery && payment, "Invalid conditions for goods delivery");
-        delivery = true;
-        emit OrderDelivered(amt);
-    }
-
-    function payPrice() external payable onlyBuyer {
-        require(block.timestamp < payDueDate && !payment, "Invalid conditions for payment");
-        require(msg.value == amt, "Incorrect value for payment");
-        payment = true;
-        emit PaymentMade(amt);
-    }
-
-    function payInitRate() external payable onlyBuyer {
-        require(block.timestamp > payDueDate && !payment && !latePay, "Invalid conditions for interest payment");
-        uint256 interestAmount = (amt * intRate) / 100;
-        require(msg.value == interestAmount, "Incorrect value for interest payment");
-        latePay = true;
-        emit LatePayment(interestAmount);
-    }
-}
-
-A new input：
+SCoT prompt
 Auction Contract Description
 initialization parameters:
 #These are constructor parameters that initialize the state variables.
@@ -261,4 +58,3 @@ onlyBidder do {
                 highestprice = BidAmout; highestbidder = this bidder;emit HighestBidIncreased;
         };
 }
-Please generate the corresponding smart contract in Solidity based on the provided information about the legal contract.

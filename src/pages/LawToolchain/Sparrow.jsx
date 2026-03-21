@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import operateToRoleImage from '@/resource/img/operateToRole.png';
 
 const Sparrow = () => {
   const [activeTab, setActiveTab] = React.useState('editor');
@@ -474,27 +475,14 @@ const Sparrow = () => {
                 </div>
               </div>
               <div className="max-w-3xl mx-auto mt-4">
-                <p className="text-gray-700 text-lg text-justify">Sparrow基于法律的道义逻辑构建本体模型，秉承继承和封装的原则，受到现有基于抽象概念主义的DSLs的启发，提出将功能模块解耦，并将法律条款的合同元素分类到Sparrow的组件中，包括Subject，Object，Conditions，Operations，Rules。其中Subject对应法律合约结构中的功能角色。Object对应法律合约结构的Subject操作对象。Conditions代表了法律合约结构的逻辑结构。Operations代表法律合约结构的行动。Rules代表了条款。Sparrow的实现过程结合了Xtext项目中的语法定义、Xtend文件中的映射规则以及自动代码生成功能。</p>
+                <p className="text-gray-700 text-lg text-justify">Sparrow基于法律的道义逻辑构建本体模型，秉承继承和封装的原则，受到现有基于抽象概念主义的DSLs的启发，提出将功能模块解耦，并将法律条款的合同元素分类为各类组件。Sparrow的实现过程结合了Xtext项目中的语法定义、Xtend文件中的映射规则以及自动代码生成功能。</p>
               </div>
             </div>
             {/* Sparrow优势区域 */}
             <div className="bg-indigo-50 rounded-xl shadow-md p-6 border border-indigo-100 mb-8">
-              <h3 className="text-xl font-semibold text-indigo-800 mb-4 text-center">Sparrow优势</h3>
-              <div className="space-y-6">
-                <div className="flex items-start gap-3">
-                  <div className="text-indigo-600 text-2xl">📝</div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">完善的映射规则</h4>
-                    <p className="text-gray-700 text-sm text-justify">制定了代码层面的映射策略，能够自动化地将模型映射为智能法律合约。显著地降低了手动修正的需求，提高了生产效率，并对大规模合约表现出了较好的适应性。</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="text-indigo-600 text-2xl">⚡</div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">精简的智能合约</h4>
-                    <p className="text-gray-700 text-sm text-justify">重新组织了操作与功能角色的关系，避免因合约功能重叠而带来的代码重复，并对功能模块进行了优化以提升其再利用价值。通过这种方式在为以太坊区块链生成智能法律合约时减少了成本，并且降低了气体消耗。</p>
-                  </div>
-                </div>
+              <h3 className="text-xl font-semibold text-indigo-800 mb-4 text-center">Sparrow优势：模块解耦，明晰操作与功能角色关系。</h3>
+              <div className="flex justify-center">
+                <img src={operateToRoleImage} alt="Sparrow优势" className="max-w-full h-auto rounded-lg" />
               </div>
             </div>
             

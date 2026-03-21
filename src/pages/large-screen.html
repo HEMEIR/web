@@ -634,10 +634,9 @@
   </div>
   <div class="header-right">
     <div class="header-phase-pills">
-      <span class="phase-pill p1">模块 1 · 表征建模与一致性判定</span>
-      <span class="phase-pill p2">模块 2 · 智能合约生成与验证</span>
+      <span class="phase-pill p1">第一阶段 · 预处理与法律条文表征</span>
+      <span class="phase-pill p2">第二阶段 · 智能法律合约语言建模与生成</span>
     </div>
-    <div class="header-clock" id="clock">--:--</div>
   </div>
 </header>
 
@@ -646,23 +645,23 @@
   <!-- 端到端总览流程（全局置顶）-->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">端到端处理流程 · 从合同文档到智能合约代码</div>
+      <div class="card-title">端到端处理流程 · 从原始法律数据到可执行合约代码</div>
     </div>
     <div class="flow-strip">
       <div class="flow-node">
         <div class="flow-node-icon">📄</div>
-        <div class="flow-node-title">法律合同投入</div>
+        <div class="flow-node-title">原始法律数据</div>
         <div class="flow-node-sub">PDF / Word / 图像</div>
       </div>
       <div class="flow-node">
         <div class="flow-node-icon">🔄</div>
-        <div class="flow-node-title">文档转换</div>
+        <div class="flow-node-title">预处理</div>
         <div class="flow-node-sub">DocTransPro</div>
       </div>
       <div class="flow-node">
         <div class="flow-node-icon">🔍</div>
-        <div class="flow-node-title">要素提取</div>
-        <div class="flow-node-sub">CAM-CEE 模型</div>
+        <div class="flow-node-title">法律条文表征</div>
+        <div class="flow-node-sub">CAM-CEE</div>
       </div>
       <div class="flow-node">
         <div class="flow-node-icon">⚖️</div>
@@ -671,12 +670,12 @@
       </div>
       <div class="flow-node" style="background:var(--p2-dim); border-color:rgba(52,211,153,0.2);">
         <div class="flow-node-icon">🦅</div>
-        <div class="flow-node-title" style="color:var(--p2);">SPARROW 建模</div>
-        <div class="flow-node-sub">DSL 语法引擎</div>
+        <div class="flow-node-title" style="color:var(--p2);">智能法律合约语言</div>
+        <div class="flow-node-sub">SPARROW / BPMN / FSM / EPC</div>
       </div>
       <div class="flow-node">
         <div class="flow-node-icon">⚙️</div>
-        <div class="flow-node-title">语言引擎编译</div>
+        <div class="flow-node-title">可编程语言引擎</div>
         <div class="flow-node-sub">4 种形式化引擎</div>
       </div>
       <div class="flow-node" style="background:rgba(52,211,153,0.06);">
@@ -692,11 +691,11 @@
        PHASE 1: CONTRACT → MODEL
   ══════════════════════════════════════ -->
   <div class="phase-header ph1">
-    <span class="phase-badge">模块 1</span>
-    <span class="phase-title">法律条文表征建模与一致性判定理论方法</span>
-    <span class="phase-desc">四大法律化原则 · 要素表征建模 · 一致性判定机制</span>
+    <span class="phase-badge">第一阶段</span>
+    <span class="phase-title">法律合同预处理与法律条文表征</span>
+    <span class="phase-desc">四大法律化原则 · 法律条文表征 · 一致性判定</span>
     <div class="phase-flow-hint">
-      文档格式转换 <span>→</span> 要素提取建模 <span>→</span> 条文一致性判定 <span>→</span> 智能合约生成
+      预处理 <span>→</span> 法律条文表征 <span>→</span> 条文一致性判定 <span>→</span> 智能合约生成
     </div>
   </div>
 
@@ -704,7 +703,7 @@
   <div class="card" style="background:linear-gradient(135deg,rgba(56,189,248,0.07) 0%,rgba(52,211,153,0.04) 100%);border-color:rgba(56,189,248,0.28);">
     <div class="card-header" style="margin-bottom:14px;">
       <div style="flex:1;">
-        <div class="card-title" style="font-size:18px;">四大法律化原则 · Legal Formalization Principles</div>
+        <div class="card-title" style="font-size:18px;">四大法律化原则 · LTSC-TAV 转化验证模型</div>
         <div class="card-subtitle">转化验证模型 LTSC-TAV · 智能合约设计的理论基石</div>
       </div>
     </div>
@@ -739,60 +738,22 @@
   <!-- P1 Row 1: Data + Conversion -->
   <div class="row col-2">
 
-    <!-- 数据基础 -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">数据基础 · 合同语料与要素分布</div>
-        <div class="card-subtitle">11大类 · 30小类 · 64,616篇合同</div>
-      </div>
-      <div class="row col-2" style="align-items:start; gap:14px;">
-        <div>
-          <div class="chart-wrap" style="height:240px;" id="pieChart"></div>
-          <div style="font-size:10.5px;color:var(--muted);text-align:center;margin-top:4px;font-style:italic;">训练集要素类别分布（270,592条样本）</div>
-        </div>
-        <div>
-          <div class="stat-grid" style="grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-            <div class="stat-box">
-              <div class="stat-val v-p1">64,616</div>
-              <div class="stat-lbl">合同文档（篇）</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-val v-p1">270,592</div>
-              <div class="stat-lbl">标注样本（条）</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-val v-acc">11</div>
-              <div class="stat-lbl">大类要素</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-val v-acc">30</div>
-              <div class="stat-lbl">小类要素</div>
-            </div>
-          </div>
-          <div class="data-note">
-            <strong style="color:var(--p1)">来源</strong>：政府采购官方网站（买卖/租赁/保险合约）<br>
-            <strong style="color:var(--p1)">标注维度</strong>：标的、支付、违约、终止、当事人、期限等
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 文档转换 -->
     <div class="card">
       <div class="card-header">
-        <div class="card-title">文档转换</div>
-        <div class="card-subtitle">合同文档结构化处理 · 要素标注</div>
+        <div class="card-title">预处理</div>
+        <div class="card-subtitle">原始法律数据预处理 · 要素标注</div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
 
-        <!-- 左：文档格式转换 -->
+        <!-- 左：预处理 -->
         <div style="border-right:1px solid var(--border);padding-right:20px;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <span style="font-size:18px;">🔄</span>
             <div>
-              <div style="font-size:13.5px;font-weight:700;color:var(--p1);">文档格式转换</div>
-              <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">DocTransPro 引擎</div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--p1);">预处理</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">DocTransPro 工具</div>
             </div>
           </div>
           <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px;">
@@ -827,12 +788,12 @@
           </div>
         </div>
 
-        <!-- 右：要素自动标注工具 -->
+        <!-- 右：要素自动标注系统 -->
         <div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <span style="font-size:18px;">🏷️</span>
             <div>
-              <div style="font-size:13.5px;font-weight:700;color:var(--p2);">要素自动标注工具</div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--p2);">要素自动标注系统</div>
               <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">结构化标注 · 页面回显</div>
             </div>
           </div>
@@ -868,16 +829,55 @@
       </div>
     </div>
 
+  
+    <!-- 数据基础 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">数据基础 · 法律合同语料与要素分布</div>
+        <div class="card-subtitle">11大类 · 30小类 · 64,616篇合同</div>
+      </div>
+      <div class="row col-2" style="align-items:start; gap:14px;">
+        <div>
+          <div class="chart-wrap" style="height:240px;" id="pieChart"></div>
+          <div style="font-size:10.5px;color:var(--muted);text-align:center;margin-top:4px;font-style:italic;">训练集要素类别分布（270,592条样本）</div>
+        </div>
+        <div>
+          <div class="stat-grid" style="grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+            <div class="stat-box">
+              <div class="stat-val v-p1">64,616</div>
+              <div class="stat-lbl">合同文档（篇）</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val v-p1">270,592</div>
+              <div class="stat-lbl">标注样本（条）</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val v-acc">11</div>
+              <div class="stat-lbl">大类要素</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val v-acc">30</div>
+              <div class="stat-lbl">小类要素</div>
+            </div>
+          </div>
+          <div class="data-note">
+            <strong style="color:var(--p1)">来源</strong>：政府采购官方网站（买卖/租赁/保险合约）<br>
+            <strong style="color:var(--p1)">标注维度</strong>：标的、支付、违约、终止、当事人、期限等
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- P1 Row 2: Element Extraction + Consistency + Principles -->
   <div class="row col-2" style="align-items:stretch;">
 
-    <!-- 要素提取 -->
+    <!-- 法律条文表征 -->
     <div class="card">
       <div class="card-header">
         <div style="flex:1;">
-          <div class="card-title">要素提取 · CAM-CEE 模型性能</div>
+          <div class="card-title">法律条文表征 · CAM-CEE 模型性能</div>
           <div class="card-subtitle">CDPM + 三头注意力 + 边缘加权交叉熵</div>
         </div>
       </div>
@@ -885,14 +885,14 @@
       <!-- Key metrics highlight -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
         <div style="background:linear-gradient(135deg,rgba(56,189,248,0.12),rgba(56,189,248,0.04));border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:14px 16px;text-align:center;">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Token 准确率</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">准确率</div>
           <div style="font-family:'JetBrains Mono';font-size:30px;font-weight:700;color:var(--p1);line-height:1;">92.33%</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px;">CAM-CEE · 法律条文要素关联</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">CAM-CEE · 法律条文表征</div>
         </div>
         <div style="background:linear-gradient(135deg,rgba(52,211,153,0.12),rgba(52,211,153,0.04));border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:14px 16px;text-align:center;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">召回率</div>
           <div style="font-family:'JetBrains Mono';font-size:30px;font-weight:700;color:var(--p2);line-height:1;">85.62%</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px;">CAM-CEE · 法律条文要素关联</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">CAM-CEE · 法律条文表征</div>
         </div>
       </div>
 
@@ -900,7 +900,7 @@
         <thead>
           <tr>
             <th>模型</th>
-            <th>Token 准确率</th>
+            <th>准确率</th>
             <th>召回率</th>
             <th>备注</th>
           </tr>
@@ -947,8 +947,6 @@
 
   </div>
 
-  <!-- 共用数据来源注 -->
-  <div class="data-note">数据来源：第三方检测报告 No. 25B01Y001714 · 各模型均达到法律条文要素规则关联准确性不低于 85% 要求</div>
 
   <!-- ══════════════════════════════════════
        PHASE 2: MODEL → CODE
@@ -956,11 +954,11 @@
   <div class="section-gap"></div>
 
   <div class="phase-header ph2">
-    <span class="phase-badge">模块 2</span>
-    <span class="phase-title">智能法律合约生成与验证评估技术体系</span>
-    <span class="phase-desc">本体建模语言 · 双向建模方法 · 多引擎可编程生成 · 形式化验证</span>
+    <span class="phase-badge">第二阶段</span>
+    <span class="phase-title">智能法律合约语言建模与生成技术体系</span>
+    <span class="phase-desc">智能法律合约语言 · PIM 抽象层 · 可编程语言引擎 · 形式化验证</span>
     <div class="phase-flow-hint">
-      Sparrow / BPMN / NET / EPC <span>→</span> 引擎编译 <span>→</span> Solidity / Go / Vyper
+      SPARROW / BPMN / FSM / EPC <span>→</span> 可编程语言引擎 <span>→</span> Solidity / Go / Vyper
     </div>
   </div>
 
@@ -968,8 +966,8 @@
   <div class="card">
     <div class="card-header">
       <div style="flex:1;">
-        <div class="card-title">智能合约语言引擎 · 核心模块</div>
-        <div class="card-subtitle">四引擎并行支持 · 多目标输出 · 形式化验证全覆盖</div>
+        <div class="card-title">可编程语言引擎 · 核心模块</div>
+        <div class="card-subtitle">四引擎并行 · 多目标输出 · 形式化验证全覆盖</div>
       </div>
     </div>
 
@@ -982,10 +980,10 @@
 
           <!-- Col A: Identity + desc + tags -->
           <div style="padding-right:18px;border-right:1px solid rgba(255,255,255,0.07);">
-            <div class="engine-label" style="margin-bottom:8px;">主力引擎 · FEATURED DSL</div>
+            <div class="engine-label" style="margin-bottom:8px;">智能法律合约领域特定语言 · DSL</div>
             <div class="engine-name" style="font-size:22px;margin-bottom:10px;">🦅 SPARROW</div>
             <div class="engine-desc" style="min-height:unset;margin-bottom:12px;font-size:12.5px;">
-              领域特定语言（DSL），直接表达法律条款逻辑，支持条件规则、仲裁机制与多目标合约生成，符合《民法典》要求
+              智能法律合约领域特定语言（DSL），直接表达服务、违约、终止等核心条款逻辑，通过 PIM 抽象层支持多目标合约生成，符合《民法典》要求
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
               
@@ -997,7 +995,7 @@
 
           <!-- Col B: Scenario coverage - ALL scenarios explicit -->
           <div style="padding:0 18px;border-right:1px solid rgba(255,255,255,0.07);">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">覆盖合约场景 · 完整清单</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">原型应用场景 · 完整清单</div>
             <!-- Rental category -->
             <div style="font-size:10.5px;font-weight:600;color:var(--p2);margin-bottom:6px;letter-spacing:0.5px;">🟢 租赁类（3）</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px;">
@@ -1022,7 +1020,7 @@
 
           <!-- Col C: Accuracy vs baselines -->
           <div style="padding-left:18px;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">代码生成准确率 · vs Baseline</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">多语言生成引擎 Clover · 代码生成准确率对比</div>
 
             <!-- Go -->
             <div style="margin-bottom:14px;">
@@ -1070,7 +1068,7 @@
 
       <!-- Engine performance chart on the right -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">引擎准确率横向对比</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">可编程语言引擎准确率对比</div>
         <div class="chart-wrap" style="flex:1;min-height:0;" id="engineChart"></div>
       </div>
     </div>
@@ -1082,11 +1080,11 @@
       <div class="engine-card" style="padding:18px 20px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
           <div>
-            <div class="engine-label" style="margin-bottom:4px;">流程建模</div>
+            <div class="engine-label" style="margin-bottom:4px;">结构化思维链提示</div>
             <div class="engine-name" style="font-size:16px;margin-bottom:0;">🔄 BPMN</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--p2);line-height:1;">88.5%</div>
+            <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--p2);line-height:1;">97.1%</div>
             <div style="font-size:10.5px;color:var(--muted);">Accuracy</div>
           </div>
         </div>
@@ -1097,36 +1095,36 @@
             <span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--muted);">流程类合约</span>
           </div>
         </div>
-        <div class="prog-bar-track" style="height:6px;"><div class="prog-bar-fill" style="width:88.5%;background:var(--p2);"></div></div>
+        <div class="prog-bar-track" style="height:6px;"><div class="prog-bar-fill" style="width:97.1%;background:var(--p2);"></div></div>
       </div>
 
-      <!-- Petri Net -->
+      <!-- FSM-to-Solidity -->
       <div class="engine-card" style="padding:18px 20px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
           <div>
-            <div class="engine-label" style="margin-bottom:4px;">并发建模</div>
-            <div class="engine-name" style="font-size:16px;margin-bottom:0;">🕸️ Petri Net</div>
+            <div class="engine-label" style="margin-bottom:4px;">单样本学习</div>
+            <div class="engine-name" style="font-size:16px;margin-bottom:0;">🔁 FSM-to-Solidity</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--p1);line-height:1;">86.7%</div>
+            <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--p1);line-height:1;">88.35%</div>
             <div style="font-size:10.5px;color:var(--muted);">Accuracy</div>
           </div>
         </div>
-        <div class="engine-desc" style="min-height:unset;margin-bottom:10px;font-size:12px;">Petri 网模型，形式化验证并发执行与状态转换的正确性，适用于多方条件触发合约</div>
+        <div class="engine-desc" style="min-height:unset;margin-bottom:10px;font-size:12px;">有限状态机建模，通过可复用结构化 FSM 提示模板 + 单样本学习引导 LLM 生成 Solidity 代码</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div style="display:flex;gap:6px;">
             
-            <span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--muted);">状态机类合约</span>
+            <span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--muted);">状态机类 / 多方条件触发合约</span>
           </div>
         </div>
-        <div class="prog-bar-track" style="height:6px;"><div class="prog-bar-fill" style="width:86.7%;background:var(--p1);"></div></div>
+        <div class="prog-bar-track" style="height:6px;"><div class="prog-bar-fill" style="width:88.35%;background:var(--p1);"></div></div>
       </div>
 
       <!-- EPC -->
       <div class="engine-card" style="padding:18px 20px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
           <div>
-            <div class="engine-label" style="margin-bottom:4px;">事件驱动</div>
+            <div class="engine-label" style="margin-bottom:4px;">事件驱动流程链</div>
             <div class="engine-name" style="font-size:16px;margin-bottom:0;">📊 EPC</div>
           </div>
           <div style="text-align:right;">
@@ -1134,7 +1132,7 @@
             <div style="font-size:10.5px;color:var(--muted);">Accuracy</div>
           </div>
         </div>
-        <div class="engine-desc" style="min-height:unset;margin-bottom:10px;font-size:12px;">事件驱动流程链，建模复杂条件触发与事件响应逻辑，适用于延期/违约等事件驱动场景</div>
+        <div class="engine-desc" style="min-height:unset;margin-bottom:10px;font-size:12px;">事件驱动流程链（EPC），建模复杂法律条款触发与响应逻辑，适用于延期、违约等事件驱动场景，生成代码通过 Remix 编译验证</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div style="display:flex;gap:6px;">
             
@@ -1154,9 +1152,11 @@
 <script>
   /* ── Clock ── */
   function tick() {
+    const el = document.getElementById('clock');
+    if (!el) return;
     const n = new Date();
     const pad = v => String(v).padStart(2,'0');
-    document.getElementById('clock').textContent =
+    el.textContent =
       `${n.getFullYear()}/${pad(n.getMonth()+1)}/${pad(n.getDate())} ${pad(n.getHours())}:${pad(n.getMinutes())}`;
   }
   tick(); setInterval(tick, 30000);
@@ -1210,7 +1210,7 @@
     tooltip:{ ...TT, trigger:'axis', axisPointer:{ type:'shadow' }},
     legend:{ data:['Accuracy'], right:0, top:0, textStyle:{ color:'rgba(255,255,255,0.5)', fontSize:10 }, itemWidth:12, itemHeight:8 },
     grid:{ top:24, bottom:36, left:36, right:10 },
-    xAxis:{ type:'category', data:['Clover·Go','Clover·Vyper','BPMN','Petri Net','EPC'],
+    xAxis:{ type:'category', data:['Clover·Go','Clover·Vyper','BPMN','FSM-to-Solidity','EPC'],
       axisLabel:{ color:'rgba(255,255,255,0.55)', fontSize:9.5, interval:0 }, axisLine:{ lineStyle:{ color:'rgba(255,255,255,0.08)' }}},
     yAxis:{ type:'value', min:80, max:102, axisLabel:{ color:'rgba(255,255,255,0.45)', fontSize:10, formatter:'{value}%' }, splitLine:{ lineStyle:{ color:'rgba(255,255,255,0.04)' }}},
     series:[{
@@ -1219,8 +1219,8 @@
       data:[
         { value:98.75, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#34d399'},{offset:1,color:'#065f46'}]), borderRadius:[4,4,0,0] }},
         { value:99.69, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#a78bfa'},{offset:1,color:'#4c1d95'}]), borderRadius:[4,4,0,0] }},
-        { value:88.50, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#38bdf8'},{offset:1,color:'#1d4ed8'}]), borderRadius:[4,4,0,0] }},
-        { value:86.70, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#6ee7b7'},{offset:1,color:'#065f46'}]), borderRadius:[4,4,0,0] }},
+        { value:97.10, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#38bdf8'},{offset:1,color:'#1d4ed8'}]), borderRadius:[4,4,0,0] }},
+        { value:88.35, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#6ee7b7'},{offset:1,color:'#065f46'}]), borderRadius:[4,4,0,0] }},
         { value:85.30, itemStyle:{ color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#f59e0b'},{offset:1,color:'#78350f'}]), borderRadius:[4,4,0,0] }},
       ],
       label:{ show:true, position:'top', formatter:'{c}%', color:'rgba(255,255,255,0.7)', fontSize:10 }

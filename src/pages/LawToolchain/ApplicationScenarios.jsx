@@ -110,7 +110,7 @@ const ApplicationScenarios = () => {
                   }}
                 >
                   <option value="" disabled hidden>请选择场景类型</option>
-                  <option value="AirConditionerPurchase">AirConditionerPurchase</option>
+                  <option value="AirConditionPurchase">AirConditionPurchase</option>
                   <option value="CarRent">CarRent</option>
                   <option value="ComputerPurchase">ComputerPurchase</option>
                   <option value="DaliyPurchase">DaliyPurchase</option>

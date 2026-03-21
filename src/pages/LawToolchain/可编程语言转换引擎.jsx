@@ -953,10 +953,12 @@ const MultiConvertModule = () => {
   const [sourceCode, setSourceCode] = React.useState('');
   const [goCode, setGoCode] = React.useState('');
   const [vyperCode, setVyperCode] = React.useState('');
+  const [solidityCode, setSolidityCode] = React.useState('');
   const [sourceLanguage, setSourceLanguage] = React.useState('');
   const [localLoading, setLocalLoading] = React.useState(false);
   const [selectedDirectory, setSelectedDirectory] = React.useState('source');
   const [logicCode, setLogicCode] = React.useState('');
+  const [selectedTargetLanguage, setSelectedTargetLanguage] = React.useState('solidity');
 
   // 处理目录点击
   const handleDirectoryClick = (directory) => {
@@ -1003,6 +1005,10 @@ const MultiConvertModule = () => {
       input: '/codeSource/codeToCode/sparrowToVyper/03complexPurchase.sparrow',
       output: '/codeSource/codeToCode/sparrowToVyper/complexPurchase.vy'
     },
+    'sparrow-purchase-solidity': {
+      input: '/codeSource/codeToCode/sparrowToSolidity/03complexPurchase.mydsl',
+      output: '/codeSource/codeToCode/sparrowToSolidity/03complexPurchase.sol'
+    },
     'sparrow-auction-go': {
       input: '/codeSource/codeToCode/sparrowToGo/06complexAuction.sparrow',
       output: '/codeSource/codeToCode/sparrowToGo/complexAuction.go'
@@ -1011,6 +1017,10 @@ const MultiConvertModule = () => {
       input: '/codeSource/codeToCode/sparrowToVyper/06complexAuction.sparrow',
       output: '/codeSource/codeToCode/sparrowToVyper/complexAuction.vy'
     },
+    'sparrow-auction-solidity': {
+      input: '/codeSource/codeToCode/sparrowToSolidity/06complexAuction.mydsl',
+      output: '/codeSource/codeToCode/sparrowToSolidity/06complexAuction.sol'
+    },
     'sparrow-rent-go': {
       input: '/codeSource/codeToCode/sparrowToGo/09complexRent.sparrow',
       output: '/codeSource/codeToCode/sparrowToGo/complexRent.go'
@@ -1018,6 +1028,10 @@ const MultiConvertModule = () => {
     'sparrow-rent-vyper': {
       input: '/codeSource/codeToCode/sparrowToVyper/09complexRent.sparrow',
       output: '/codeSource/codeToCode/sparrowToVyper/complexRent.vy'
+    },
+    'sparrow-rent-solidity': {
+      input: '/codeSource/codeToCode/sparrowToSolidity/09complexRent.mydsl',
+      output: '/codeSource/codeToCode/sparrowToSolidity/09complexRent.sol'
     }
   };
 
@@ -1056,9 +1070,11 @@ const MultiConvertModule = () => {
         // 加载输入文件
         const goKey = `${sourceLanguage}-go`;
         const vyperKey = `${sourceLanguage}-vyper`;
+        const solidityKey = `${sourceLanguage}-solidity`;
         
         const goPaths = filePaths[goKey];
         const vyperPaths = filePaths[vyperKey];
+        const solidityPaths = filePaths[solidityKey];
         
         if (goPaths) {
           const inputContent = await loadFileContent(goPaths.input);
@@ -1072,6 +1088,12 @@ const MultiConvertModule = () => {
           // 加载Vyper输出文件内容
           const vyperOutputContent = await loadFileContent(vyperPaths.output);
           setVyperCode(vyperOutputContent);
+        }
+        
+        if (solidityPaths) {
+          // 加载Solidity输出文件内容
+          const solidityOutputContent = await loadFileContent(solidityPaths.output);
+          setSolidityCode(solidityOutputContent);
         }
       } catch (error) {
         console.error('Error loading files:', error);
@@ -1093,9 +1115,11 @@ const MultiConvertModule = () => {
       // 加载对应输出文件
       const goKey = `${sourceLanguage}-go`;
       const vyperKey = `${sourceLanguage}-vyper`;
+      const solidityKey = `${sourceLanguage}-solidity`;
       
       const goPaths = filePaths[goKey];
       const vyperPaths = filePaths[vyperKey];
+      const solidityPaths = filePaths[solidityKey];
       
       if (goPaths) {
         const goOutputContent = await loadFileContent(goPaths.output);
@@ -1106,10 +1130,16 @@ const MultiConvertModule = () => {
         const vyperOutputContent = await loadFileContent(vyperPaths.output);
         setVyperCode(vyperOutputContent);
       }
+      
+      if (solidityPaths) {
+        const solidityOutputContent = await loadFileContent(solidityPaths.output);
+        setSolidityCode(solidityOutputContent);
+      }
     } catch (error) {
       console.error('多语言转换失败:', error);
       setGoCode('多语言转换失败，请稍后重试');
       setVyperCode('多语言转换失败，请稍后重试');
+      setSolidityCode('多语言转换失败，请稍后重试');
     } finally {
       setLocalLoading(false);
     }
@@ -1221,64 +1251,44 @@ const MultiConvertModule = () => {
                 </li>
                 
                 <li className="pt-4">
-                  {selectedDirectory === 'source' && (
-                    <button 
-                      className="w-1/2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-medium justify-center mx-auto"
-                      onClick={() => {
-                        if (!sourceCode) return;
-                        const blob = new Blob([sourceCode], { type: 'text/plain' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `source_${Date.now()}.txt`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
-                    >
-                      导出
-                    </button>
-                  )}
-                  
-                  {selectedDirectory === 'convert' && (
-                    <div className="flex gap-2">
-                      <button 
-                        className="w-1/2 px-3 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:from-green-700 hover:to-teal-700 transition-all duration-300 font-medium justify-center"
-                        onClick={() => {
-                          if (!goCode) return;
-                          const blob = new Blob([goCode], { type: 'text/plain' });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `go_output_${Date.now()}.txt`;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
-                        }}
-                      >
-                        导出Go
-                      </button>
-                      <button 
-                        className="w-1/2 px-3 py-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg hover:from-purple-700 hover:to-violet-700 transition-all duration-300 font-medium justify-center"
-                        onClick={() => {
-                          if (!vyperCode) return;
-                          const blob = new Blob([vyperCode], { type: 'text/plain' });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `vyper_output_${Date.now()}.txt`;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
-                        }}
-                      >
-                        导出Vyper
-                      </button>
-                    </div>
-                  )}
+                  <button 
+                    className="w-1/2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-medium justify-center mx-auto"
+                    onClick={() => {
+                      let content = '';
+                      let filename = '';
+                      
+                      if (selectedDirectory === 'source') {
+                        content = sourceCode;
+                        filename = `source_${Date.now()}.txt`;
+                      } else if (selectedDirectory === 'logic') {
+                        content = logicCode;
+                        filename = `logic_${Date.now()}.txt`;
+                      } else if (selectedDirectory === 'convert') {
+                        if (selectedTargetLanguage === 'go') {
+                          content = goCode;
+                        } else if (selectedTargetLanguage === 'vyper') {
+                          content = vyperCode;
+                        } else if (selectedTargetLanguage === 'solidity') {
+                          content = solidityCode;
+                        }
+                        filename = `${selectedTargetLanguage}_output_${Date.now()}.txt`;
+                      }
+                      
+                      if (!content) return;
+                      
+                      const blob = new Blob([content], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = filename;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    导出
+                  </button>
                 </li>
               </ul>
             </div>
@@ -1302,31 +1312,44 @@ const MultiConvertModule = () => {
             )}
             
             {selectedDirectory === 'convert' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
-                    <span className="text-base font-medium text-gray-700">Go</span>
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
+                  <div className="flex gap-4">
+                    <button
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${selectedTargetLanguage === 'solidity' ? 'bg-orange-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}
+                      onClick={() => setSelectedTargetLanguage('solidity')}
+                    >
+                      Solidity
+                    </button>
+                    <button
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${selectedTargetLanguage === 'go' ? 'bg-orange-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}
+                      onClick={() => setSelectedTargetLanguage('go')}
+                    >
+                      Go
+                    </button>
+                    <button
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${selectedTargetLanguage === 'vyper' ? 'bg-orange-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}
+                      onClick={() => setSelectedTargetLanguage('vyper')}
+                    >
+                      Vyper
+                    </button>
                   </div>
-                  <textarea
-                    className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
-                    value={goCode}
-                    onChange={(e) => setGoCode(e.target.value)}
-                    placeholder=""
-                    spellCheck={false}
-                  />
                 </div>
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 border-b border-gray-200 flex items-center px-4 py-2">
-                    <span className="text-base font-medium text-gray-700">Vyper</span>
-                  </div>
-                  <textarea
-                    className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
-                    value={vyperCode}
-                    onChange={(e) => setVyperCode(e.target.value)}
-                    placeholder=""
-                    spellCheck={false}
-                  />
-                </div>
+                <textarea
+                  className="w-full border-none px-4 py-3 text-base h-[480px] resize-none bg-white font-mono"
+                  value={selectedTargetLanguage === 'go' ? goCode : selectedTargetLanguage === 'vyper' ? vyperCode : solidityCode}
+                  onChange={(e) => {
+                    if (selectedTargetLanguage === 'go') {
+                      setGoCode(e.target.value);
+                    } else if (selectedTargetLanguage === 'vyper') {
+                      setVyperCode(e.target.value);
+                    } else if (selectedTargetLanguage === 'solidity') {
+                      setSolidityCode(e.target.value);
+                    }
+                  }}
+                  placeholder=""
+                  spellCheck={false}
+                />
               </div>
             )}
             
