@@ -17,10 +17,10 @@ export default defineConfig(({ mode }) => {
     'http://127.0.0.1:5001';
   const featureApiProxyTarget =
     env.VITE_FEATURE_API_PROXY_TARGET ||
-    'http://10.198.134.159:8010';
+    'http://127.0.0.1:8010';
   const camceeApiProxyTarget =
     env.VITE_CAMCEE_API_PROXY_TARGET ||
-    'http://10.198.134.159:8010';
+    'http://127.0.0.1:8010';
 
   return {
     server: {

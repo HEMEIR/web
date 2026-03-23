@@ -720,7 +720,11 @@ const DocTransPro = () => {
 
       {previewVisible && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full max-h-[86vh] overflow-y-auto">
+          <div
+            className={`bg-white rounded-xl shadow-lg w-full overflow-y-auto ${
+              previewMode === 'html' ? 'max-w-3xl max-h-[86vh]' : 'max-w-2xl max-h-[62vh]'
+            }`}
+          >
             <div className="p-6 border-b sticky top-0 bg-white flex justify-between items-center">
               <h3 className="text-xl font-bold text-gray-900">📄 {previewFileName}</h3>
               <button
@@ -732,15 +736,22 @@ const DocTransPro = () => {
             </div>
             <div className="p-6">
               {previewMode === 'html' ? (
-                <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                <div
+                  className="bg-gray-50 border border-gray-200 rounded-lg p-4"
+                  style={{ maxHeight: '32vh', overflowY: 'auto' }}
+                >
                   <iframe
                     title={previewFileName}
                     srcDoc={previewContent || '<p>文件内容为空</p>'}
-                    className="w-full h-[30vh] bg-white"
+                    className="w-full bg-white border-0"
+                    style={{ height: '32vh' }}
                   />
                 </div>
               ) : (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 whitespace-pre-wrap break-words text-sm font-mono text-gray-700">
+                <div
+                  className="bg-gray-50 border border-gray-200 rounded-lg p-4 whitespace-pre-wrap break-words text-sm font-mono text-gray-700"
+                  style={{ maxHeight: '32vh', overflowY: 'auto' }}
+                >
                   {previewContent || '文件内容为空'}
                 </div>
               )}
